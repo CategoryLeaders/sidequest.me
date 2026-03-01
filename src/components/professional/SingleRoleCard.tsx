@@ -18,8 +18,11 @@ export default function SingleRoleCard({ company }: { company: Company }) {
           </div>
           <div style={{ flex: 1 }}>
             <div className="pro-company-name">{c.name}</div>
-            <div className="pro-role-title">{c.roleTitle}</div>
-            <div className="pro-role-date">{c.roleDates}</div>
+            <div className="tm-label">
+              <span className="tm-role">{c.roleTitle}</span>
+              <br />
+              <span className="tm-date">{c.roleDates}</span>
+            </div>
           </div>
           <Tags tags={c.tags} />
         </div>
