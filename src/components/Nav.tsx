@@ -8,11 +8,12 @@ const links = [
   { href: "/about", label: "About" },
   { href: "/professional", label: "Professional" },
   { href: "/photos", label: "Photos" },
+  { href: "/photowall", label: "Photowall" },
   { href: "/ideas", label: "Ideas" },
   { href: "/projects", label: "Projects" },
 ];
 
-const rotations = ["-0.5deg", "0.7deg", "-0.3deg", "0.5deg", "-0.8deg", "0.4deg"];
+const rotations = ["-0.5deg", "0.7deg", "-0.3deg", "0.5deg", "0.6deg", "-0.8deg", "0.4deg"];
 
 export default function Nav() {
   const pathname = usePathname();

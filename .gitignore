@@ -14,3 +14,9 @@ My Content/
 
 # Design iteration previews
 design-spec/previews/
+
+# Instagram photowall images (212MB — regenerate with scripts/process-instagram.py)
+public/photowall/
+
+# Instagram data export (source images)
+Images/
