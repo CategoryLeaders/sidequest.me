@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Fact-Check — Sophie Collins</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --cream: #fffbe6;
+    --border: 3px solid var(--ink);
+    --red: #E53935;
+    --blue: #1E88E5;
+    --green: #43A047;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    padding: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: #666; margin-bottom: 24px; font-size: 0.95rem; }
+  .progress-bar {
+    background: #e0e0e0;
+    border: var(--border);
+    height: 28px;
+    margin-bottom: 32px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .progress-fill {
+    background: var(--green);
+    height: 100%;
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+  }
+</style>
+<style>
+  .company-card {
+    border: var(--border);
+    background: #fff;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .company-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: var(--border);
+  }
+  .company-swatch {
+    width: 32px; height: 32px;
+    border: 2px solid var(--ink);
+    flex-shrink: 0;
+  }
+  .company-name {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+  }
+  .company-sub { font-size: 0.82rem; color: #666; }
+  .status-badge {
+    margin-left: auto;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 2px solid var(--ink);
+  }
+  .status-pending { background: #fff3cd; }
+  .status-confirmed { background: #d4edda; }
+  .status-corrected { background: #f8d7da; }
+</style>
+<style>
+  .field-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 100px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 20px;
+    border-bottom: 1px solid #eee;
+    min-height: 44px;
+  }
+  .field-row:hover { background: #fefcf0; }
+  .field-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #888;
+  }
+  .field-value {
+    font-size: 0.95rem;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+  }
+  .field-value:hover { border-color: #ccc; }
+  .field-actions { display: flex; gap: 4px; }
+  .btn {
+    border: 2px solid var(--ink);
+    background: #fff;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--ink); color: #fff; }
+  .btn-confirm { border-color: var(--green); color: var(--green); }
+  .btn-confirm:hover { background: var(--green); color: #fff; }
+  .btn-correct { border-color: var(--red); color: var(--red); }
+  .btn-correct:hover { background: var(--red); color: #fff; }
+  .btn-confirm.active { background: var(--green); color: #fff; }
+  .btn-correct.active { background: var(--red); color: #fff; }
+</style>
+<style>
+  .correction-input {
+    display: none;
+    padding: 8px 20px;
+    background: #fff5f5;
+    border-bottom: 1px solid #eee;
+  }
+  .correction-input.visible { display: block; }
+  .correction-input input, .correction-input textarea {
+    width: 100%;
+    padding: 6px 10px;
+    border: 2px solid var(--red);
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  .correction-input textarea { min-height: 60px; resize: vertical; }
+  .correction-input label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .station-group {
+    padding: 12px 20px;
+    border-bottom: 1px solid #ddd;
+  }
+  .station-group-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 8px;
+  }
+  .discipline-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+<style>
+  .notes-section {
+    padding: 12px 20px;
+    background: #fafaf0;
+  }
+  .notes-section label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .notes-section textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    font-family: inherit;
+    font-size: 0.85rem;
+    min-height: 50px;
+    resize: vertical;
+    background: #fff;
+  }
+  .export-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--cream);
+    padding: 16px 0;
+    border-top: var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn-export {
+    border: var(--border);
+    background: var(--ink);
+    color: var(--cream);
+    padding: 10px 24px;
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 900;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .btn-export:hover { background: #333; }
+  .export-status { font-size: 0.85rem; color: #666; }
+</style>
+</head>
+<body>
+<h1>Career Fact-Check</h1>
+<p class="subtitle">Review each role below. Confirm if correct or flag corrections. Export when done.</p>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%">0 / 0</div></div>
+
+<div id="cards"></div>
+
+<div class="export-bar">
+  <button class="btn-export" onclick="exportJSON()">Export Corrections (JSON)</button>
+  <button class="btn-export" onclick="exportText()">Export Summary (Text)</button>
+  <span class="export-status" id="exportStatus"></span>
+</div>
+
+<script>
+const DISCIPLINE_COLOURS = { commercial: "#E53935", product: "#1E88E5", marketing: "#43A047" };
+
+const companies = [
+  {
+    name: "Hack The Box",
+    brandColour: "#9FEF00",
+    type: "single",
+    roleTitle: "VP Product Marketing",
+    roleDates: "2023 – 2024",
+    tags: ["B2B SaaS", "Cybersecurity", "Marketing", "Strategy"],
+    blurbLeft: "Led product marketing for the world's largest cybersecurity upskilling platform. Built positioning, GTM, and competitive strategy.",
+    blurbRight: ["Repositioned enterprise platform", "Built competitive intelligence programme", "Launched new pricing and packaging"]
+  },
+  {
+    name: "Self-Employed",
+    brandColour: "#c4a8ff",
+    type: "single",
+    roleTitle: "Freelance Consultant",
+    roleDates: "2020 – 2023",
+    tags: ["Consulting", "Strategy", "GTM"],
+    blurbLeft: "Independent consulting on go-to-market strategy, product marketing, and analyst relations for B2B tech companies.",
+    blurbRight: ["GTM strategy for early-stage startups", "Analyst relations programmes", "Product positioning workshops"]
+  },
+  {
+    name: "1E",
+    brandColour: "#F7941D",
+    type: "multi",
+    subLine: "Enterprise Software · 2013–2020",
+    tags: ["B2B SaaS", "Enterprise", "IT Ops", "DEX"],
+    stations: [
+      { role: "Solutions Engineer", dates: "2013–2014", discipline: "commercial", track: 1 },
+      { role: "Solutions Engineering Lead", dates: "2014–2015", discipline: "commercial", track: 1 },
+      { role: "Product Manager", dates: "2015–2016", discipline: "product", track: 3 },
+      { role: "Senior Product Manager", dates: "2016–2017", discipline: "product", track: 3 },
+      { role: "Product Marketing Manager", dates: "2017–2018", discipline: "marketing", track: 2 },
+      { role: "Senior Product Marketing Mgr", dates: "2018–2019", discipline: "marketing", track: 2 },
+      { role: "VP Product Marketing", dates: "2019–2020", discipline: "marketing", track: 2 }
+    ],
+    blurbLeft: "Joined as a Solutions Engineer and worked across commercial, product, and marketing — ending up as VP Product Marketing. A proper career within a career.",
+    blurbRight: ["Built the SE function from scratch", "Launched Tachyon to market", "Led product marketing through rebrand"]
+  },
+  {
+    name: "Signal Media",
+    brandColour: "#0066FF",
+    type: "single",
+    roleTitle: "VP Marketing",
+    roleDates: "2020 – 2022",
+    tags: ["B2B SaaS", "AI / NLP", "Marketing", "Strategy"],
+    blurbLeft: "Led marketing at an AI-powered media intelligence startup through Series B growth. Built brand, demand gen, and comms.",
+    blurbRight: ["Rebuilt brand from scratch", "Scaled inbound pipeline 4x", "Led comms through funding round"]
+  },
+  {
+    name: "Brandwatch",
+    brandColour: "#FF6B35",
+    type: "multi",
+    subLine: "Social Analytics · 2010–2012",
+    tags: ["B2B SaaS", "Analytics", "Social", "Data"],
+    stations: [
+      { role: "Marketing Executive", dates: "2010–2011", discipline: "marketing", track: 2 },
+      { role: "Senior Marketing Executive", dates: "2011–2012", discipline: "marketing", track: 2 }
+    ],
+    blurbLeft: "Early-stage social analytics company where I cut my teeth in B2B marketing. Brilliant team, brilliant product.",
+    blurbRight: ["Built early marketing function", "Event and content strategy", "Helped shape product positioning"]
+  },
+  {
+    name: "Earlier Career",
+    brandColour: "#888888",
+    type: "single",
+    roleTitle: "Various Roles",
+    roleDates: "2007 – 2010",
+    tags: ["Early Career", "Foundations"],
+    blurbLeft: "Started in development and IT ops before discovering a passion for product. The technical foundations that shaped everything that followed.",
+    blurbRight: ["Developer and IT operations", "Built technical foundations", "Discovered product management"]
+  }
+];
+
+// State: track confirmations and corrections per field
+const state = {};
+let totalFields = 0;
+
+function fieldKey(companyIdx, fieldName, stationIdx) {
+  return stationIdx !== undefined
+    ? `${companyIdx}__station_${stationIdx}__${fieldName}`
+    : `${companyIdx}__${fieldName}`;
+}
+
+function updateProgress() {
+  const reviewed = Object.values(state).filter(s => s.status !== 'pending').length;
+  const pct = totalFields ? Math.round((reviewed / totalFields) * 100) : 0;
+  const fill = document.getElementById('progressFill');
+  fill.style.width = pct + '%';
+  fill.textContent = `${reviewed} / ${totalFields} fields reviewed`;
+  // Update card badges
+  companies.forEach((c, ci) => {
+    const badge = document.getElementById(`badge-${ci}`);
+    if (!badge) return;
+    const cardKeys = Object.keys(state).filter(k => k.startsWith(ci + '__'));
+    const confirmed = cardKeys.filter(k => state[k].status === 'confirmed').length;
+    const corrected = cardKeys.filter(k => state[k].status === 'corrected').length;
+    const total = cardKeys.length;
+    if (corrected > 0) { badge.className = 'status-badge status-corrected'; badge.textContent = `${corrected} correction${corrected>1?'s':''}`; }
+    else if (confirmed === total) { badge.className = 'status-badge status-confirmed'; badge.textContent = 'All confirmed'; }
+    else { badge.className = 'status-badge status-pending'; badge.textContent = `${total - confirmed - corrected} pending`; }
+  });
+}
+
+function markField(key, status) {
+  if (!state[key]) state[key] = { status: 'pending', correction: '' };
+  state[key].status = status;
+  const row = document.getElementById('row-' + key);
+  const corrBox = document.getElementById('corr-' + key);
+  const btnC = document.getElementById('btnC-' + key);
+  const btnX = document.getElementById('btnX-' + key);
+  if (btnC) { btnC.classList.toggle('active', status === 'confirmed'); }
+  if (btnX) { btnX.classList.toggle('active', status === 'corrected'); }
+  if (corrBox) { corrBox.classList.toggle('visible', status === 'corrected'); }
+  if (status === 'corrected' && corrBox) {
+    const inp = corrBox.querySelector('input, textarea');
+    if (inp) setTimeout(() => inp.focus(), 50);
+  }
+  updateProgress();
+}
+
+function setCorrection(key, value) {
+  if (!state[key]) state[key] = { status: 'corrected', correction: '' };
+  state[key].correction = value;
+}
+
+function makeFieldRow(companyIdx, label, value, fieldName, stationIdx) {
+  const key = fieldKey(companyIdx, fieldName, stationIdx);
+  state[key] = { status: 'pending', correction: '' };
+  totalFields++;
+  const isLong = value.length > 80 || Array.isArray(value);
+  const displayVal = Array.isArray(value) ? value.map(v => '• ' + v).join('<br>') : value;
+  return `
+    <div class="field-row" id="row-${key}">
+      <div class="field-label">${label}</div>
+      <div class="field-value">${displayVal}</div>
+      <div class="field-actions">
+        <button class="btn btn-confirm" id="btnC-${key}" onclick="markField('${key}','confirmed')" title="Correct">✓</button>
+        <button class="btn btn-correct" id="btnX-${key}" onclick="markField('${key}','corrected')" title="Needs correction">✗</button>
+      </div>
+    </div>
+    <div class="correction-input" id="corr-${key}">
+      <label>What should it be?</label>
+      ${isLong
+        ? `<textarea placeholder="Enter correction..." oninput="setCorrection('${key}', this.value)"></textarea>`
+        : `<input type="text" placeholder="Enter correction..." oninput="setCorrection('${key}', this.value)">`}
+    </div>`;
+}
+
+function renderCards() {
+  const container = document.getElementById('cards');
+  let html = '';
+  companies.forEach((c, ci) => {
+    html += `<div class="company-card">`;
+    html += `<div class="company-header">
+      <div class="company-swatch" style="background:${c.brandColour}"></div>
+      <div>
+        <div class="company-name">${c.name}</div>
+        ${c.subLine ? `<div class="company-sub">${c.subLine}</div>` : ''}
+      </div>
+      <div class="status-badge status-pending" id="badge-${ci}">Pending</div>
+    </div>`;
+
+    // Company-level fields
+    html += makeFieldRow(ci, 'Company Name', c.name, 'name');
+    html += makeFieldRow(ci, 'Brand Colour', c.brandColour, 'brandColour');
+    html += makeFieldRow(ci, 'Tags', c.tags.join(', '), 'tags');
+
+    if (c.type === 'single') {
+      html += makeFieldRow(ci, 'Role Title', c.roleTitle, 'roleTitle');
+      html += makeFieldRow(ci, 'Dates', c.roleDates, 'roleDates');
+    }
+
+    if (c.subLine) {
+      html += makeFieldRow(ci, 'Sub-line', c.subLine, 'subLine');
+    }
+
+    // Stations for multi-role
+    if (c.stations) {
+      html += `<div class="station-group"><div class="station-group-title">Roles (oldest → newest)</div>`;
+      c.stations.forEach((s, si) => {
+        const dcol = DISCIPLINE_COLOURS[s.discipline] || '#999';
+        html += makeFieldRow(ci, `<span class="discipline-dot" style="background:${dcol}"></span>${s.discipline}`, `${s.role} — ${s.dates}`, 'station_role', si);
+      });
+      html += `</div>`;
+    }
+
+    // Blurbs
+    html += makeFieldRow(ci, 'Blurb Left', c.blurbLeft, 'blurbLeft');
+    html += makeFieldRow(ci, 'Blurb Right', c.blurbRight, 'blurbRight');
+
+    // General notes
+    html += `<div class="notes-section">
+      <label>General notes for ${c.name}</label>
+      <textarea placeholder="Any other feedback about this company entry..." id="notes-${ci}"></textarea>
+    </div>`;
+
+    html += `</div>`; // close company-card
+  });
+  container.innerHTML = html;
+  updateProgress();
+}
+
+function exportJSON() {
+  const corrections = {};
+  companies.forEach((c, ci) => {
+    const cardKeys = Object.keys(state).filter(k => k.startsWith(ci + '__'));
+    const entry = { company: c.name, fields: {} };
+    let hasFeedback = false;
+    cardKeys.forEach(k => {
+      const s = state[k];
+      const fieldName = k.replace(ci + '__', '');
+      entry.fields[fieldName] = { status: s.status, correction: s.correction || null };
+      if (s.status !== 'pending') hasFeedback = true;
+    });
+    const notes = document.getElementById(`notes-${ci}`)?.value;
+    if (notes) { entry.notes = notes; hasFeedback = true; }
+    if (hasFeedback) corrections[c.name] = entry;
+  });
+  const blob = new Blob([JSON.stringify(corrections, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'career-corrections.json';
+  a.click();
+  document.getElementById('exportStatus').textContent = 'JSON exported ✓';
+}
+
+function exportText() {
+  let text = 'CAREER FACT-CHECK RESULTS\n';
+  text += '========================\n\n';
+  const reviewed = Object.values(state).filter(s => s.status !== 'pending').length;
+  const corrected = Object.values(state).filter(s => s.status === 'corrected').length;
+  text += `Summary: ${reviewed}/${totalFields} reviewed, ${corrected} corrections\n\n`;
+  companies.forEach((c, ci) => {
+    text += `--- ${c.name} ---\n`;
+    const cardKeys = Object.keys(state).filter(k => k.startsWith(ci + '__'));
+    cardKeys.forEach(k => {
+      const s = state[k];
+      const fieldName = k.replace(ci + '__', '');
+      if (s.status === 'confirmed') text += `  ✓ ${fieldName}: confirmed\n`;
+      else if (s.status === 'corrected') text += `  ✗ ${fieldName}: CORRECTION → ${s.correction || '(no detail)'}\n`;
+    });
+    const notes = document.getElementById(`notes-${ci}`)?.value;
+    if (notes) text += `  📝 Notes: ${notes}\n`;
+    text += '\n';
+  });
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'career-corrections.txt';
+  a.click();
+  document.getElementById('exportStatus').textContent = 'Text exported ✓';
+}
+
+renderCards();
+</script>
+</body>
+</html>
