@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTM Planner — FenViolet × Sidequest Ventures</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Calistoga&family=Open+Sans:wght@300;400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   CSS VARIABLES
+   ═══════════════════════════════════════════ */
+:root {
+  /* Sidequest Ventures */
+  --sq-bg: #08080d;
+  --sq-surface: rgba(255,255,255,0.03);
+  --sq-text: #fafafa;
+  --sq-text-sec: #a1a1aa;
+  --sq-text-muted: #52525b;
+  --sq-accent: #8b5cf6;
+  --sq-accent-hover: #a78bfa;
+  --sq-cyan: #06b6d4;
+  --sq-emerald: #10b981;
+  --sq-success: #22c55e;
+  --sq-warning: #eab308;
+  --sq-border: rgba(255,255,255,0.06);
+  --sq-path-grey: #3f3f46;
+  /* FenViolet */
+  --fv-cream: #faf7f0;
+  --fv-sage: #bac5b0;
+  --fv-gold: #c29851;
+  --fv-violet: #a69fca;
+  --fv-black: #010202;
+  --fv-cream-dk: #f0ebe0;
+  /* Feedback */
+  --pos-bg: #e8f0e4; --pos-border: #8aad7e; --pos-text: #4a6b40;
+  --neg-bg: #f0e4e4; --neg-border: #ad7e7e; --neg-text: #6b4040;
+  --pos-thumb: #6b9a5b; --neg-thumb: #9a5b5b;
+  --replace-bg: #2a2a2a; --replace-text: #fff;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Open Sans', sans-serif; font-weight: 400; color: var(--fv-black); background: var(--sq-bg); overflow-x: hidden; }
+
+/* ═══════════════════════════════════════════
+   NAV BAR (Sidequest-branded)
+   ═══════════════════════════════════════════ */
+.sq-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  background: var(--sq-bg); border-bottom: 1px solid var(--sq-border);
+  font-family: 'Inter', sans-serif;
+}
+.sq-nav-brand { display: flex; align-items: center; gap: 10px; }
+.sq-nav-brand svg { width: 32px; height: 32px; }
+.sq-nav-brand span { color: var(--sq-text); font-weight: 600; font-size: 15px; letter-spacing: -0.5px; }
+.sq-nav-brand .dot { color: var(--sq-accent); }
+
+/* Progress bar */
+.progress-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--sq-path-grey); transition: all 0.3s ease;
+  cursor: pointer;
+}
+.progress-dot.active { background: var(--sq-accent); box-shadow: 0 0 8px rgba(139,92,246,0.4); }
+.progress-dot.done { background: var(--sq-emerald); }
+.progress-line {
+  width: 20px; height: 2px; background: var(--sq-path-grey); transition: background 0.3s ease;
+}
+.progress-line.done { background: var(--sq-emerald); }
+
+/* Nav buttons */
+.sq-nav-actions { display: flex; gap: 8px; }
+.nav-btn {
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 6px 16px; border-radius: 6px; border: none; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.nav-btn.back { background: var(--sq-surface); color: var(--sq-text-sec); border: 1px solid var(--sq-border); }
+.nav-btn.back:hover { color: var(--sq-text); border-color: var(--sq-text-muted); }
+.nav-btn.next { background: var(--sq-accent); color: #fff; }
+.nav-btn.next:hover { background: var(--sq-accent-hover); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+</style>
+</head>
+<body>
+</body>
+</html>
+
+/* ═══════════════════════════════════════════
+   PAGE CONTAINERS
+   ═══════════════════════════════════════════ */
+.page { display: none; min-height: 100vh; padding-top: 56px; }
+.page.active { display: block; }
+
+/* Sidequest-themed pages (Welcome, Overall Feedback) */
+.page-sq {
+  background: var(--sq-bg);
+  color: var(--sq-text);
+  font-family: 'Inter', sans-serif;
+}
+
+/* FenViolet-themed pages (Dashboard, FB, WA, Email, Status) */
+.page-fv {
+  background: var(--fv-cream);
+  color: var(--fv-black);
+}
+.page-fv .page-inner {
+  max-width: 1100px; margin: 0 auto; padding: 32px 24px 100px;
+}
+.page-fv h2 {
+  font-family: 'Calistoga', serif; font-size: 28px; color: var(--fv-black); margin-bottom: 8px;
+}
+.page-fv h3 {
+  font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; margin-bottom: 12px;
+}
+.page-fv .subtitle {
+  font-size: 14px; color: #666; margin-bottom: 24px; font-weight: 300;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE 0 — WELCOME (Sidequest shell)
+   ═══════════════════════════════════════════ */
+.welcome-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: calc(100vh - 56px); text-align: center; position: relative;
+}
+.welcome-orb {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none;
+}
+.welcome-orb.purple { width: 400px; height: 400px; background: var(--sq-accent); top: 10%; left: 15%; }
+.welcome-orb.cyan { width: 300px; height: 300px; background: var(--sq-cyan); bottom: 15%; right: 15%; }
+
+.welcome-card {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--sq-border);
+  border-radius: 16px; padding: 48px 56px; max-width: 480px; position: relative; z-index: 1;
+  animation: fadeUp 0.8s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.welcome-card .fv-logo {
+  font-family: 'Calistoga', serif; font-size: 36px; color: var(--fv-violet);
+  margin-bottom: 8px;
+}
+.welcome-card .fv-tagline {
+  font-family: 'Open Sans', sans-serif; font-weight: 300; font-size: 15px;
+  color: var(--sq-text-sec); margin-bottom: 32px;
+}
+.welcome-card .fv-tagline em { color: var(--fv-gold); font-style: normal; }
+.begin-btn {
+  font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px;
+  padding: 12px 40px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--sq-accent); color: #fff; transition: all 0.2s ease;
+  letter-spacing: -0.3px;
+}
+.begin-btn:hover { background: var(--sq-accent-hover); transform: translateY(-1px); }
+.welcome-footer {
+  margin-top: 40px; font-size: 11px; color: var(--sq-text-muted);
+  text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500;
+}
+
+
+/* ═══════════════════════════════════════════
+   PAGE 1 — DASHBOARD (Tactics grid)
+   ═══════════════════════════════════════════ */
+.tactics-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+}
+.tactics-counts {
+  display: flex; gap: 12px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500;
+}
+.tactics-counts .tc { padding: 4px 12px; border-radius: 20px; }
+.tc-active { background: #e8f0e4; color: #4a6b40; }
+.tc-considering { background: #fff8e1; color: #8d6e00; }
+.tc-parked { background: #e8eaf0; color: #555; }
+.tc-rejected { background: #f0e4e4; color: #6b4040; }
+
+.tactics-tabs {
+  display: flex; gap: 4px; margin-bottom: 20px; background: var(--fv-cream-dk); border-radius: 8px; padding: 4px;
+}
+.tactics-tab {
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+  background: transparent; color: #888; transition: all 0.2s;
+}
+.tactics-tab.active { background: #fff; color: var(--fv-black); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.tactics-panel { display: none; }
+.tactics-panel.active { display: block; }
+
+.tactics-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+}
+.tactic-card {
+  background: #fff; border-radius: 12px; padding: 20px;
+  border: 2px solid transparent; transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.tactic-card h4 { font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.tactic-card .tactic-desc { font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 300; line-height: 1.5; }
+.tactic-card .tactic-meta { font-size: 11px; color: #999; margin-bottom: 12px; }
+.tactic-card .tactic-badge {
+  display: inline-block; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px;
+  margin-bottom: 8px;
+}
+.badge-social { background: #e8e4f0; color: #6b5b8a; }
+.badge-content { background: #e4f0e8; color: #5b8a6b; }
+.badge-outreach { background: #f0ece4; color: #8a7b5b; }
+.badge-paid { background: #f0e4e8; color: #8a5b6b; }
+
+.vote-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.vote-btn {
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500;
+  padding: 5px 12px; border-radius: 6px; border: 1.5px solid #ddd;
+  background: #fff; cursor: pointer; transition: all 0.15s;
+}
+.vote-btn:hover { border-color: #aaa; }
+.sel-yes { border-color: var(--pos-border) !important; background: var(--pos-bg) !important; }
+.sel-maybe { border-color: #e0c97a !important; background: #fff8e1 !important; }
+.sel-later { border-color: #aab !important; background: #e8eaf0 !important; }
+.sel-no { border-color: var(--neg-border) !important; background: var(--neg-bg) !important; }
+.tactic-card.sel-yes { border-color: var(--pos-border); }
+.tactic-card.sel-maybe { border-color: #e0c97a; }
+.tactic-card.sel-later { border-color: #bbc; }
+.tactic-card.sel-no { border-color: var(--neg-border); opacity: 0.6; }
+
+
+/* ═══════════════════════════════════════════
+   SUB-TAB NAVIGATION (Platform pages)
+   ═══════════════════════════════════════════ */
+.sub-tabs {
+  display: flex; gap: 4px; margin-bottom: 24px; background: var(--fv-cream-dk); border-radius: 8px; padding: 4px;
+}
+.sub-tab {
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer;
+  background: transparent; color: #888; transition: all 0.2s;
+}
+.sub-tab.active { background: #fff; color: var(--fv-black); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+/* ═══════════════════════════════════════════
+   MESSAGE SELECTION GRID (3×3)
+   ═══════════════════════════════════════════ */
+.msg-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;
+}
+.msg-tile {
+  background: #fff; border: 2px solid #e8e4e0; border-radius: 12px; padding: 16px;
+  cursor: pointer; transition: all 0.2s ease; position: relative;
+}
+.msg-tile:hover { border-color: var(--fv-violet); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.msg-tile.selected { border-color: var(--fv-violet); background: #f8f5ff; }
+.msg-tile.selected::after {
+  content: '✓'; position: absolute; top: 8px; right: 10px;
+  background: var(--fv-violet); color: #fff; width: 22px; height: 22px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.msg-tile.placeholder { opacity: 0.4; border-style: dashed; cursor: default; }
+.msg-tile.placeholder:hover { border-color: #e8e4e0; transform: none; box-shadow: none; }
+.msg-tile .tile-label {
+  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: var(--fv-violet);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.msg-tile .tile-preview {
+  font-size: 13px; color: #555; line-height: 1.5; font-weight: 300;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+.msg-tile .tile-status {
+  display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; margin-top: 8px; font-family: 'Poppins', sans-serif;
+}
+.status-baseline { background: #e8f0e4; color: #4a6b40; }
+.status-draft { background: #fff8e1; color: #8d6e00; }
+.status-rewritten { background: #e8e4f0; color: #6b5b8a; }
+.status-placeholder { background: #f0f0f0; color: #999; }
+.selection-counter {
+  font-family: 'Poppins', sans-serif; font-size: 13px; color: #888; margin-bottom: 16px;
+}
+.selection-counter strong { color: var(--fv-violet); }
+
+
+/* ═══════════════════════════════════════════
+   PLATFORM MOCKUPS (ported from v4)
+   ═══════════════════════════════════════════ */
+/* Facebook */
+.fb-post {
+  background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  overflow: hidden; margin-bottom: 24px; max-width: 600px;
+}
+.fb-header { display: flex; align-items: center; padding: 12px 16px; gap: 10px; }
+.fb-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--fv-violet), var(--fv-sage)); flex-shrink: 0;
+}
+.fb-name { font-weight: 700; font-size: 14px; }
+.fb-time { font-size: 12px; color: #888; }
+.fb-text { padding: 0 16px 12px; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+.fb-link {
+  display: block; margin: 0 16px 16px; padding: 12px 16px; border: 1px solid #ddd;
+  border-radius: 8px; text-decoration: none; color: inherit; font-size: 13px;
+  background: var(--fv-cream);
+}
+.fb-link small { color: #888; text-transform: uppercase; font-size: 10px; display: block; margin-bottom: 2px; }
+.fb-link strong { display: block; }
+
+/* WhatsApp */
+.wa-wrap {
+  background: #e5ddd5; border-radius: 10px; padding: 20px 16px; max-width: 400px; margin-bottom: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Ccircle cx='30' cy='30' r='1' fill='%23d4ccb5' opacity='.3'/%3E%3C/svg%3E");
+}
+.wa-bubble {
+  background: #dcf8c6; padding: 10px 14px; border-radius: 8px 8px 8px 0;
+  font-size: 14px; line-height: 1.6; white-space: pre-line; position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08); max-width: 340px;
+}
+.wa-time {
+  font-size: 10px; color: #888; text-align: right; margin-top: 4px;
+}
+
+/* Email */
+.email-wrap {
+  background: #fff; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  overflow: hidden; max-width: 600px; margin-bottom: 24px;
+}
+.email-toolbar {
+  background: #f6f6f6; padding: 8px 16px; display: flex; gap: 12px; font-size: 12px; color: #888;
+  border-bottom: 1px solid #eee;
+}
+.email-head {
+  padding: 16px; border-bottom: 1px solid #eee; font-size: 13px; line-height: 1.8;
+}
+.email-head strong { display: inline-block; width: 60px; color: #888; font-weight: 400; }
+.email-body { padding: 16px; font-size: 14px; line-height: 1.7; white-space: pre-line; }
+
+
+/* ═══════════════════════════════════════════
+   FEEDBACK PANELS (ported from v4)
+   ═══════════════════════════════════════════ */
+.feedback-panel {
+  background: var(--fv-cream-dk); border-radius: 12px; padding: 24px; margin-top: 16px;
+}
+.feedback-panel h4 {
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+  margin: 16px 0 8px; color: var(--fv-black);
+}
+.feedback-panel h4:first-child { margin-top: 0; }
+.values-section { margin-bottom: 16px; }
+.slider-labels {
+  display: flex; justify-content: space-between; font-size: 10px; color: #999;
+  margin-bottom: 8px; font-family: 'Poppins', sans-serif;
+}
+.slider-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+}
+.slider-row label { font-size: 12px; min-width: 200px; color: #555; font-weight: 300; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--fv-violet); }
+.slider-row .val { font-size: 12px; width: 20px; text-align: center; color: #888; font-family: 'Poppins', sans-serif; }
+/* Accordion for extra sliders */
+.slider-accordion { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+.slider-accordion.open { max-height: 400px; }
+.accordion-toggle {
+  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500;
+  color: var(--fv-violet); background: none; border: none; cursor: pointer;
+  padding: 4px 0; margin-bottom: 8px;
+}
+.accordion-toggle::before { content: '▸ '; }
+.accordion-toggle.open::before { content: '▾ '; }
+
+/* Tags */
+.tags-section { margin-bottom: 12px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tag-btn {
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500;
+  padding: 5px 12px; border-radius: 20px; border: 1.5px solid; cursor: pointer;
+  transition: all 0.15s; background: #fff;
+}
+.tag-btn.pos { border-color: var(--pos-border); color: var(--pos-text); }
+.tag-btn.pos:hover { background: var(--pos-bg); }
+.tag-btn.neg { border-color: var(--neg-border); color: var(--neg-text); }
+.tag-btn.neg:hover { background: var(--neg-bg); }
+.tag-btn.thumb { font-size: 14px; }
+.dice-btn {
+  font-size: 16px; background: none; border: 1px solid #ddd; border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; transition: transform 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.dice-btn:hover { border-color: #aaa; }
+.replace-row { margin: 8px 0; }
+.replace-trigger {
+  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500;
+  padding: 6px 16px; border-radius: 6px; border: 1.5px solid var(--replace-bg);
+  background: var(--replace-bg); color: var(--replace-text); cursor: pointer;
+  transition: opacity 0.15s;
+}
+.replace-trigger:hover { opacity: 0.85; }
+
+/* Feedback lines */
+.feedback-lines { margin-top: 12px; }
+.feedback-line {
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;
+  background: #fff; border-radius: 8px; padding: 8px 10px;
+}
+.fl-tag {
+  font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 600;
+  padding: 3px 10px; border-radius: 12px; white-space: nowrap; margin-top: 4px;
+}
+.fl-tag.pos { background: var(--pos-bg); color: var(--pos-text); }
+.fl-tag.neg { background: var(--neg-bg); color: var(--neg-text); }
+.fl-tag.replace { background: var(--replace-bg); color: var(--replace-text); }
+.feedback-line textarea {
+  flex: 1; font-family: 'Open Sans', sans-serif; font-size: 13px; border: 1px solid #ddd;
+  border-radius: 6px; padding: 6px 10px; resize: vertical; min-height: 40px;
+}
+.replace-inputs { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.replace-inputs input {
+  font-family: 'Open Sans', sans-serif; font-size: 13px; border: 1px solid #ddd;
+  border-radius: 6px; padding: 6px 10px;
+}
+.fl-remove {
+  background: none; border: none; font-size: 14px; color: #ccc; cursor: pointer;
+  padding: 4px; margin-top: 2px;
+}
+.fl-remove:hover { color: #888; }
+
+/* Good to go button */
+.approve-btn {
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 10px 24px; border-radius: 8px; border: 2px solid var(--pos-border);
+  background: #fff; color: var(--pos-text); cursor: pointer; margin-top: 16px;
+  transition: all 0.2s;
+}
+.approve-btn:hover { background: var(--pos-bg); }
+.approve-btn.approved {
+  background: var(--pos-border); color: #fff; cursor: default;
+}
+
+/* Card wrapper for feedback page items */
+.feedback-card {
+  background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.feedback-card.approved-card { border: 2px solid var(--pos-border); opacity: 0.7; }
+.feedback-card.approved-card::after {
+  content: '✓ Good to go'; float: right; font-family: 'Poppins', sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--pos-text); background: var(--pos-bg);
+  padding: 4px 12px; border-radius: 6px;
+}
+
+
+/* ═══════════════════════════════════════════
+   FB POST SEQUENCE TAB
+   ═══════════════════════════════════════════ */
+.guidance-panel {
+  background: linear-gradient(135deg, #f8f5ff, #f0ebe0); border-radius: 12px;
+  padding: 20px 24px; margin-bottom: 24px; border: 1px solid #e8e4f0;
+}
+.guidance-panel h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.guidance-panel ul { padding-left: 18px; font-size: 13px; color: #555; line-height: 1.8; }
+.sequence-flow {
+  display: flex; flex-direction: column; gap: 0; margin-bottom: 20px;
+  background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.seq-box {
+  padding: 12px 16px; border: 1.5px solid #e0dcd8; border-radius: 8px;
+  font-size: 13px; background: #faf7f0;
+}
+.seq-connector {
+  display: flex; align-items: center; justify-content: center; height: 28px;
+  color: var(--fv-violet); font-size: 18px;
+}
+.sequence-rank-input {
+  width: 48px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 14px;
+  font-weight: 600; border: 1.5px solid #ddd; border-radius: 6px; padding: 4px;
+}
+.campaign-slider {
+  display: flex; align-items: center; gap: 12px; margin: 16px 0;
+}
+.campaign-slider label { font-size: 13px; min-width: 140px; }
+.campaign-slider input[type=range] { flex: 1; accent-color: var(--fv-violet); }
+.campaign-slider .val { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: var(--fv-violet); }
+
+.content-ideas-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px;
+}
+.idea-tile {
+  background: #fff; border: 1.5px solid #e8e4e0; border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; color: #555; cursor: pointer; transition: all 0.15s;
+  font-family: 'Poppins', sans-serif; font-weight: 400;
+}
+.idea-tile:hover { border-color: var(--fv-violet); background: #f8f5ff; }
+.idea-tile.selected { border-color: var(--fv-violet); background: #f0ebff; color: var(--fv-black); }
+
+/* ═══════════════════════════════════════════
+   PAGE 5 — STATUS & GENERATE
+   ═══════════════════════════════════════════ */
+.status-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
+}
+.status-card {
+  background: #fff; border-radius: 12px; padding: 20px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.status-card .platform-name {
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 8px;
+}
+.status-card .stat-num {
+  font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; color: var(--fv-violet);
+}
+.status-card .stat-label { font-size: 11px; color: #888; }
+.prompt-area {
+  width: 100%; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;
+  border: 1.5px solid #ddd; border-radius: 10px; padding: 16px; resize: vertical;
+  line-height: 1.6; background: #fff;
+}
+.gen-btn {
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+  padding: 12px 32px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--fv-violet); color: #fff; margin-top: 16px; transition: all 0.2s;
+}
+.gen-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.copy-btn {
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 8px 20px; border-radius: 6px; border: 1.5px solid #ddd;
+  background: #fff; cursor: pointer; margin-left: 8px; transition: all 0.15s;
+}
+.copy-btn:hover { border-color: #aaa; }
+
+/* ═══════════════════════════════════════════
+   PAGE 6 — OVERALL FEEDBACK (Sidequest)
+   ═══════════════════════════════════════════ */
+.feedback-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: calc(100vh - 56px); text-align: center; padding: 40px 24px;
+}
+.feedback-form {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--sq-border);
+  border-radius: 16px; padding: 40px 48px; max-width: 520px; width: 100%;
+}
+.feedback-form h2 {
+  font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 600;
+  color: var(--sq-text); margin-bottom: 8px; letter-spacing: -0.5px;
+}
+.feedback-form .fb-sub {
+  font-size: 14px; color: var(--sq-text-sec); margin-bottom: 32px; font-weight: 300;
+}
+.rating-scale {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 24px;
+}
+.rating-btn {
+  width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--sq-border);
+  background: var(--sq-surface); color: var(--sq-text-sec); font-family: 'Inter', sans-serif;
+  font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.15s;
+}
+.rating-btn:hover { border-color: var(--sq-accent); color: var(--sq-text); }
+.rating-btn.selected { background: var(--sq-accent); color: #fff; border-color: var(--sq-accent); }
+.feedback-textarea {
+  width: 100%; min-height: 120px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--sq-border); border-radius: 10px; padding: 14px;
+  color: var(--sq-text); font-family: 'Inter', sans-serif; font-size: 14px;
+  resize: vertical; margin-bottom: 20px;
+}
+.feedback-textarea::placeholder { color: var(--sq-text-muted); }
+.submit-btn {
+  font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;
+  padding: 10px 32px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--sq-accent); color: #fff; transition: all 0.2s;
+}
+.submit-btn:hover { background: var(--sq-accent-hover); }
+
+/* ═══════════════════════════════════════════
+   BOTTOM NAV BAR (fixed)
+   ═══════════════════════════════════════════ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px; background: var(--sq-bg); border-top: 1px solid var(--sq-border);
+}
+.bottom-nav .page-label {
+  font-family: 'Inter', sans-serif; font-size: 12px; color: var(--sq-text-muted);
+  text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- ===== NAV BAR ===== -->
+<nav class="sq-nav">
+  <div class="sq-nav-logo">
+    <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+      <circle cx="4" cy="48" r="3.5" fill="#3f3f46"/>
+      <path d="M4 48L18 38" stroke="#3f3f46" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M18 38L34 28" stroke="#3f3f46" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"/>
+      <path d="M34 28L50 18" stroke="#3f3f46" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"/>
+      <path d="M50 18L60 10" stroke="#3f3f46" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="60" cy="10" r="3.5" fill="#3f3f46"/>
+      <circle cx="18" cy="38" r="4" fill="#8b5cf6" opacity="0.12"/>
+      <circle cx="18" cy="38" r="3" fill="#8b5cf6"/>
+      <path d="M18 38L14 26L34 28" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="14" cy="26" r="2.5" fill="#8b5cf6" opacity="0.7"/>
+      <circle cx="34" cy="28" r="3" fill="#8b5cf6"/>
+      <circle cx="34" cy="28" r="4.5" fill="#06b6d4" opacity="0.1"/>
+      <path d="M34 28L28 48L44 56L56 40L50 18" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="28" cy="48" r="2.5" fill="#06b6d4" opacity="0.5"/>
+      <circle cx="44" cy="56" r="3.5" fill="#06b6d4"/>
+      <circle cx="56" cy="40" r="2.5" fill="#06b6d4" opacity="0.6"/>
+      <circle cx="50" cy="18" r="3" fill="#06b6d4"/>
+    </svg>
+    <span class="sq-nav-text">sidequest<span style="color:var(--sq-accent)">.ventures</span></span>
+  </div>
+  <div class="progress-dots" id="progressDots">
+    <div class="dot active" data-page="0"></div>
+    <div class="dot" data-page="1"></div>
+    <div class="dot" data-page="2"></div>
+    <div class="dot" data-page="3"></div>
+    <div class="dot" data-page="4"></div>
+    <div class="dot" data-page="5"></div>
+    <div class="dot" data-page="6"></div>
+  </div>
+</nav>
+
+<!-- ===== PAGE 0 — WELCOME ===== -->
+<section class="page page-sq active" id="page-0">
+  <div class="welcome-wrap">
+    <div class="welcome-orb"></div>
+    <div class="welcome-card">
+      <div style="font-family:'Calistoga',serif;font-size:2.4rem;color:var(--fv-violet);margin-bottom:4px;">FenViolet</div>
+      <div style="font-family:'Open Sans',sans-serif;font-weight:300;font-size:1.05rem;color:var(--fv-black);opacity:0.7;margin-bottom:28px;">web design for small businesses</div>
+      <div style="font-size:0.92rem;color:var(--fv-black);opacity:0.55;line-height:1.6;max-width:340px;margin:0 auto 32px;">
+        This tool walks you through Hannah's launch content — review, give feedback, and approve copy across every platform.
+      </div>
+      <button class="begin-btn" onclick="navigateTo(1)">Begin →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PAGE 1 — GTM DASHBOARD ===== -->
+<section class="page page-fv" id="page-1">
+  <h1 style="font-family:'Calistoga',serif;color:var(--fv-violet);font-size:1.8rem;margin-bottom:6px;">FenViolet Launch Plan</h1>
+  <p style="color:var(--fv-black);opacity:0.55;margin-bottom:24px;font-size:0.95rem;">Review launch tactics, then step through each platform's content.</p>
+
+  <div class="tactics-header">
+    <div class="tactics-counts" id="tacticsCounts">
+      <span class="count-badge" data-status="yes">Active: <b>3</b></span>
+      <span class="count-badge" data-status="maybe">Considering: <b>1</b></span>
+      <span class="count-badge" data-status="later">Parked: <b>2</b></span>
+      <span class="count-badge" data-status="no">Rejected: <b>2</b></span>
+    </div>
+    <div class="tactics-tabs">
+      <button class="tactics-tab active" onclick="switchTacticsTab('all',this)">All</button>
+      <button class="tactics-tab" onclick="switchTacticsTab('yes',this)">Active</button>
+      <button class="tactics-tab" onclick="switchTacticsTab('maybe',this)">Considering</button>
+      <button class="tactics-tab" onclick="switchTacticsTab('later',this)">Parked</button>
+      <button class="tactics-tab" onclick="switchTacticsTab('no',this)">Rejected</button>
+    </div>
+  </div>
+
+  <div class="tactics-grid" id="tacticsGrid">
+    <!-- Tactic 1: Facebook Groups — Active -->
+    <div class="tactic-card sel-yes" data-tactic="fb-groups" data-status="yes">
+      <div class="tactic-name">📣 Facebook Groups</div>
+      <div class="tactic-desc">Join local business groups and post value-first content. Build presence before promoting.</div>
+      <div class="tactic-status"><span class="status-pill pill-yes">Active ✅</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes active" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 2: Instagram Reels — Active -->
+    <div class="tactic-card sel-yes" data-tactic="ig-reels" data-status="yes">
+      <div class="tactic-name">🎬 Instagram Reels</div>
+      <div class="tactic-desc">Short behind-the-scenes clips, before/after website reveals, quick design tips.</div>
+      <div class="tactic-status"><span class="status-pill pill-yes">Active ✅</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes active" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 3: Free Website Audit — Active -->
+    <div class="tactic-card sel-yes" data-tactic="free-audit" data-status="yes">
+      <div class="tactic-name">🔍 Free Website Audit</div>
+      <div class="tactic-desc">Offer free mini-audits to build trust and demonstrate expertise. Action: build audit page copy, collateral, example report.</div>
+      <div class="tactic-status"><span class="status-pill pill-yes">Active ✅</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes active" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 4: Collaborate with Creatives — Considering -->
+    <div class="tactic-card sel-maybe" data-tactic="collab-creatives" data-status="maybe">
+      <div class="tactic-name">🤝 Collaborate with Creatives</div>
+      <div class="tactic-desc">Partner with photographers, podcasters, and other creatives for mutual referrals.</div>
+      <div class="tactic-status"><span class="status-pill pill-maybe">Considering 🤔</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe active" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 5: Facebook Business Page — Parked -->
+    <div class="tactic-card sel-later" data-tactic="fb-page" data-status="later">
+      <div class="tactic-name">📄 Facebook Business Page</div>
+      <div class="tactic-desc">Set up a dedicated FenViolet page for professional presence.</div>
+      <div class="tactic-status"><span class="status-pill pill-later">Parked ⏸️</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later active" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 6: Meta Ads — Parked -->
+    <div class="tactic-card sel-later" data-tactic="meta-ads" data-status="later">
+      <div class="tactic-name">💰 Meta Ads</div>
+      <div class="tactic-desc">Paid Facebook/Instagram advertising to reach local small business owners.</div>
+      <div class="tactic-status"><span class="status-pill pill-later">Parked ⏸️</span></div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later active" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 7: Referral Thank-You — Rejected -->
+    <div class="tactic-card sel-no" data-tactic="referral-ty" data-status="no">
+      <div class="tactic-name">🎁 Referral Thank-You</div>
+      <div class="tactic-desc">Send thank-you gifts or discounts to people who refer clients.</div>
+      <div class="tactic-status"><span class="status-pill pill-no">Rejected ❌</span></div>
+      <div class="tactic-note">Only for previous paying clients</div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no active" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+
+    <!-- Tactic 8: Google Business Profile — Rejected -->
+    <div class="tactic-card sel-no" data-tactic="google-biz" data-status="no">
+      <div class="tactic-name">📍 Google Business Profile</div>
+      <div class="tactic-desc">Create a Google Business listing for local search visibility.</div>
+      <div class="tactic-status"><span class="status-pill pill-no">Rejected ❌</span></div>
+      <div class="tactic-note">No physical business location</div>
+      <div class="tactic-votes">
+        <button class="vote-btn vote-yes" onclick="voteTactic(this,'yes')">✅ Yes</button>
+        <button class="vote-btn vote-maybe" onclick="voteTactic(this,'maybe')">🤔 Maybe</button>
+        <button class="vote-btn vote-later" onclick="voteTactic(this,'later')">⏸️ Later</button>
+        <button class="vote-btn vote-no active" onclick="voteTactic(this,'no')">❌ No</button>
+      </div>
+    </div>
+  </div><!-- /tactics-grid -->
+</section>
+
+<!-- ===== PAGE 2 — FACEBOOK ===== -->
+<section class="page page-fv" id="page-2">
+  <h1 style="font-family:'Calistoga',serif;color:var(--fv-violet);font-size:1.6rem;margin-bottom:4px;">📘 Facebook</h1>
+  <p style="color:var(--fv-black);opacity:0.55;margin-bottom:20px;font-size:0.92rem;">Select your top 3 posts, give feedback, then plan your posting sequence.</p>
+
+  <div class="sub-tabs" id="fbSubTabs">
+    <button class="sub-tab active" onclick="switchSubTab('fb','select',this)">Message Selection</button>
+    <button class="sub-tab" onclick="switchSubTab('fb','feedback',this)">Feedback</button>
+    <button class="sub-tab" onclick="switchSubTab('fb','sequence',this)">Post Sequence</button>
+  </div>
+
+  <!-- FB Tab 1: Message Selection -->
+  <div class="sub-panel active" id="fb-select">
+    <div style="margin-bottom:16px;">
+      <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--fv-violet);margin-bottom:8px;">Launch Sequence Status</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <span style="background:var(--fv-sage);color:#fff;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">Draft</span>
+        <span style="color:var(--fv-black);opacity:0.3;font-size:0.8rem;">→</span>
+        <span style="background:var(--fv-gold);color:#fff;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">Review</span>
+        <span style="color:var(--fv-black);opacity:0.3;font-size:0.8rem;">→</span>
+        <span style="border:2px solid var(--fv-sage);padding:3px 11px;border-radius:20px;font-size:0.8rem;opacity:0.4;">Approved</span>
+        <span style="color:var(--fv-black);opacity:0.3;font-size:0.8rem;">→</span>
+        <span style="border:2px solid var(--fv-sage);padding:3px 11px;border-radius:20px;font-size:0.8rem;opacity:0.4;">Scheduled</span>
+        <span style="color:var(--fv-black);opacity:0.3;font-size:0.8rem;">→</span>
+        <span style="border:2px solid var(--fv-sage);padding:3px 11px;border-radius:20px;font-size:0.8rem;opacity:0.4;">Posted</span>
+      </div>
+    </div>
+    <p style="font-size:0.88rem;color:var(--fv-black);opacity:0.6;margin-bottom:16px;">Select up to <strong>3</strong> messages to take forward for feedback. <span id="fbSelCount" style="color:var(--fv-violet);font-weight:600;">0/3 selected</span></p>
+    <div class="msg-grid" id="fbMsgGrid">
+
+      <!-- FB1: The Vulnerable Announcement -->
+      <div class="msg-tile" data-platform="facebook" data-id="FB1" onclick="selectMessage('facebook','FB1',this)">
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;">The Vulnerable Announcement</div>
+        <div style="font-size:0.78rem;color:var(--fv-black);opacity:0.6;margin-bottom:6px;">★ Baseline</div>
+        <div style="font-size:0.8rem;line-height:1.4;color:var(--fv-black);opacity:0.75;">So I've done a thing. I've been quietly working on something for a while now…</div>
+      </div>
+      <!-- FB2: The Vibe Check -->
+      <div class="msg-tile" data-platform="facebook" data-id="FB2" onclick="selectMessage('facebook','FB2',this)">
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;">The Vibe Check</div>
+        <div style="font-size:0.78rem;color:var(--fv-black);opacity:0.6;margin-bottom:6px;">Draft</div>
+        <div style="font-size:0.8rem;line-height:1.4;color:var(--fv-black);opacity:0.75;">Okay so this is a bit nerve-wracking but here goes…</div>
+      </div>
+      <!-- FB3: The Helping Hand -->
+      <div class="msg-tile" data-platform="facebook" data-id="FB3" onclick="selectMessage('facebook','FB3',this)">
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;">The Helping Hand</div>
+        <div style="font-size:0.78rem;color:var(--fv-black);opacity:0.6;margin-bottom:6px;">Draft</div>
+        <div style="font-size:0.8rem;line-height:1.4;color:var(--fv-black);opacity:0.75;">I've been sitting on this news for a bit because telling people felt scarier…</div>
+      </div>
+      <!-- Placeholders 4-9 -->
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 4</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 5</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 6</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 7</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 8</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+      <div class="msg-tile placeholder"><div style="font-weight:600;font-size:0.85rem;opacity:0.4;">Variant 9</div><div style="font-size:0.78rem;opacity:0.3;margin-top:8px;">Coming in next iteration</div></div>
+    </div><!-- /msg-grid -->
+  </div><!-- /fb-select -->
+
+  <!-- FB Tab 2: Feedback -->
+  <div class="sub-panel" id="fb-feedback">
+    <p style="font-size:0.88rem;color:var(--fv-black);opacity:0.6;margin-bottom:20px;">Review your selected posts and provide detailed feedback on each.</p>
+
+    <!-- FB1 Full Mockup + Feedback -->
+    <div class="feedback-card" id="fbCard-FB1" style="display:none;">
+      <div class="fb-post">
+        <div class="fb-header"><div class="fb-avatar">H</div><div><div class="fb-name">Hannah</div><div class="fb-time">Just now · 🌍</div></div></div>
+        <div class="fb-text">So I've done a thing.
+
+I've been quietly working on something for a while now and I think it's time to actually tell people about it.
+
+I've started a web design studio called FenViolet. I build websites for small business owners — the kind of people who are brilliant at what they do but whose website just isn't keeping up.
+
+I know how it feels to pour everything into your business and then look at your website and think… this doesn't represent me at all. That's what I want to fix.
+
+If you know someone who could do with some help getting their online presence to match how good they actually are, I'd love it if you sent them my way 💜
+
+fenviolet.co.uk ✨</div>
+        <div class="fb-link"><strong>fenviolet.co.uk</strong> · Web design for small businesses</div>
+      </div>
+      <div class="feedback-panel" id="feedback-FB1"></div>
+      <button class="approve-btn" onclick="approveMessage('FB1',this)">Good to go ✓</button>
+    </div>
+
+    <!-- FB2 Full Mockup + Feedback -->
+    <div class="feedback-card" id="fbCard-FB2" style="display:none;">
+      <div class="fb-post">
+        <div class="fb-header"><div class="fb-avatar">H</div><div><div class="fb-name">Hannah</div><div class="fb-time">Just now · 🌍</div></div></div>
+        <div class="fb-text">Okay so this is a bit nerve-wracking but here goes.
+
+I've launched my own web design studio. It's called FenViolet and I build websites for small business owners who deserve a website as good as they are.
+
+If you're on my friend list, we probably vibe with the same people. So if you know someone who's been putting off sorting their website out — or whose current one doesn't reflect how good they actually are — I'd love an introduction.
+
+Have a look if you're curious 💚
+fenviolet.co.uk</div>
+        <div class="fb-link"><strong>fenviolet.co.uk</strong> · Web design for small businesses</div>
+      </div>
+      <div class="feedback-panel" id="feedback-FB2"></div>
+      <button class="approve-btn" onclick="approveMessage('FB2',this)">Good to go ✓</button>
+    </div>
+
+    <!-- FB3 Full Mockup + Feedback -->
+    <div class="feedback-card" id="fbCard-FB3" style="display:none;">
+      <div class="fb-post">
+        <div class="fb-header"><div class="fb-avatar">H</div><div><div class="fb-name">Hannah</div><div class="fb-time">Just now · 🌍</div></div></div>
+        <div class="fb-text">I've been sitting on this news for a bit because telling people felt scarier than actually doing it, but —
+
+I've started my own web design studio called FenViolet 💜
+
+I design websites for small business owners — the kind of people who are amazing at what they do but need some help getting their online presence to match.
+
+I know a lot of you run your own things or know people who do. If someone comes to mind who might want a website that actually does them justice, I'd really appreciate you pointing them my way.
+
+fenviolet.co.uk ✨</div>
+        <div class="fb-link"><strong>fenviolet.co.uk</strong> · Web design for small businesses</div>
+      </div>
+      <div class="feedback-panel" id="feedback-FB3"></div>
+      <button class="approve-btn" onclick="approveMessage('FB3',this)">Good to go ✓</button>
+    </div>
+  </div><!-- /fb-feedback -->
+
+  <!-- FB Tab 3: Post Sequence -->
+  <div class="sub-panel" id="fb-sequence">
+    <div class="guidance-panel">
+      <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:0.85rem;margin-bottom:8px;">📋 Best Practice: Facebook Posting</div>
+      <ul style="font-size:0.84rem;line-height:1.6;color:var(--fv-black);opacity:0.7;padding-left:18px;margin:0;">
+        <li>Personal profile posts get 5-10× more reach than business pages</li>
+        <li>Space posts 3-5 days apart to avoid fatigue</li>
+        <li>Mix formats: text-only → image → link share</li>
+        <li>Post between 7-9pm for friend-list engagement</li>
+        <li>Start vulnerable, build to confident — the arc matters</li>
+      </ul>
+    </div>
+
+    <div style="margin-top:24px;">
+      <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:0.85rem;margin-bottom:4px;">Proposed Campaign Plan</div>
+      <p style="font-size:0.84rem;color:var(--fv-black);opacity:0.6;margin-bottom:12px;">Rate the overall posting plan from 1–10</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+        <input type="range" min="1" max="10" value="5" id="fbPlanRating" oninput="updatePlanRating(this)" style="flex:1;accent-color:var(--fv-violet);">
+        <span id="fbPlanRatingVal" style="font-weight:700;color:var(--fv-violet);font-size:1.1rem;">5</span>
+      </div>
+    </div>
+
+    <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:0.85rem;margin-bottom:12px;">Sequence Options</div>
+    <p style="font-size:0.84rem;color:var(--fv-black);opacity:0.6;margin-bottom:16px;">Rank these 3 sequences (1 = best). Drag or type a number.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
+      <!-- Sequence A -->
+      <div style="background:#fff;border:2px solid var(--fv-sage);border-radius:12px;padding:16px;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--fv-violet);margin-bottom:12px;">Sequence A: Vulnerability Arc</div>
+        <div class="sequence-flow">
+          <div class="seq-box">Post 1: Vulnerable Announcement</div>
+          <div class="seq-arrow">↓ 4 days</div>
+          <div class="seq-box">Post 2: Vibe Check</div>
+          <div class="seq-arrow">↓ 5 days</div>
+          <div class="seq-box">Post 3: Helping Hand</div>
+        </div>
+        <div style="margin-top:12px;"><label style="font-size:0.8rem;font-weight:600;">Rank: </label><input type="number" min="1" max="3" value="1" class="seq-rank" data-seq="A" onchange="updateRank(this,0)" style="width:40px;text-align:center;border:1px solid var(--fv-sage);border-radius:6px;padding:4px;"></div>
+      </div>
+      <!-- Sequence B -->
+      <div style="background:#fff;border:2px solid var(--fv-sage);border-radius:12px;padding:16px;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--fv-violet);margin-bottom:12px;">Sequence B: Confidence Build</div>
+        <div class="sequence-flow">
+          <div class="seq-box">Post 1: Helping Hand</div>
+          <div class="seq-arrow">↓ 3 days</div>
+          <div class="seq-box">Post 2: Vulnerable Announcement</div>
+          <div class="seq-arrow">↓ 5 days</div>
+          <div class="seq-box">Post 3: Vibe Check</div>
+        </div>
+        <div style="margin-top:12px;"><label style="font-size:0.8rem;font-weight:600;">Rank: </label><input type="number" min="1" max="3" value="2" class="seq-rank" data-seq="B" onchange="updateRank(this,1)" style="width:40px;text-align:center;border:1px solid var(--fv-sage);border-radius:6px;padding:4px;"></div>
+      </div>
+      <!-- Sequence C -->
+      <div style="background:#fff;border:2px solid var(--fv-sage);border-radius:12px;padding:16px;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--fv-violet);margin-bottom:12px;">Sequence C: Quick Burst</div>
+        <div class="sequence-flow">
+          <div class="seq-box">Post 1: Vibe Check</div>
+          <div class="seq-arrow">↓ 2 days</div>
+          <div class="seq-box">Post 2: Helping Hand</div>
+          <div class="seq-arrow">↓ 2 days</div>
+          <div class="seq-box">Post 3: Vulnerable Announcement</div>
+        </div>
+        <div style="margin-top:12px;"><label style="font-size:0.8rem;font-weight:600;">Rank: </label><input type="number" min="1" max="3" value="3" class="seq-rank" data-seq="C" onchange="updateRank(this,2)" style="width:40px;text-align:center;border:1px solid var(--fv-sage);border-radius:6px;padding:4px;"></div>
+      </div>
+    </div>
+
+    <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:0.85rem;margin-bottom:12px;">Content Ideas for Future Posts</div>
+    <p style="font-size:0.84rem;color:var(--fv-black);opacity:0.6;margin-bottom:16px;">Click any tile to save it for later. These can feed into your next content round.</p>
+    <div class="content-ideas-grid">
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Before/after website reveal</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Behind the scenes of a build</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Why I started FenViolet</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Common website mistakes</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">What makes a good homepage</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Client win story</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Design tip of the week</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">The "is your website working?" checklist</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">How I choose colour palettes</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Squarespace vs WordPress (honest take)</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">What to put on your About page</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Mobile-first: why it matters</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">SEO basics for small businesses</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Your website is your 24/7 salesperson</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">How to write your own website copy</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Photography tips for your site</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Branding consistency across platforms</div>
+      <div class="idea-tile" onclick="this.classList.toggle('selected')">Day in the life of a web designer</div>
+    </div>
+  </div><!-- /fb-sequence -->
+</section><!-- /page-2 -->
+
+<!-- ==================== PAGE 3 — WHATSAPP ==================== -->
+<section class="page page-fv" id="page-3">
+<h2 style="font-family:'Calistoga',serif;font-size:1.8rem;color:var(--fv-black);margin-bottom:.3rem;">WhatsApp Messages</h2>
+<p style="color:#666;margin-bottom:1.2rem;">Personal messages to friends & family announcing FenViolet.</p>
+<div class="sub-tabs">
+<button class="sub-tab active" onclick="switchSubTab('wa',0,this)">Message Selection</button>
+<button class="sub-tab" onclick="switchSubTab('wa',1,this)">Feedback</button>
+</div>
+
+<!-- WA Tab 0 — Message Selection -->
+<div class="sub-tab-content active" id="waTab0">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;font-size:1.1rem;">Choose your top 3 messages</h3>
+<span class="sel-count" id="waSelCount">0 / 3 selected</span>
+</div>
+<div class="msg-grid">
+<div class="msg-tile" onclick="selectMessage('whatsapp','WA1',this)"><div class="msg-tile-badge">★ Baseline</div><strong>Confident &amp; Direct</strong><p>"Hey! So I've got some news — I've launched my own web design studio 💜"</p></div>
+<div class="msg-tile" onclick="selectMessage('whatsapp','WA2',this)"><div class="msg-tile-badge" style="background:var(--fv-sage);">★ Rewritten</div><strong>The Personal Share</strong><p>"Hey! So I've got some news — I've started my own thing 😊"</p></div>
+<div class="msg-tile" onclick="selectMessage('whatsapp','WA3',this)"><div class="msg-tile-badge" style="background:var(--fv-sage);">★ Rewritten</div><strong>The Casual Drop</strong><p>"Hiya! Okay so I've been keeping this quiet but I've finally launched…"</p></div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+</div>
+</div>
+
+<!-- WA Tab 1 — Feedback -->
+<div class="sub-tab-content" id="waTab1">
+
+<!-- WA1 Feedback Card -->
+<div class="feedback-card" id="waCard-WA1" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">WA1 — Confident &amp; Direct</h3>
+<div class="wa-wrap"><div class="wa-header"><span class="wa-name">Hannah</span><span class="wa-time-header">09:42</span></div>
+<div class="wa-bubble">Hey! So I've got some news — I've launched my own web design studio 💜<br><br>It's called FenViolet. I build websites for small business owners who deserve a website as good as they are.<br><br>I wanted to tell you properly rather than just putting something on socials. If you know anyone who's been meaning to sort their website out, or whose site just doesn't do them justice, I'd love it if you thought of me.<br><br>Have a look if you fancy it — fenviolet.co.uk ✨</div>
+<div class="wa-time">09:42</div></div>
+<div class="feedback-panel" id="feedback-WA1"></div>
+<button class="approve-btn" onclick="approveMessage('WA1',this)">Good to go ✓</button>
+</div>
+
+<!-- WA2 Feedback Card -->
+<div class="feedback-card" id="waCard-WA2" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">WA2 — The Personal Share</h3>
+<div class="wa-wrap"><div class="wa-header"><span class="wa-name">Hannah</span><span class="wa-time-header">09:42</span></div>
+<div class="wa-bubble">Hey! So I've got some news — I've started my own thing 😊<br><br>I've set up a web design studio called FenViolet. I design websites for small business owners — the kind of people who are amazing at what they do but whose website just isn't keeping up with them.<br><br>I wanted to tell you because you know loads of people who run their own businesses. If anyone ever mentions needing a website, or you spot someone whose online presence doesn't match how good they actually are — I'd love it if you thought of me.<br><br>No rush, no big deal — just planting the seed 💜<br><br>fenviolet.co.uk</div>
+<div class="wa-time">09:42</div></div>
+<div class="feedback-panel" id="feedback-WA2"></div>
+<button class="approve-btn" onclick="approveMessage('WA2',this)">Good to go ✓</button>
+</div>
+
+<!-- WA3 Feedback Card -->
+<div class="feedback-card" id="waCard-WA3" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">WA3 — The Casual Drop</h3>
+<div class="wa-wrap"><div class="wa-header"><span class="wa-name">Hannah</span><span class="wa-time-header">09:42</span></div>
+<div class="wa-bubble">Hiya! Okay so I've been keeping this quiet but I've finally launched my web design studio 🎉<br><br>It's called FenViolet — I build websites for small business owners who deserve a website as good as they are.<br><br>I know you know everyone 😄 so if anyone ever comes to mind who could do with some help on the website front, send them my way?<br><br>fenviolet.co.uk 💜</div>
+<div class="wa-time">09:42</div></div>
+<div class="feedback-panel" id="feedback-WA3"></div>
+<button class="approve-btn" onclick="approveMessage('WA3',this)">Good to go ✓</button>
+</div>
+
+</div><!-- /waTab1 -->
+</section><!-- /page-3 -->
+
+<!-- ==================== PAGE 4 — EMAIL ==================== -->
+<section class="page page-fv" id="page-4">
+<h2 style="font-family:'Calistoga',serif;font-size:1.8rem;color:var(--fv-black);margin-bottom:.3rem;">Email Messages</h2>
+<p style="color:#666;margin-bottom:1.2rem;">Personal emails to friends, family &amp; contacts announcing FenViolet.</p>
+<div class="sub-tabs">
+<button class="sub-tab active" onclick="switchSubTab('em',0,this)">Message Selection</button>
+<button class="sub-tab" onclick="switchSubTab('em',1,this)">Feedback</button>
+</div>
+
+<!-- Email Tab 0 — Message Selection -->
+<div class="sub-tab-content active" id="emTab0">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;font-size:1.1rem;">Choose your top 3 emails</h3>
+<span class="sel-count" id="emSelCount">0 / 3 selected</span>
+</div>
+<div class="msg-grid">
+<div class="msg-tile" onclick="selectMessage('email','EM1',this)"><div class="msg-tile-badge" style="background:var(--fv-sage);">★ Reworked</div><strong>The Warm Intro</strong><p>Subject: "I've done a thing"</p></div>
+<div class="msg-tile" onclick="selectMessage('email','EM2',this)"><div class="msg-tile-badge" style="background:var(--fv-sage);">★ Rewritten</div><strong>The Vulnerability Play</strong><p>Subject: "Scary email incoming"</p></div>
+<div class="msg-tile" onclick="selectMessage('email','EM3',this)"><div class="msg-tile-badge" style="background:var(--fv-sage);">★ Rewritten</div><strong>The Connector</strong><p>Subject: "Got some news 💜"</p></div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+<div class="msg-tile placeholder">Coming in next iteration</div>
+</div>
+</div>
+
+<!-- Email Tab 1 — Feedback -->
+<div class="sub-tab-content" id="emTab1">
+
+<!-- EM1 Feedback Card -->
+<div class="feedback-card" id="emCard-EM1" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">EM1 — The Warm Intro</h3>
+<div class="email-wrap">
+<div class="email-toolbar"><span class="toolbar-dot" style="background:#ff5f57;"></span><span class="toolbar-dot" style="background:#ffbd2e;"></span><span class="toolbar-dot" style="background:#28c840;"></span></div>
+<div class="email-subject">Subject: I've done a thing</div>
+<div class="email-body">Hey!<br><br>So I've got some news — I've started my own web design studio. It's called FenViolet.<br><br>I build websites for small business owners. The kind of people who are amazing at what they do but whose website just isn't keeping up with them. I want to fix that gap.<br><br>I'm telling you because you know people. And if you maybe know someone who's been meaning to sort their website out, or who deserves a website as good as they are — I'd love it if you thought of me.<br><br>Maybe someone will come to mind next week, or next month, or maybe you'll just have a nosy at the website and that's cool too.<br><br><a href="https://fenviolet.co.uk" style="color:var(--fv-violet);">fenviolet.co.uk</a><br><br>Hannah x</div>
+</div>
+<div class="feedback-panel" id="feedback-EM1"></div>
+<button class="approve-btn" onclick="approveMessage('EM1',this)">Good to go ✓</button>
+</div>
+
+<!-- EM2 Feedback Card -->
+<div class="feedback-card" id="emCard-EM2" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">EM2 — The Vulnerability Play</h3>
+<div class="email-wrap">
+<div class="email-toolbar"><span class="toolbar-dot" style="background:#ff5f57;"></span><span class="toolbar-dot" style="background:#ffbd2e;"></span><span class="toolbar-dot" style="background:#28c840;"></span></div>
+<div class="email-subject">Subject: Scary email incoming</div>
+<div class="email-body">Hey!<br><br>Okay so this is a slightly nerve-wracking email to send but here goes.<br><br>I've started my own web design studio. It's called FenViolet and I build websites for small business owners who deserve a website as good as they are.<br><br>I've been working on this for a while and the scariest part honestly hasn't been the work — it's been telling people about it. But you're someone I wanted to tell.<br><br>I'm not asking you to do anything specific. But if someone ever comes to mind who could do with some help on the website front — or if you spot someone whose online presence doesn't match how good they actually are — I'd love it if you thought of me.<br><br><a href="https://fenviolet.co.uk" style="color:var(--fv-violet);">fenviolet.co.uk</a><br><br>Thanks for being someone I wanted to tell 💜<br><br>Hannah x</div>
+</div>
+<div class="feedback-panel" id="feedback-EM2"></div>
+<button class="approve-btn" onclick="approveMessage('EM2',this)">Good to go ✓</button>
+</div>
+
+<!-- EM3 Feedback Card -->
+<div class="feedback-card" id="emCard-EM3" style="display:none;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">EM3 — The Connector</h3>
+<div class="email-wrap">
+<div class="email-toolbar"><span class="toolbar-dot" style="background:#ff5f57;"></span><span class="toolbar-dot" style="background:#ffbd2e;"></span><span class="toolbar-dot" style="background:#28c840;"></span></div>
+<div class="email-subject">Subject: Got some news 💜</div>
+<div class="email-body">Hey!<br><br>Quick bit of news — I've launched my own web design studio called FenViolet.<br><br>I build websites for small business owners who deserve a website as good as they are. And I'm telling you because you know loads of people who run their own thing.<br><br>If anyone ever mentions needing a website, or you spot someone whose site doesn't do them justice — send them my way?<br><br><a href="https://fenviolet.co.uk" style="color:var(--fv-violet);">fenviolet.co.uk</a><br><br>Hannah x</div>
+</div>
+<div class="feedback-panel" id="feedback-EM3"></div>
+<button class="approve-btn" onclick="approveMessage('EM3',this)">Good to go ✓</button>
+</div>
+
+</div><!-- /emTab1 -->
+</section><!-- /page-4 -->
+
+<!-- ==================== PAGE 5 — STATUS & GENERATE ==================== -->
+<section class="page page-fv" id="page-5">
+<h2 style="font-family:'Calistoga',serif;font-size:1.8rem;color:var(--fv-black);margin-bottom:.3rem;">Status &amp; Generate</h2>
+<p style="color:#666;margin-bottom:1.5rem;">Review your feedback across all platforms and generate a prompt for the next iteration.</p>
+
+<div class="status-grid">
+<div class="status-card">
+<div class="status-card-title">📣 Facebook</div>
+<div class="status-row"><span>Selected:</span><span id="statFbSel">0 / 3</span></div>
+<div class="status-row"><span>Approved:</span><span id="statFbApp">0</span></div>
+<div class="status-row"><span>Feedback given:</span><span id="statFbFb">0 items</span></div>
+</div>
+<div class="status-card">
+<div class="status-card-title">💬 WhatsApp</div>
+<div class="status-row"><span>Selected:</span><span id="statWaSel">0 / 3</span></div>
+<div class="status-row"><span>Approved:</span><span id="statWaApp">0</span></div>
+<div class="status-row"><span>Feedback given:</span><span id="statWaFb">0 items</span></div>
+</div>
+<div class="status-card">
+<div class="status-card-title">✉️ Email</div>
+<div class="status-row"><span>Selected:</span><span id="statEmSel">0 / 3</span></div>
+<div class="status-row"><span>Approved:</span><span id="statEmApp">0</span></div>
+<div class="status-row"><span>Feedback given:</span><span id="statEmFb">0 items</span></div>
+</div>
+<div class="status-card">
+<div class="status-card-title">📋 Tactics</div>
+<div class="status-row"><span>Active:</span><span id="statTacActive">3</span></div>
+<div class="status-row"><span>Considering:</span><span id="statTacMaybe">1</span></div>
+<div class="status-row"><span>Parked / Rejected:</span><span id="statTacOut">4</span></div>
+</div>
+</div>
+
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin:1.5rem 0 .8rem;">Editable Feedback Summary</h3>
+<p style="color:#666;font-size:.9rem;margin-bottom:.6rem;">This is auto-populated from your feedback. Edit freely before generating the prompt.</p>
+<textarea id="feedbackSummary" class="feedback-summary" rows="12" placeholder="Your feedback will appear here as you review content across platforms..."></textarea>
+
+<div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
+<button class="generate-btn" onclick="generatePrompt()">⚡ Generate Prompt</button>
+<button class="generate-btn" style="background:var(--fv-sage);color:var(--fv-black);" onclick="refreshSummary()">🔄 Refresh Summary</button>
+</div>
+
+<div id="promptOutput" style="display:none;margin-top:1.5rem;">
+<h3 style="font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:.8rem;">Generated Prompt</h3>
+<div class="prompt-output" id="promptText"></div>
+<button class="generate-btn" style="margin-top:.8rem;background:var(--fv-gold);" onclick="copyPrompt()">📋 Copy to Clipboard</button>
+</div>
+</section><!-- /page-5 -->
+
+<!-- ==================== PAGE 6 — OVERALL FEEDBACK ==================== -->
+<section class="page page-sq" id="page-6">
+<div style="max-width:600px;margin:0 auto;text-align:center;padding:2rem 0;">
+<div style="font-family:'Inter',sans-serif;font-size:1.6rem;font-weight:600;color:var(--sq-text);margin-bottom:.3rem;">How was this tool?</div>
+<p style="color:var(--sq-text-sec);margin-bottom:2rem;">Help Sidequest Ventures make this better for next time.</p>
+
+<div style="margin-bottom:2rem;">
+<label style="color:var(--sq-text);font-weight:500;display:block;margin-bottom:.8rem;">Overall satisfaction</label>
+<div class="rating-row" id="ratingRow">
+<span class="rating-dot" onclick="setRating(1)">1</span><span class="rating-dot" onclick="setRating(2)">2</span>
+<span class="rating-dot" onclick="setRating(3)">3</span><span class="rating-dot" onclick="setRating(4)">4</span>
+<span class="rating-dot" onclick="setRating(5)">5</span><span class="rating-dot" onclick="setRating(6)">6</span>
+<span class="rating-dot" onclick="setRating(7)">7</span><span class="rating-dot" onclick="setRating(8)">8</span>
+<span class="rating-dot" onclick="setRating(9)">9</span><span class="rating-dot" onclick="setRating(10)">10</span>
+</div>
+<div style="display:flex;justify-content:space-between;color:var(--sq-text-muted);font-size:.75rem;margin-top:.3rem;"><span>Not great</span><span>Amazing</span></div>
+</div>
+
+<div style="margin-bottom:2rem;text-align:left;">
+<label style="color:var(--sq-text);font-weight:500;display:block;margin-bottom:.5rem;">Any comments or suggestions?</label>
+<textarea id="overallComment" rows="5" style="width:100%;background:var(--sq-surface);border:1px solid var(--sq-border);border-radius:8px;color:var(--sq-text);padding:.8rem;font-family:'Inter',sans-serif;font-size:.95rem;resize:vertical;" placeholder="What worked well? What could be better?"></textarea>
+</div>
+
+<button class="begin-btn" style="background:var(--sq-accent);" onclick="submitOverall()">Submit Feedback</button>
+<div id="overallThanks" style="display:none;margin-top:1.5rem;color:var(--sq-emerald);font-weight:500;">Thanks for your feedback! 💜</div>
+</div>
+</section><!-- /page-6 -->
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+<button class="nav-btn" id="btnBack" onclick="navigateTo(STATE.currentPage-1)" disabled>← Back</button>
+<span class="nav-label" id="navLabel">Welcome</span>
+<button class="nav-btn" id="btnNext" onclick="navigateTo(STATE.currentPage+1)">Next →</button>
+</div>
+
+<script>
+/* ===== STATE ===== */
+const STATE = {
+  currentPage: 0,
+  selections: { facebook: [], whatsapp: [], email: [] },
+  feedback: {},
+  approvals: {},
+  tactics: {},
+  sequenceRanks: [],
+  fbPlanRating: 5,
+  overallRating: null,
+  overallComment: ''
+};
+
+const PAGE_NAMES = ['Welcome','GTM Dashboard','Facebook','WhatsApp','Email','Status & Generate','Overall Feedback'];
+const TOTAL_PAGES = 7;
+
+/* ===== TAG SETS ===== */
+const TAG_SETS = {
+  positive:['👍','Nailed it','Authentic','Warm','On-brand','Love this line','Clear CTA','Right length','Good energy','Natural','Confident'],
+  negative:['👎','Too salesy','Too long','Feels fake','Too apologetic','Awkward phrasing','Wrong tone','Too pushy','Cringe','Unclear','Needs work']
+};
+const EXTRA_POS = ['Brave','Relatable','Punchy','Memorable','Inviting','Friendly','Honest','Bold','Heartfelt','Catchy','Personal','Motivating','Effortless'];
+const EXTRA_NEG = ['Waffly','Generic','Stiff','Boring','Needy','Desperate','Cliché','Confusing','Impersonal','Overwritten','Try-hard','Preachy','Cold'];
+const SLIDERS = [
+  {id:'overall',label:'Overall — this feels right'},
+  {id:'authentic',label:'Authentic voice — sounds like Hannah'},
+  {id:'warmth',label:'Tonality — warm, not sugary'},
+  {id:'rudeness',label:'Tonality — direct, not rude'},
+  {id:'apology',label:'Tonality — confident, not apologetic'},
+  {id:'arrogance',label:'Tonality — humble, not arrogant'},
+  {id:'client-value',label:'Centres client value, not mine'}
+];
+
+/* ===== NAVIGATION ===== */
+function navigateTo(page) {
+  if (page < 0 || page >= TOTAL_PAGES) return;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  STATE.currentPage = page;
+  // Update progress dots
+  document.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === page);
+    d.classList.toggle('done', i < page);
+  });
+  // Update nav buttons
+  document.getElementById('btnBack').disabled = (page === 0);
+  document.getElementById('btnNext').disabled = (page === TOTAL_PAGES - 1);
+  document.getElementById('navLabel').textContent = PAGE_NAMES[page];
+  // Refresh status page if navigating to it
+  if (page === 5) refreshStatus();
+  window.scrollTo(0, 0);
+}
+
+/* ===== SUB-TAB SWITCHING ===== */
+function switchSubTab(prefix, idx, btn) {
+  // Hide all tabs for this prefix
+  let i = 0;
+  while (document.getElementById(prefix + 'Tab' + i)) {
+    document.getElementById(prefix + 'Tab' + i).classList.remove('active');
+    i++;
+  }
+  document.getElementById(prefix + 'Tab' + idx).classList.add('active');
+  btn.parentElement.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ===== MESSAGE SELECTION ===== */
+function selectMessage(platform, id, tile) {
+  if (tile.classList.contains('placeholder')) return;
+  const sel = STATE.selections[platform];
+  const idx = sel.indexOf(id);
+  if (idx > -1) {
+    sel.splice(idx, 1);
+    tile.classList.remove('selected');
+  } else {
+    if (sel.length >= 3) { alert('Maximum 3 selections — deselect one first.'); return; }
+    sel.push(id);
+    tile.classList.add('selected');
+  }
+  // Update count display
+  const countMap = { facebook: 'fbSelCount', whatsapp: 'waSelCount', email: 'emSelCount' };
+  document.getElementById(countMap[platform]).textContent = sel.length + ' / 3 selected';
+  // Show/hide feedback cards
+  showFeedbackCards(platform);
+}
+
+function showFeedbackCards(platform) {
+  const prefixMap = { facebook: 'fb', whatsapp: 'wa', email: 'em' };
+  const pre = prefixMap[platform];
+  const sel = STATE.selections[platform];
+  const ids = platform === 'facebook' ? ['FB1','FB2','FB3'] : platform === 'whatsapp' ? ['WA1','WA2','WA3'] : ['EM1','EM2','EM3'];
+  ids.forEach(id => {
+    const card = document.getElementById(pre + 'Card-' + id);
+    if (card) {
+      card.style.display = sel.includes(id) ? 'block' : 'none';
+      // Build feedback panel if not yet built
+      const panel = document.getElementById('feedback-' + id);
+      if (sel.includes(id) && panel && !panel.hasChildNodes()) {
+        panel.innerHTML = buildFeedbackHTML(id);
+      }
+    }
+  });
+}
+
+/* ===== APPROVE MESSAGE ===== */
+function approveMessage(id, btn) {
+  if (STATE.approvals[id]) {
+    STATE.approvals[id] = false;
+    btn.classList.remove('approved');
+    btn.textContent = 'Good to go ✓';
+  } else {
+    STATE.approvals[id] = true;
+    btn.classList.add('approved');
+    btn.textContent = '✓ Approved';
+  }
+}
+
+/* ===== BUILD FEEDBACK HTML ===== */
+function buildFeedbackHTML(cardId) {
+  let h = '';
+  // Sliders
+  SLIDERS.forEach((s, i) => {
+    const isFirst = i === 0;
+    if (i === 1) h += '<div class="accordion"><button class="accordion-toggle" onclick="toggleAccordion(this)">▶ More sliders (tone, voice, value)</button><div class="accordion-body">';
+    h += '<div class="slider-row"><label>' + s.label + '</label>';
+    h += '<input type="range" min="1" max="10" value="5" class="feedback-slider" data-card="' + cardId + '" data-dim="' + s.id + '" oninput="updateSliderVal(this)">';
+    h += '<span class="slider-val">5</span></div>';
+    if (i === SLIDERS.length - 1 && SLIDERS.length > 1) h += '</div></div>';
+  });
+  // Positive tags
+  h += '<div class="tag-section"><div class="tag-label">👍 What works</div><div class="tag-row">';
+  shuffleArray(TAG_SETS.positive).slice(0, 6).forEach(t => {
+    h += '<button class="tag-btn tag-pos" onclick="addFeedbackLine(this,\'pos\',\'' + escQ(t) + '\')">' + t + '</button>';
+  });
+  h += '<button class="dice-btn" onclick="regenTags(this,\'pos\')" title="Shuffle tags">🎲</button></div></div>';
+  // Negative tags
+  h += '<div class="tag-section"><div class="tag-label">👎 What needs work</div><div class="tag-row">';
+  shuffleArray(TAG_SETS.negative).slice(0, 6).forEach(t => {
+    h += '<button class="tag-btn tag-neg" onclick="addFeedbackLine(this,\'neg\',\'' + escQ(t) + '\')">' + t + '</button>';
+  });
+  h += '<button class="dice-btn" onclick="regenTags(this,\'neg\')" title="Shuffle tags">🎲</button></div></div>';
+  // Replace button
+  h += '<button class="replace-trigger" onclick="addReplaceLine(this)">✏️ Suggest a replacement</button>';
+  // Feedback lines container
+  h += '<div class="feedback-lines" data-card="' + cardId + '"></div>';
+  return h;
+}
+
+/* ===== FEEDBACK INTERACTIONS ===== */
+function addFeedbackLine(btn, type, tagText) {
+  const panel = btn.closest('.feedback-panel');
+  const cardId = panel.querySelector('.feedback-lines').dataset.card;
+  const lines = panel.querySelector('.feedback-lines');
+  const cls = type === 'pos' ? 'fb-line-pos' : 'fb-line-neg';
+  const div = document.createElement('div');
+  div.className = 'fb-line ' + cls;
+  div.dataset.card = cardId;
+  div.dataset.type = type;
+  div.dataset.tag = tagText;
+  div.innerHTML = '<span class="fb-line-tag">' + tagText + '</span><textarea class="fb-line-text" rows="1" placeholder="Add detail (optional)…" onblur="captureFeedbackLine(\'' + escQ(cardId) + '\',\'' + type + '\',\'' + escQ(tagText) + '\',this.value)"></textarea><button class="fb-line-x" onclick="this.parentElement.remove()">×</button>';
+  lines.appendChild(div);
+}
+
+function addReplaceLine(btn) {
+  const panel = btn.closest('.feedback-panel');
+  const cardId = panel.querySelector('.feedback-lines').dataset.card;
+  const lines = panel.querySelector('.feedback-lines');
+  const div = document.createElement('div');
+  div.className = 'fb-line fb-line-replace';
+  div.innerHTML = '<span class="fb-line-tag">✏️ REPLACE</span><input class="fb-replace-input" placeholder="Original text…"><span style="color:#999;margin:0 .3rem;">→</span><input class="fb-replace-input" placeholder="Suggested replacement…" onblur="const inputs=this.parentElement.querySelectorAll(\'.fb-replace-input\');captureReplacement(\'' + escQ(cardId) + '\',inputs[0].value,inputs[1].value)"><button class="fb-line-x" onclick="this.parentElement.remove()">×</button>';
+  lines.appendChild(div);
+}
+
+function regenTags(diceBtn, type) {
+  const row = diceBtn.parentElement;
+  const pool = type === 'pos' ? EXTRA_POS : EXTRA_NEG;
+  const base = type === 'pos' ? TAG_SETS.positive : TAG_SETS.negative;
+  const combined = [...base, ...pool];
+  const shuffled = shuffleArray([...combined]).slice(0, 6);
+  const existing = row.querySelectorAll('.tag-btn');
+  existing.forEach((b, i) => {
+    if (shuffled[i]) { b.textContent = shuffled[i]; b.setAttribute('onclick', "addFeedbackLine(this,'" + type + "','" + escQ(shuffled[i]) + "')"); }
+  });
+}
+
+function toggleAccordion(btn) {
+  const body = btn.nextElementSibling;
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  btn.textContent = (open ? '▶' : '▼') + btn.textContent.slice(1);
+}
+
+function updateSliderVal(slider) {
+  slider.nextElementSibling.textContent = slider.value;
+  const cardId = slider.dataset.card;
+  const dim = slider.dataset.dim;
+  if(cardId && dim) captureSlider(cardId, dim, slider.value);
+}
+
+/* ── Tactics ─────────────────────────────── */
+function switchTacticsTab(tab, btn){
+  document.querySelectorAll('.tactic-card').forEach(c=>{
+    if(tab==='all') c.style.display='';
+    else {
+      const s=STATE.tactics[c.dataset.id];
+      if(tab==='agreed' && s==='yes') c.style.display='';
+      else if(tab==='maybe' && s==='maybe') c.style.display='';
+      else if(tab==='later' && (s==='later'||s==='no'||!s)) c.style.display='';
+      else if(tab!=='agreed'&&tab!=='maybe'&&tab!=='later') c.style.display='';
+      else c.style.display='none';
+    }
+  });
+  btn.closest('.tactics-tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function voteTactic(btn, vote){
+  const card=btn.closest('.tactic-card');
+  const id=card.dataset.id;
+  STATE.tactics[id]=vote;
+  card.querySelectorAll('.vote-btn').forEach(b=>b.classList.remove('voted'));
+  btn.classList.add('voted');
+  const pill=card.querySelector('.status-pill');
+  if(pill){
+    pill.textContent=vote==='yes'?'Agreed':vote==='maybe'?'Maybe':vote==='later'?'Later':'Skipped';
+    pill.className='status-pill pill-'+(vote==='yes'?'agreed':vote==='maybe'?'maybe':'later');
+  }
+  updateTacticCounts();
+}
+function updateTacticCounts(){
+  let a=0,m=0,l=0;
+  Object.values(STATE.tactics).forEach(v=>{if(v==='yes')a++;else if(v==='maybe')m++;else l++;});
+  const tabs=document.querySelectorAll('.tactics-tabs .tab-btn');
+  tabs.forEach(t=>{
+    const txt=t.textContent.replace(/\s*\d+$/,'');
+    if(txt.includes('Agreed'))t.textContent=txt+' '+a;
+    else if(txt.includes('Maybe'))t.textContent=txt+' '+m;
+    else if(txt.includes('Later'))t.textContent=txt+' '+l;
+  });
+}
+
+/* ── Utilities ───────────────────────────── */
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function escQ(s){return s.replace(/'/g,"\\'");}
+
+/* ── Status & Prompt Generation ──────────── */
+function refreshStatus(){
+  ['facebook','whatsapp','email'].forEach(p=>{
+    const pre=p==='facebook'?'fb':p==='whatsapp'?'wa':'em';
+    const sel=STATE.selections[p]||[];
+    const appr=sel.filter(id=>STATE.approvals[id]).length;
+    const fb=sel.filter(id=>{
+      const f=STATE.feedback[id];
+      return f&&(f.lines&&f.lines.length>0||f.sliders&&Object.keys(f.sliders).length>0);
+    }).length;
+    const elSel=document.getElementById('status-'+pre+'-sel');
+    const elApp=document.getElementById('status-'+pre+'-app');
+    const elFb=document.getElementById('status-'+pre+'-fb');
+    if(elSel)elSel.textContent=sel.length+' / 3';
+    if(elApp)elApp.textContent=appr+' / 3';
+    if(elFb)elFb.textContent=fb+' / 3';
+  });
+  let tVoted=Object.keys(STATE.tactics).length;
+  const elTac=document.getElementById('status-tac-voted');
+  if(elTac)elTac.textContent=tVoted+' / 8';
+}
+
+function refreshSummary(){
+  let lines=[];
+  lines.push('=== FenViolet GTM Planner — Feedback Summary ===\n');
+  ['facebook','whatsapp','email'].forEach(p=>{
+    const pName=p.charAt(0).toUpperCase()+p.slice(1);
+    const sel=STATE.selections[p]||[];
+    if(sel.length===0){lines.push(pName+': No messages selected yet.\n');return;}
+    lines.push('--- '+pName+' ---');
+    sel.forEach(id=>{
+      const approved=STATE.approvals[id]?'✓ APPROVED':'⏳ Pending';
+      lines.push('\n'+id+' ['+approved+']');
+      const f=STATE.feedback[id];
+      if(!f){lines.push('  No feedback yet.');return;}
+      if(f.sliders){
+        Object.entries(f.sliders).forEach(([k,v])=>{lines.push('  Slider: '+k+' = '+v+'/10');});
+      }
+      if(f.lines&&f.lines.length){
+        f.lines.forEach(l=>{lines.push('  '+(l.type==='pos'?'👍':'👎')+' ['+l.tag+'] '+l.text);});
+      }
+      if(f.replacements&&f.replacements.length){
+        f.replacements.forEach(r=>{lines.push('  🔄 Replace: "'+r.from+'" → "'+r.to+'"');});
+      }
+    });
+    lines.push('');
+  });
+  if(Object.keys(STATE.tactics).length){
+    lines.push('--- Tactics ---');
+    Object.entries(STATE.tactics).forEach(([id,vote])=>{lines.push('  '+id+': '+vote);});
+    lines.push('');
+  }
+  if(STATE.sequenceRanks.length){
+    lines.push('--- Sequence Ranking ---');
+    STATE.sequenceRanks.forEach((r,i)=>{lines.push('  #'+(i+1)+': Sequence '+r);});
+    lines.push('');
+  }
+  if(STATE.fbPlanRating){
+    lines.push('Campaign Plan Rating: '+STATE.fbPlanRating+'/10\n');
+  }
+  const ta=document.getElementById('feedback-summary');
+  if(ta)ta.value=lines.join('\n');
+}
+
+function generatePrompt(){
+  refreshSummary();
+  const summary=document.getElementById('feedback-summary').value;
+  let prompt=`You are helping iterate launch content for FenViolet (fenviolet.co.uk), a Squarespace web design studio.\n\n`;
+  prompt+=`VOICE RULES:\n- Direct but not salesy\n- Informal but not rude\n- Warm but not sugary\n- Vulnerable but confident\n- Friends & family tone, NOT marketing\n- NEVER shame/insult, NEVER beggy, NEVER fake\n- All emails sign off "Hannah x"\n\n`;
+  prompt+=`GOLDEN PHRASES (use naturally):\n- "deserve a website as good as they are"\n- "we probably vibe with the same people"\n- "whose website just isn't keeping up"\n- "need some help"\n\n`;
+  prompt+=`COLLECTED FEEDBACK:\n${summary}\n\n`;
+  prompt+=`INSTRUCTIONS:\nBased on the feedback above, please:\n`;
+  let tasks=[];
+  ['facebook','whatsapp','email'].forEach(p=>{
+    const sel=STATE.selections[p]||[];
+    const pending=sel.filter(id=>!STATE.approvals[id]);
+    if(pending.length) tasks.push(`- Revise ${p} messages: ${pending.join(', ')} incorporating all slider scores, tag feedback, and replacement suggestions`);
+    const placeholders=sel.length<3?(3-sel.length):0;
+    if(sel.length<3) tasks.push(`- Generate ${3-sel.length} new ${p} message alternatives to fill the remaining slots`);
+  });
+  if(tasks.length===0) tasks.push('- All messages approved! Generate next-round content variations for A/B testing.');
+  prompt+=tasks.join('\n')+'\n\n';
+  prompt+=`OUTPUT FORMAT:\nFor each revised/new message, provide:\n1. Platform + ID\n2. Full message text\n3. Tone label\n4. What changed and why\n`;
+  const out=document.getElementById('prompt-output');
+  if(out){out.textContent=prompt;out.style.display='block';}
+}
+
+function copyPrompt(){
+  const out=document.getElementById('prompt-output');
+  if(!out)return;
+  navigator.clipboard.writeText(out.textContent).then(()=>{
+    const btn=document.querySelector('.copy-btn');
+    if(btn){const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
+  });
+}
+
+/* ── Overall Feedback (Page 6) ───────────── */
+function setRating(n){
+  STATE.overallRating=n;
+  document.querySelectorAll('.rating-dot').forEach(d=>{
+    d.classList.toggle('active',parseInt(d.dataset.n)<=n);
+  });
+}
+
+function submitOverall(){
+  STATE.overallComment=document.getElementById('overall-comment')?.value||'';
+  const data={rating:STATE.overallRating,comment:STATE.overallComment,timestamp:new Date().toISOString()};
+  try{localStorage.setItem('gtm-planner-feedback',JSON.stringify(data));}catch(e){}
+  const thanks=document.getElementById('thanks-msg');
+  if(thanks)thanks.style.display='block';
+}
+
+/* ── Content Ideas ───────────────────────── */
+function toggleIdea(tile){
+  tile.classList.toggle('selected');
+}
+
+/* ── Sequence Ranking ────────────────────── */
+function updateRank(input, seqIdx){
+  const val=parseInt(input.value)||0;
+  STATE.sequenceRanks[seqIdx]=val;
+}
+
+function updatePlanRating(slider){
+  STATE.fbPlanRating=parseInt(slider.value);
+  const disp=slider.nextElementSibling;
+  if(disp)disp.textContent=slider.value+'/10';
+}
+
+/* ── Feedback State Capture ──────────────── */
+function captureSlider(cardId, sliderId, value){
+  if(!STATE.feedback[cardId])STATE.feedback[cardId]={sliders:{},lines:[],replacements:[]};
+  STATE.feedback[cardId].sliders[sliderId]=parseInt(value);
+}
+
+function captureFeedbackLine(cardId, type, tag, text){
+  if(!STATE.feedback[cardId])STATE.feedback[cardId]={sliders:{},lines:[],replacements:[]};
+  STATE.feedback[cardId].lines.push({type,tag,text});
+}
+
+function captureReplacement(cardId, from, to){
+  if(!STATE.feedback[cardId])STATE.feedback[cardId]={sliders:{},lines:[],replacements:[]};
+  STATE.feedback[cardId].replacements.push({from,to});
+}
+
+/* ── Init ────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  navigateTo(0);
+  updateTacticCounts();
+});
+</script>
+</body>
+</html>
