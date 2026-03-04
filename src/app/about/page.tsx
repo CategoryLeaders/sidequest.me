@@ -15,21 +15,20 @@ const factoids = [
 ];
 
 const loves = [
-  { emoji: "☕", text: "Oat milk flat whites" },
-  { emoji: "📓", text: "Notion databases" },
-  { emoji: "🌅", text: "Golden hour photography" },
-  { emoji: "🎧", text: "Lo-fi beats while working" },
-  { emoji: "✈️", text: "Weekend city breaks" },
-  { emoji: "📚", text: "Business biographies" },
+  { emoji: "☕", text: "Coffee" },
+  { emoji: "🚀", text: "Science Fiction" },
+  { emoji: "💬", text: "Talking to interesting, passionate people" },
+  { emoji: "🏍️", text: "Motorcycle travel" },
+  { emoji: "🚐", text: "Vanlife adventures" },
+  { emoji: "⛵", text: "Sailing, boats and the sea" },
+  { emoji: "☀️", text: "Being Warm" },
 ];
 
 const hates = [
-  { emoji: "🙅", text: "Unnecessary meetings" },
-  { emoji: "😤", text: "Cookie consent pop-ups" },
-  { emoji: "🤖", text: "AI-generated LinkedIn posts" },
-  { emoji: "📊", text: "Vanity metrics" },
-  { emoji: "🔔", text: "Notification overload" },
-  { emoji: "☔", text: "Surrey drizzle" },
+  { emoji: "🚫", text: "TERFs, Racists and other Bigots" },
+  { emoji: "🥬", text: "Green Juice" },
+  { emoji: "🥶", text: "Being Cold" },
+  { emoji: "🧳", text: "Packing for trips" },
 ];
 
 export default function AboutPage() {

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM Spec — SQ-00002 Sample</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@900&family=DM+Sans:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fffbe6; color: #1a1a1a; font-family: 'DM Sans', system-ui, sans-serif;
+           padding: 40px; max-width: 900px; margin: 0 auto; }
+    h1 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+         text-transform: uppercase; font-size: 28px; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 32px;
+                font-family: 'Space Mono', monospace; }
+    .instruction { background: #1a1a1a; color: #fffbe6; padding: 16px 20px;
+                   margin-bottom: 32px; font-size: 14px; line-height: 1.6; }
+    .instruction strong { color: #ff6b35; }
+
+    .context { margin-bottom: 32px; line-height: 1.7; font-size: 15px; }
+    .context h2 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+                  text-transform: uppercase; font-size: 18px; margin-bottom: 12px; }
+
+    .option-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+                    margin-bottom: 32px; }
+    .opt-card { border: 3px solid #1a1a1a; padding: 24px; cursor: default; }
+    .opt-card h3 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+                   font-size: 16px; text-transform: uppercase; margin-bottom: 8px; }
+    .opt-card .pros { color: #16a34a; font-weight: 600; font-size: 13px; margin-top: 10px; }
+    .opt-card .cons { color: #dc2626; font-weight: 600; font-size: 13px; margin-top: 4px; }
+    .opt-card p { font-size: 13px; line-height: 1.5; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>PM Spec — SQ-00002</h1>
+  <p class="subtitle">Decision page · pick your preferred option in the feedback panel</p>
+
+  <div class="instruction">
+    👋 <strong>Hey Sophie!</strong> This is a PM decision page. Read through the options
+    below, then use the feedback panel (bottom-right) to select your preference and
+    add any comments. Your choice gets posted to the Asana task as a comment.
+  </div>
+
+  <div class="context">
+    <h2>Question: How should we handle the blog/thoughts page?</h2>
+    <p>We need to decide on the architecture for displaying your Facebook posts
+       on the Thoughts &amp; Stuff page. Each option has different trade-offs
+       around build time, interactivity, and maintenance.</p>
+  </div>
+
+  <div class="option-cards">
+    <div class="opt-card">
+      <h3>Option A: Static Build</h3>
+      <p>Pre-render all posts at build time. Fast page loads, no client-side
+         data fetching. Posts baked into the JS bundle.</p>
+      <div class="pros">✓ Fastest load · ✓ Works offline · ✓ Simple</div>
+      <div class="cons">✗ Large bundle · ✗ Rebuild to add posts</div>
+    </div>
+    <div class="opt-card">
+      <h3>Option B: API Route + Client Fetch</h3>
+      <p>Posts served from a Next.js API route reading JSON on the server.
+         Client fetches pages on scroll (infinite scroll).</p>
+      <div class="pros">✓ Small initial load · ✓ Easy to update</div>
+      <div class="cons">✗ Needs JS · ✗ Slight delay on scroll</div>
+    </div>
+    <div class="opt-card">
+      <h3>Option C: Hybrid ISR</h3>
+      <p>First page of posts statically rendered, subsequent pages fetched
+         on demand with Incremental Static Regeneration.</p>
+      <div class="pros">✓ Best of both · ✓ SEO friendly</div>
+      <div class="cons">✗ More complex · ✗ ISR config needed</div>
+    </div>
+    <div class="opt-card">
+      <h3>Option D: Static HTML Export</h3>
+      <p>Generate a standalone HTML page (like the current mockup) and
+         serve it from /public. No React hydration needed.</p>
+      <div class="pros">✓ Zero JS · ✓ Maximum speed · ✓ Portable</div>
+      <div class="cons">✗ No interactivity · ✗ Manual updates</div>
+    </div>
+  </div>
+
+  <!-- Feedback widget — PM mode with options -->
+  <script
+    src="/dev/feedback-widget.js"
+    data-task-ref="SQ-00002"
+    data-type="pm"
+    data-options="Option A: Static Build,Option B: API Route,Option C: Hybrid ISR,Option D: Static HTML"
+  ></script>
+</body>
+</html>

@@ -11,47 +11,7 @@ type Idea = {
 };
 
 // Fallback data for when Notion isn't connected
-const fallbackIdeas: Idea[] = [
-  {
-    id: "1",
-    type: "long",
-    title: "On building in public",
-    description:
-      "Why I started sharing my side projects before they're ready — and how it changed the way I build products.",
-    date: "Feb 2026",
-    tags: ["Building", "Product"],
-  },
-  {
-    id: "2",
-    type: "short",
-    text: "Hot take: the best products are built by people who use them obsessively. If you're not your own power user, you're guessing.",
-    date: "Feb 2026",
-  },
-  {
-    id: "3",
-    type: "long",
-    title: "The Notion-as-CMS playbook",
-    description:
-      "A complete guide to using Notion as a headless CMS for your personal site. Spoiler: it's easier than you think.",
-    date: "Jan 2026",
-    tags: ["Notion", "Dev"],
-  },
-  {
-    id: "4",
-    type: "short",
-    text: "Notion as a CMS might be the most underrated stack choice of the decade. Fight me.",
-    date: "Jan 2026",
-  },
-  {
-    id: "5",
-    type: "long",
-    title: "Why every founder needs a side project",
-    description:
-      "Side projects aren't distractions — they're creative outlets that make your main thing better.",
-    date: "Dec 2025",
-    tags: ["Startups", "Creativity"],
-  },
-];
+const fallbackIdeas: Idea[] = [];
 
 const tagRotations = ["-0.5deg", "0.7deg", "-0.3deg", "0.5deg"];
 

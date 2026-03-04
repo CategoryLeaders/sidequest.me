@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UX Test — SQ-00001 Sample</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@900&family=DM+Sans:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fffbe6; color: #1a1a1a; font-family: 'DM Sans', system-ui, sans-serif;
+           padding: 40px; max-width: 900px; margin: 0 auto; }
+    h1 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+         text-transform: uppercase; font-size: 28px; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 32px;
+                font-family: 'Space Mono', monospace; }
+    .instruction { background: #1a1a1a; color: #fffbe6; padding: 16px 20px;
+                   margin-bottom: 32px; font-size: 14px; line-height: 1.6; }
+    .instruction strong { color: #ff6b35; }
+
+    /* Sample mockup content */
+    .mockup-area { border: 3px solid #1a1a1a; padding: 32px; margin-bottom: 24px; }
+    .mockup-area h2 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+                      text-transform: uppercase; font-size: 18px; margin-bottom: 16px; }
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .sample-card { border: 3px solid #1a1a1a; padding: 20px; }
+    .sample-card .accent { height: 6px; margin: -20px -20px 16px; }
+    .sample-card h3 { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900;
+                      font-size: 14px; text-transform: uppercase; }
+    .sample-card p { font-size: 13px; margin-top: 8px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>UX Test — SQ-00001</h1>
+  <p class="subtitle">Sample mockup page · use the feedback panel (bottom-right) to submit</p>
+
+  <div class="instruction">
+    👋 <strong>Hey Sophie!</strong> This is a sample UX test page. The design below is a
+    placeholder — real mockups will contain actual component prototypes. Rate each
+    aspect using the sliders in the feedback panel, add any comments, then hit
+    <strong>Submit to Asana</strong>. Your feedback lands as a comment on the matching task.
+  </div>
+
+  <div class="mockup-area">
+    <h2>Sample Card Layout</h2>
+    <div class="card-grid">
+      <div class="sample-card">
+        <div class="accent" style="background: #ff6b35;"></div>
+        <h3>Card Variant A</h3>
+        <p>Single accent stripe with bold heading. Clean and minimal approach
+           with generous whitespace.</p>
+      </div>
+      <div class="sample-card">
+        <div class="accent" style="background: #E91E63;"></div>
+        <h3>Card Variant B</h3>
+        <p>Same structure, different accent colour. Tags could sit below
+           the heading in a horizontal row.</p>
+      </div>
+      <div class="sample-card">
+        <div class="accent" style="background: #2196F3;"></div>
+        <h3>Card Variant C</h3>
+        <p>Blue accent. Two-column blurb area below with "The Opportunity"
+           on the left and highlights on the right.</p>
+      </div>
+      <div class="sample-card">
+        <div class="accent" style="background: #4CAF50;"></div>
+        <h3>Card Variant D</h3>
+        <p>Green accent. Tube-map connector could run down the left edge
+           linking multiple role entries.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback widget — just include the script with config attributes -->
+  <script
+    src="/dev/feedback-widget.js"
+    data-task-ref="SQ-00001"
+    data-type="ux"
+    data-criteria="Card Design,Layout,Readability,Colour Palette"
+  ></script>
+</body>
+</html>

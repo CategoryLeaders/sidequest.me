@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { posts } from "@/lib/photowall-data";
+import { buildFeed } from "@/lib/feed-data";
+
+const latestPhoto = posts[0];
 
 const stickers = [
   { label: "Product", color: "sticker-orange" },
@@ -7,45 +11,6 @@ const stickers = [
   { label: "Writing", color: "sticker-blue" },
   { label: "Cybersecurity", color: "sticker-yellow" },
   { label: "Side Projects", color: "sticker-lilac" },
-];
-
-const latestCards = [
-  {
-    title: "Current Role",
-    badge: "sticker-green",
-    heading: "Hack The Box",
-    desc: "Sr. Director of Product Marketing at the leading cybersecurity upskilling platform.",
-    link: "/about",
-  },
-  {
-    title: "Latest Thought",
-    badge: "sticker-lilac",
-    heading: "On building in public",
-    desc: "Why I started sharing my side projects before they're ready...",
-    link: "/ideas",
-  },
-  {
-    title: "Latest Photo",
-    badge: "sticker-pink",
-    heading: "Golden hour 🌅",
-    desc: "Chasing light with a camera — one of those perfect evenings.",
-    link: "/photos",
-  },
-];
-
-const thoughts = [
-  {
-    text: "20 years in tech and the most valuable skill is still knowing when to listen.",
-    date: "Recently",
-  },
-  {
-    text: "The best product marketers are the ones who started in product. Fight me.",
-    date: "Recently",
-  },
-  {
-    text: "Notion as a CMS might be the most underrated stack choice of the decade.",
-    date: "Recently",
-  },
 ];
 
 const tickerItems = [
@@ -58,7 +23,19 @@ const tickerItems = [
   "Always a sidequest in progress",
 ];
 
+const feedRotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
+
+const typeIcons: Record<string, string> = {
+  photo: "📸",
+  project: "🚀",
+  career: "💼",
+  idea: "💡",
+  article: "✍️",
+};
+
 export default function Home() {
+  const feed = buildFeed();
+
   return (
     <main className="max-w-[1100px] mx-auto px-8 py-12 relative">
       {/* Decorative doodles */}
@@ -95,9 +72,14 @@ export default function Home() {
           className="hidden md:block border-3 border-ink bg-white p-2.5 relative"
           style={{ transform: "rotate(1.5deg)" }}
         >
-          <div className="w-full h-52 bg-gradient-to-br from-orange/30 to-pink/30" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/photowall/${latestPhoto.images[0]}`}
+            alt={latestPhoto.caption}
+            className="w-full h-52 object-cover"
+          />
           <p className="font-mono text-[0.7rem] text-center mt-2 opacity-60">
-            📍 currently in Surrey, UK
+            📸 {latestPhoto.caption.slice(0, 60)}{latestPhoto.caption.length > 60 ? "…" : ""}
           </p>
           <div
             className="absolute -bottom-1 -right-1 w-full h-full border-3 border-ink -z-1"
@@ -106,35 +88,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── LATEST GRID ── */}
+      {/* ── AGGREGATED FEED ── */}
       <section className="mb-14">
         <div className="section-title">What&apos;s New</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {latestCards.map((card, i) => (
+          {feed.map((item, i) => (
             <Link
-              key={card.title}
-              href={card.link}
-              className="block border-3 border-ink p-5 bg-white card-hover no-underline text-ink"
+              key={item.id}
+              href={item.link}
+              className="block border-3 border-ink bg-white card-hover no-underline text-ink overflow-hidden"
               style={{
-                transform: `rotate(${i % 2 === 0 ? "-0.3deg" : "0.3deg"})`,
+                transform: `rotate(${feedRotations[i % feedRotations.length]})`,
               }}
             >
-              <span className={`badge ${card.badge} mb-3 inline-block`}>
-                {card.title}
-              </span>
-              <h3 className="font-head font-bold text-[1rem] uppercase mt-2 mb-1.5">
-                {card.heading}
-              </h3>
-              <p className="text-[0.85rem] opacity-70 leading-snug">
-                {card.desc}
-              </p>
+              {item.image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-28 object-cover border-b-3 border-ink"
+                />
+              )}
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`badge ${item.badge}`}>
+                    {typeIcons[item.type]} {item.badgeLabel}
+                  </span>
+                </div>
+                <h3 className="font-head font-bold text-[0.95rem] uppercase mt-1 mb-1.5 leading-tight">
+                  {item.title}
+                </h3>
+                <p className="text-[0.82rem] opacity-70 leading-snug">
+                  {item.desc}
+                </p>
+              </div>
             </Link>
           ))}
         </div>
       </section>
 
       {/* ── TICKER ── */}
-      <div className="border-y-3 border-ink py-3 overflow-hidden mb-14">
+      <div className="border-y-3 border-ink py-3 overflow-hidden">
         <div
           className="flex whitespace-nowrap font-mono text-[0.78rem] uppercase gap-0"
           style={{ animation: "scroll 25s linear infinite" }}
@@ -146,27 +140,6 @@ export default function Home() {
           ))}
         </div>
       </div>
-
-      {/* ── QUICK THOUGHTS ── */}
-      <section>
-        <div className="section-title">Quick Thoughts</div>
-        <div className="flex flex-col gap-4">
-          {thoughts.map((t, i) => (
-            <div
-              key={i}
-              className="border-3 border-ink p-5 flex justify-between items-start gap-5 bg-white"
-              style={{
-                transform: `rotate(${i % 2 === 0 ? "-0.2deg" : "0.2deg"})`,
-              }}
-            >
-              <p className="text-[0.92rem] leading-snug">{t.text}</p>
-              <span className="font-mono text-[0.65rem] opacity-40 whitespace-nowrap shrink-0">
-                {t.date}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
