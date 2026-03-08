@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { posts, type PhotoPost } from "@/lib/photowall-data";
+import { photowallUrl } from "@/lib/cdn";
 import Image from "next/image";
 
 const BATCH_SIZE = 30;
@@ -97,7 +98,7 @@ export default function PhotowallPage() {
               style={{ padding: 0 }}
             >
               <Image
-                src={`/photowall/${post.images[0]}`}
+                src={photowallUrl(post.images[0])}
                 alt={post.caption || "Instagram post"}
                 fill
                 sizes="(max-width: 768px) 33vw, 300px"
@@ -199,7 +200,7 @@ function Lightbox({
         {/* Image area */}
         <div className="relative flex-1 min-h-[300px] md:min-h-[500px] bg-ink/5 flex items-center justify-center">
           <Image
-            src={`/photowall/${currentImage}`}
+            src={photowallUrl(currentImage)}
             alt={post.caption || "Instagram post"}
             fill
             sizes="(max-width: 768px) 95vw, 600px"

@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.sidequest.me",
+      },
+      {
+        protocol: "https",
+        hostname: "*.b-cdn.net",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -46,21 +46,8 @@ const projects = [
 export function buildFeed(): FeedItem[] {
   const items: FeedItem[] = [];
 
-  // ── Photos (latest 3) ──
-  posts.slice(0, 3).forEach((p, i) => {
-    items.push({
-      id: `photo-${p.id}`,
-      type: "photo",
-      title: p.caption.slice(0, 50) + (p.caption.length > 50 ? "…" : ""),
-      desc: `From the photowall — ${p.date}`,
-      badge: "badge-pink",
-      badgeLabel: "Photo",
-      link: "/photowall",
-      image: `/photowall/${p.images[0]}`,
-      date: p.date,
-      sortDate: p.date,
-    });
-  });
+  // ── Photos disabled: images are gitignored (213MB) and not deployed ──
+  // TODO: re-enable when photos are hosted externally (e.g. Cloudinary / S3)
 
   // ── Projects (all) ──
   projects.forEach((proj, i) => {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { posts } from "@/lib/photowall-data";
+import { photowallUrl } from "@/lib/cdn";
 import { buildFeed } from "@/lib/feed-data";
 
 const latestPhoto = posts[0];
@@ -84,7 +85,7 @@ export default function Home() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/photowall/${latestPhoto.images[0]}`}
+            src={photowallUrl(latestPhoto.images[0])}
             alt={latestPhoto.caption}
             className="w-full h-52 object-cover"
           />
