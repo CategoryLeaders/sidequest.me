@@ -1,23 +1,63 @@
-node_modules/
-.next/
-.env
-.env.local
-tsconfig.tsbuildinfo
-*.tgz
+# ============================================================
+# SideQuest.me — Root .gitignore
+# Covers: Next.js (web/), Android/Kotlin (app/), shared/, docs/
+# and Claude agent artefacts
+# ============================================================
+
+# ---- Next.js / Node (web/) --------------------------------
+web/node_modules/
+web/.next/
+web/out/
+web/.env
+web/.env.local
+web/.env.*.local
+web/.vercel/
+web/build/
+web/dist/
+
+# ---- Android / Kotlin (app/) ------------------------------
+app/.gradle/
+app/build/
+app/local.properties
+app/*.iml
+app/.idea/
+app/.idea/**
+app/captures/
+app/.externalNativeBuild/
+app/.cxx/
+app/google-services.json
+app/keystore/
+*.keystore
+*.jks
+
+# ---- Shared / Docs ----------------------------------------
+shared/node_modules/
+shared/dist/
+shared/build/
+
+# ---- Claude agent artefacts -------------------------------
+.claude/
+**/.claude/
+*.claude_session
+agent_memory.json
+agent_scratch/
+
+# ---- OS / Editor ------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+.idea/
+*.swp
+*.swo
+.vscode/
 
-# Non-code files
-docs/sidequest-agentic-operating-model.docx
-docs/asana-task-rules.md
-My Content/
-Content/
-.vercel
-
-# Design iteration previews
-design-spec/previews/
-
-# Instagram photowall images (212MB — regenerate with scripts/process-instagram.py)
-public/photowall/
-
-# Instagram data export (source images)
-Images/
+# ---- Secrets (belt + braces) ------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+service-account*.json

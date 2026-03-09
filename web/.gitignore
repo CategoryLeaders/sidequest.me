@@ -1,0 +1,23 @@
+node_modules/
+.next/
+.env
+.env.local
+tsconfig.tsbuildinfo
+*.tgz
+.DS_Store
+
+# Non-code files
+docs/sidequest-agentic-operating-model.docx
+docs/asana-task-rules.md
+My Content/
+Content/
+.vercel
+
+# Design iteration previews
+design-spec/previews/
+
+# Instagram photowall images (212MB — regenerate with scripts/process-instagram.py)
+public/photowall/
+
+# Instagram data export (source images)
+Images/
