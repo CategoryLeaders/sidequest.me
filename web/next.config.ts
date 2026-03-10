@@ -13,6 +13,38 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  redirects: async () => [
+    {
+      source: "/about",
+      destination: "/sophie/about",
+      permanent: true,
+    },
+    {
+      source: "/professional",
+      destination: "/sophie/professional",
+      permanent: true,
+    },
+    {
+      source: "/photowall",
+      destination: "/sophie/photowall",
+      permanent: true,
+    },
+    {
+      source: "/ideas",
+      destination: "/sophie/ideas",
+      permanent: true,
+    },
+    {
+      source: "/projects",
+      destination: "/sophie/projects",
+      permanent: true,
+    },
+    {
+      source: "/photos",
+      destination: "/sophie/photos",
+      permanent: true,
+    },
+  ],
 };
 
 export default nextConfig;
