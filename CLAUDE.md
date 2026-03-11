@@ -1,14 +1,16 @@
 # SideQuest.me — Android App + Platform Refactor
 
-## Current Status — 2026-03-08
+## Current Status — 2026-03-11
 
-> **Phase: Architecture & Stack Decisions (SQ.M-A-00001)**
-> Do not begin implementation until this ticket is resolved.
+> **Phase: Active Development — all streams open**
 
-- Monorepo decision: ✅ confirmed
-- Repo restructure: 🔄 in progress — see SQ.M-A-00002
-- Web team: ⛔ paused pending monorepo migration
-- All other architecture decisions: ❓ open — see SQ.M-A-00001 subtasks
+- Monorepo: ✅ live on `main`
+- Architecture decisions: ✅ all resolved (SQ.S-A-2603-0001 closed 2026-03-11)
+- Web sprint 1: ✅ built, QA passed — 2 PRs awaiting Sophie's merge to `main`
+  - `feat/SQ.S-W-2603-0007-routing` — /[username] dynamic routing + legacy redirects
+  - `feat/SQ.S-W-2603-0008-supabase` — Supabase client, auth, RLS, schema, env vars
+- Android app: 🔄 scaffold in progress
+- Web sprint 2: 🔄 tickets being planned
 
 ---
 
@@ -85,9 +87,14 @@ Every ticket has a **Team** custom field: `Web` or `Mobile`.
 
 ### Agent responsibilities per ticket
 - **Subtasks** — break each feature into subtasks at planning; tick off as completed
-- **Comments** — add a comment whenever:
+- **Comments — MANDATORY on every status change.** Every time a ticket's Stage Status field is updated, a comment MUST be posted first explaining:
+  - What stage it is moving from → to
+  - What was done / what happened to trigger the move
+  - Any decisions made, with reasoning
+  - Any caveats, known issues, or follow-up items
+  Never update the status field without posting a comment in the same operation. The comment is the audit trail — it is not optional.
+- **Additional comments** — also add a comment whenever:
   - A significant architectural or implementation decision is made (include reasoning)
-  - A meaningful chunk of work is completed
   - A blocker or question arises that needs Sophie's input
 - **Awaiting Input** — set the `Awaiting Input` status field to `Yes` and re-assign the task to Sophie when her decision is needed. Do not leave tasks in an ambiguous state — work is either progressing or explicitly parked.
 - **Sections (Kanban)** — keep each ticket in the correct board section:
@@ -146,11 +153,25 @@ feat(auth): implement Supabase JWT refresh [SQ.M-A-00003]
 
 ---
 
+## Tokens & Credentials
+
+All PATs are stored in `docs/scripts/tokens.pat` (gitignored). **Always check this file before asking Sophie for a token.**
+
+```
+docs/scripts/tokens.pat  — ASANA_PAT, GITHUB_PAT, VERCEL_PAT
+```
+
+To use in a script: `source docs/scripts/tokens.pat`
+To push to GitHub: configure remote with `https://sidequest-sophie:${GITHUB_PAT}@github.com/...`, push, then reset remote URL to remove credentials.
+To call Vercel API: `Authorization: Bearer ${VERCEL_PAT}`
+
+---
+
 ## Repo & Project References
 
 | Resource | Value |
 |---|---|
-| GitHub monorepo | https://github.com/sidequest-sophie |
+| GitHub monorepo | https://github.com/sidequest-sophie/sidequest.me |
 | Primary branch | `main` |
 | Asana project | SideQuest.me (GID: `1213468594164941`) |
 | Asana workspace | My Workspace (GID: `1202415985835777`) |
