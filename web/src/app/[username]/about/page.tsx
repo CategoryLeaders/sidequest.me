@@ -71,7 +71,7 @@ export default function AboutPage() {
               sidequests on the go. By day I work in tech — product marketing
               and all that — but this site isn&apos;t really about that.
               (There&apos;s a whole{" "}
-              <a href="/professional" className="underline font-bold">
+              <a href="/sophie/professional" className="underline font-bold">
                 Professional Life
               </a>{" "}
               page if you&apos;re after the career stuff.)

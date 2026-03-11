@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// TODO: Replace hardcoded 'sophie' with dynamic username from session
+const CURRENT_USERNAME = "sophie";
+
 const links = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/professional", label: "Professional" },
-  { href: "/photowall", label: "Photowall" },
-  { href: "/ideas", label: "Ideas" },
-  { href: "/projects", label: "Projects" },
+  { href: `/${CURRENT_USERNAME}/about`, label: "About" },
+  { href: `/${CURRENT_USERNAME}/professional`, label: "Professional" },
+  { href: `/${CURRENT_USERNAME}/photowall`, label: "Photowall" },
+  { href: `/${CURRENT_USERNAME}/ideas`, label: "Ideas" },
+  { href: `/${CURRENT_USERNAME}/projects`, label: "Projects" },
 ];
 
 const rotations = ["-0.5deg", "0.7deg", "-0.3deg", "0.5deg", "0.6deg", "-0.8deg", "0.4deg"];
