@@ -1,24 +1,32 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+/**
+ * Validates a redirect path to prevent open-redirect attacks.
+ * Only allows relative paths starting with "/" (not "//").
+ */
+function safeRedirectPath(raw: string | null): string {
+  if (!raw) return '/'
+  // Must start with exactly one slash (not //) to stay on-origin
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw
+  return '/'
+}
+
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
+  const next = safeRedirectPath(requestUrl.searchParams.get('next'))
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host')
-      const proto = request.headers.get('x-forwarded-proto')
-      const host = forwardedHost || request.headers.get('host')
-      const redirectUrl = `${proto}://${host}${next}`
-      return NextResponse.redirect(redirectUrl)
+      // Use request.url origin — never trust x-forwarded-host
+      return NextResponse.redirect(new URL(next, requestUrl.origin))
     }
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(new URL('/auth/error', request.url))
+  return NextResponse.redirect(new URL('/auth/error', requestUrl.origin))
 }
