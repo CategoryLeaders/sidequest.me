@@ -1,14 +1,16 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { posts } from "@/lib/photowall-data";
 import { photowallUrl } from "@/lib/cdn";
 import { buildFeed } from "@/lib/feed-data";
+import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
 
 const latestPhoto = posts[0];
 
+// Static fallbacks for Sophie's content (replace with DB-driven content in future sprint)
 const stickers = [
   { label: "Product", color: "sticker-orange" },
   { label: "Marketing", color: "sticker-green" },
-
   { label: "Writing", color: "sticker-blue" },
   { label: "Cybersecurity", color: "sticker-yellow" },
   { label: "Side Projects", color: "sticker-lilac" },
@@ -26,7 +28,6 @@ const tickerItems = [
 
 const feedRotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
-/* colour token per badge class for the numbered circle */
 const badgeCircleColor: Record<string, string> = {
   "badge-orange": "var(--orange)",
   "badge-green": "var(--green)",
@@ -44,31 +45,67 @@ const typeIcons: Record<string, string> = {
   article: "✍️",
 };
 
-export default function ProfilePage() {
+interface ProfilePageProps {
+  params: Promise<{ username: string }>;
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  const { username } = await params;
   const feed = buildFeed();
+
+  // Both calls are React.cache-deduped — no extra DB round-trips vs layout
+  const [profile, user] = await Promise.all([
+    getProfileByUsername(username),
+    getCurrentUser(),
+  ]);
+
+  if (!profile) notFound();
+
+  const isOwner = user?.id === profile.id;
+
+  // Use DB values where set, fall back to Sophie's static copy
+  const displayName = profile.display_name ?? "Sophie Collins builds things & tells their story";
+  const bio = profile.bio ?? "Product leader turned product marketer. 20+ years taking enterprise software to market — from code to customer. This is my corner of the internet.";
+  const avatarUrl = profile.avatar_url;
 
   return (
     <main className="max-w-[1100px] mx-auto px-8 py-12 relative">
       {/* Decorative doodles */}
-      <div
-        className="doodle doodle-circle"
-        style={{ width: 120, height: 120, top: 40, right: -30 }}
-      />
-      <div
-        className="doodle"
-        style={{ width: 80, height: 80, bottom: 200, left: -20 }}
-      />
+      <div className="doodle doodle-circle" style={{ width: 120, height: 120, top: 40, right: -30 }} />
+      <div className="doodle" style={{ width: 80, height: 80, bottom: 200, left: -20 }} />
 
       {/* ── HERO ── */}
       <section className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-10 mb-14 relative z-1">
         <div>
+          {/* Own-profile edit button */}
+          {isOwner && (
+            <div className="mb-4">
+              <Link
+                href={`/${username}/settings`}
+                className="inline-block px-3.5 py-1.5 border-3 border-ink font-head font-bold text-[0.68rem] uppercase no-underline text-ink hover:bg-ink hover:text-bg transition-colors"
+              >
+                ✏️ Edit profile
+              </Link>
+            </div>
+          )}
+
+          {/* Avatar — shown if set in DB */}
+          {avatarUrl && (
+            <div className="mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt={`${username}'s avatar`}
+                className="w-16 h-16 rounded-full border-3 border-ink object-cover"
+              />
+            </div>
+          )}
+
           <h1 className="font-head font-[900] text-[clamp(2rem,5vw,3.4rem)] uppercase leading-[0.92] mb-5">
-            Sophie Collins builds things &amp; tells their story
+            {displayName}
           </h1>
           <p className="text-[1.05rem] leading-relaxed mb-6 max-w-[540px] opacity-80">
-            Product leader turned product marketer. 20+ years taking enterprise
-            software to market — from code to customer. This is my corner of the
-            internet.
+            {bio}
           </p>
           <div className="flex flex-wrap gap-2.5">
             {stickers.map((s) => (
@@ -104,11 +141,8 @@ export default function ProfilePage() {
               key={item.id}
               href={item.link}
               className="block border-3 border-ink bg-white card-hover no-underline text-ink overflow-visible relative"
-              style={{
-                transform: `rotate(${feedRotations[i % feedRotations.length]})`,
-              }}
+              style={{ transform: `rotate(${feedRotations[i % feedRotations.length]})` }}
             >
-              {/* numbered circle — top-left, hanging over corner */}
               <span
                 className="absolute -top-3.5 -left-3.5 z-10 inline-flex items-center justify-center w-[32px] h-[32px] rounded-full border-3 border-ink text-white font-head font-[900] text-[0.75rem] leading-none"
                 style={{
@@ -118,7 +152,6 @@ export default function ProfilePage() {
               >
                 {i + 1}
               </span>
-              {/* date — just to the right of the circle, over the image */}
               <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-white/90 leading-none whitespace-nowrap z-10" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
                 {item.date}
               </span>
@@ -132,7 +165,6 @@ export default function ProfilePage() {
                 />
               )}
               <div className="p-5 pt-4 relative">
-                {/* badge tag — top-right */}
                 <span className={`badge ${item.badge} absolute top-3 right-3`}>
                   {typeIcons[item.type]} {item.badgeLabel}
                 </span>

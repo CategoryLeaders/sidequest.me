@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { getCurrentUserProfile } from "@/lib/profiles";
 
 export const metadata: Metadata = {
   title: "sidequest.me — Sophie Collins",
@@ -17,11 +18,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch current user's profile for Nav (null if not logged in)
+  const currentProfile = await getCurrentUserProfile();
+
   return (
     <html lang="en">
       <head>
@@ -37,7 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Nav />
+        <Nav currentUsername={currentProfile?.username ?? null} />
         {children}
         <Footer />
       </body>
