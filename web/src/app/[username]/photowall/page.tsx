@@ -1,6 +1,5 @@
 import { getProfileByUsername } from "@/lib/profiles";
 import { notFound } from "next/navigation";
-import PhotowallOwnerUpload from "@/components/PhotowallOwnerUpload";
 import PhotowallGrid from "./PhotowallGrid";
 
 interface Props {
@@ -12,10 +11,5 @@ export default async function PhotowallPage({ params }: Props) {
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
 
-  return (
-    <>
-      <PhotowallOwnerUpload profileUserId={profile.id} />
-      <PhotowallGrid />
-    </>
-  );
+  return <PhotowallGrid />;
 }

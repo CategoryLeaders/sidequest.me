@@ -142,7 +142,7 @@ export default function Nav({
                 {/* Menu items */}
                 <div className="py-1">
                   <Link
-                    href={`/${currentUsername}/photowall`}
+                    href={`/${currentUsername}/publish`}
                     className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
                   >
                     <span className="text-[0.9rem]">📷</span>
