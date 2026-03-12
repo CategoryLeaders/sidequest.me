@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
     "@notionhq/client": "^5.11.0",
     "@supabase/ssr": "^0.6.0",
     "@supabase/supabase-js": "^2.40.0",
