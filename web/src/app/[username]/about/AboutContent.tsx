@@ -17,6 +17,8 @@ interface AboutContentProps {
   displayName: string;
   aboutBio: string | null;
   factoids: Factoid[];
+  /** Total number of saved factoids (may be > factoids.length when randomising) */
+  totalFactoids: number;
   likes: LikeDislike[];
   dislikes: LikeDislike[];
 }
@@ -61,6 +63,7 @@ export default function AboutContent({
   displayName,
   aboutBio,
   factoids,
+  totalFactoids,
   likes,
   dislikes,
 }: AboutContentProps) {
@@ -132,6 +135,11 @@ export default function AboutContent({
                   </div>
                 </div>
               ))}
+              {totalFactoids > factoids.length && (
+                <p className="font-mono text-[0.62rem] opacity-35 text-center mt-1">
+                  {factoids.length} of {totalFactoids} · refreshes each visit
+                </p>
+              )}
             </div>
           )}
         </div>

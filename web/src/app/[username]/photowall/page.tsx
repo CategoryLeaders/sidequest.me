@@ -11,5 +11,5 @@ export default async function PhotowallPage({ params }: Props) {
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
 
-  return <PhotowallGrid />;
+  return <PhotowallGrid userId={profile.id} username={profile.username} />;
 }
