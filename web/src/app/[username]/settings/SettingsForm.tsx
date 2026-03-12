@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Profile settings form — tabbed: Profile · Professional · About · Likes & Dislikes
- * [SQ.S-W-2603-0034] [SQ.S-W-2603-0038] [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041]
+ * Profile settings form — tabbed: Profile (sub: Info · Likes & Dislikes · Ticker) · About · Professional
+ * [SQ.S-W-2603-0034] [SQ.S-W-2603-0038] [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041] [SQ.S-W-2603-0046]
  */
 
 import { useState } from "react";
@@ -15,8 +15,11 @@ import LikesDislikesEditor from "@/components/settings/LikesDislikesEditor";
 import TickerEditor from "@/components/settings/TickerEditor";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
 
-const SETTINGS_TABS = ["Profile", "Professional", "About", "Likes & Dislikes", "Ticker"] as const;
+const SETTINGS_TABS = ["Profile", "About", "Professional"] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
+
+const PROFILE_SUBTABS = ["Info", "Likes & Dislikes", "Ticker"] as const;
+type ProfileSubTab = (typeof PROFILE_SUBTABS)[number];
 
 interface SettingsFormProps {
   profile: Profile;
@@ -25,6 +28,7 @@ interface SettingsFormProps {
 export default function SettingsForm({ profile }: SettingsFormProps) {
   const router = useRouter();
   const [tab, setTab] = useState<SettingsTab>("Profile");
+  const [profileSubTab, setProfileSubTab] = useState<ProfileSubTab>("Info");
 
   // ── Profile tab state ──
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
@@ -41,7 +45,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     (profile.factoids as Factoid[] | null) ?? []
   );
 
-  // ── Likes & Dislikes tab state ──
+  // ── Likes & Dislikes sub-tab state ──
   const [likes, setLikes] = useState<LikeDislike[]>(
     (profile.likes as LikeDislike[] | null) ?? []
   );
@@ -49,7 +53,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     (profile.dislikes as LikeDislike[] | null) ?? []
   );
 
-  // ── Ticker tab state ──
+  // ── Ticker sub-tab state ──
   const [tickerItems, setTickerItems] = useState<string[]>(
     (profile.ticker_items as string[] | null) ?? []
   );
@@ -116,7 +120,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Tab bar */}
+      {/* ── Main tab bar: Profile · About · Professional ── */}
       <div className="flex gap-1 border-3 border-ink overflow-x-auto">
         {SETTINGS_TABS.map((t) => (
           <button
@@ -134,50 +138,141 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       {/* ══════ PROFILE TAB ══════ */}
       {tab === "Profile" && (
+        <div className="space-y-6">
+          {/* Profile sub-tab bar: Info · Likes & Dislikes · Ticker */}
+          <div className="flex gap-1 border-2 border-ink/30 overflow-x-auto">
+            {PROFILE_SUBTABS.map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setProfileSubTab(st)}
+                className={`flex-1 min-w-0 py-2 px-3 font-head font-bold text-[0.68rem] uppercase cursor-pointer transition-colors whitespace-nowrap ${
+                  profileSubTab === st
+                    ? "bg-ink/10 text-ink border-b-2 border-ink"
+                    : "bg-white text-ink/50 hover:bg-ink/5 hover:text-ink"
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Info sub-tab ── */}
+          {profileSubTab === "Info" && (
+            <div className="space-y-8">
+              <div className="flex flex-col items-center py-2">
+                <AvatarUpload
+                  userId={profile.id}
+                  displayName={displayName || profile.username}
+                  currentAvatarUrl={avatarUrl || null}
+                  onUploaded={(url) => setAvatarUrl(url)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="displayName" className={labelClass}>
+                  Display Name
+                </label>
+                <input
+                  id="displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name or tagline"
+                  maxLength={120}
+                  className={inputClass}
+                />
+                <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
+                  Shown as your profile heading. Leave blank to use the default.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="bio" className={labelClass}>
+                  Short Bio
+                </label>
+                <textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="A short bio for your profile card…"
+                  rows={3}
+                  maxLength={500}
+                  className={`${inputClass} resize-y`}
+                />
+                <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
+                  {bio.length}/500 characters
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Likes & Dislikes sub-tab ── */}
+          {profileSubTab === "Likes & Dislikes" && (
+            <div className="space-y-8">
+              <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
+                These show on your About page under the &ldquo;Loves &amp; Hates&rdquo; tab.
+              </p>
+
+              <div>
+                <div className={labelClass}>Loves 💚</div>
+                <LikesDislikesEditor items={likes} onChange={setLikes} />
+              </div>
+
+              <div>
+                <div className={labelClass}>Hates 😤</div>
+                <LikesDislikesEditor items={dislikes} onChange={setDislikes} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Ticker sub-tab ── */}
+          {profileSubTab === "Ticker" && (
+            <div className="space-y-8">
+              <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
+                Short items that scroll across the bottom of your profile page. Up to 10 items.
+                <br />
+                <strong className="opacity-80">Pin</strong> items to keep them when using reroll.
+              </p>
+
+              <div>
+                <div className={labelClass}>Ticker Items</div>
+                <TickerEditor
+                  items={tickerItems}
+                  onChange={setTickerItems}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══════ ABOUT TAB ══════ */}
+      {tab === "About" && (
         <div className="space-y-8">
-          <div className="flex flex-col items-center py-2">
-            <AvatarUpload
-              userId={profile.id}
-              displayName={displayName || profile.username}
-              currentAvatarUrl={avatarUrl || null}
-              onUploaded={(url) => setAvatarUrl(url)}
-            />
-          </div>
-
           <div>
-            <label htmlFor="displayName" className={labelClass}>
-              Display Name
-            </label>
-            <input
-              id="displayName"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name or tagline"
-              maxLength={120}
-              className={inputClass}
-            />
-            <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
-              Shown as your profile heading. Leave blank to use the default.
-            </p>
-          </div>
-
-          <div>
-            <label htmlFor="bio" className={labelClass}>
-              Short Bio
+            <label htmlFor="aboutBio" className={labelClass}>
+              About Bio
             </label>
             <textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="A short bio for your profile card…"
-              rows={3}
-              maxLength={500}
+              id="aboutBio"
+              value={aboutBio}
+              onChange={(e) => setAboutBio(e.target.value)}
+              placeholder="Write about yourself… Use [link text](url) for hyperlinks."
+              rows={8}
               className={`${inputClass} resize-y`}
             />
             <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
-              {bio.length}/500 characters
+              Shown on the About page. Supports basic markdown links: [text](url)
             </p>
+          </div>
+
+          <div>
+            <div className={labelClass}>Factoid Cards</div>
+            <p className="font-mono text-[0.68rem] opacity-50 mb-4">
+              Quick-glance cards shown alongside your bio. Pick a category, set a value.
+            </p>
+            <FactoidEditor factoids={factoids} onChange={setFactoids} />
           </div>
         </div>
       )}
@@ -222,75 +317,6 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
               Full LinkedIn profile URL. Shown as a link on the Professional page.
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* ══════ ABOUT TAB ══════ */}
-      {tab === "About" && (
-        <div className="space-y-8">
-          <div>
-            <label htmlFor="aboutBio" className={labelClass}>
-              About Bio
-            </label>
-            <textarea
-              id="aboutBio"
-              value={aboutBio}
-              onChange={(e) => setAboutBio(e.target.value)}
-              placeholder="Write about yourself… Use [link text](url) for hyperlinks."
-              rows={8}
-              className={`${inputClass} resize-y`}
-            />
-            <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
-              Shown on the About page. Supports basic markdown links: [text](url)
-            </p>
-          </div>
-
-          <div>
-            <div className={labelClass}>Factoid Cards</div>
-            <p className="font-mono text-[0.68rem] opacity-50 mb-4">
-              Quick-glance cards shown alongside your bio. Pick a category, set a value.
-            </p>
-            <FactoidEditor factoids={factoids} onChange={setFactoids} />
-          </div>
-        </div>
-      )}
-
-      {/* ══════ LIKES & DISLIKES TAB ══════ */}
-      {tab === "Likes & Dislikes" && (
-        <div className="space-y-8">
-          <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-            These show on your About page under the &ldquo;Loves &amp; Hates&rdquo; tab.
-          </p>
-
-          <div>
-            <div className={labelClass}>Loves 💚</div>
-            <LikesDislikesEditor items={likes} onChange={setLikes} />
-          </div>
-
-          <div>
-            <div className={labelClass}>Hates 😤</div>
-            <LikesDislikesEditor items={dislikes} onChange={setDislikes} />
-          </div>
-        </div>
-      )}
-
-
-      {/* ══════ TICKER TAB ══════ */}
-      {tab === "Ticker" && (
-        <div className="space-y-8">
-          <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-            Short items that scroll across the bottom of your profile page. Up to 10 items.
-            <br />
-            <strong className="opacity-80">Pin</strong> items to keep them when using AI reroll.
-          </p>
-
-          <div>
-            <div className={labelClass}>Ticker Items</div>
-            <TickerEditor
-              items={tickerItems}
-              onChange={setTickerItems}
-            />
           </div>
         </div>
       )}
