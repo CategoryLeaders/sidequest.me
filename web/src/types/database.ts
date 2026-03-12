@@ -86,29 +86,47 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about_bio: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
+          dislikes: Json | null
           display_name: string | null
+          factoids: Json | null
           id: string
+          likes: Json | null
+          linkedin_url: string | null
+          professional_name: string | null
           updated_at: string
           username: string
         }
         Insert: {
+          about_bio?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          dislikes?: Json | null
           display_name?: string | null
+          factoids?: Json | null
           id: string
+          likes?: Json | null
+          linkedin_url?: string | null
+          professional_name?: string | null
           updated_at?: string
           username: string
         }
         Update: {
+          about_bio?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          dislikes?: Json | null
           display_name?: string | null
+          factoids?: Json | null
           id?: string
+          likes?: Json | null
+          linkedin_url?: string | null
+          professional_name?: string | null
           updated_at?: string
           username?: string
         }
