@@ -184,19 +184,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
       </section>
 
-      {/* ── TICKER ── */}
-      <div className="border-y-3 border-ink py-3 overflow-hidden">
-        <div
-          className="flex whitespace-nowrap font-mono text-[0.78rem] uppercase gap-0"
-          style={{ animation: "scroll 25s linear infinite" }}
-        >
-          {[...tickerItems, ...tickerItems].map((item, i) => (
-            <span key={i} className="px-6">
-              {item} ✦
-            </span>
-          ))}
+      {/* ── TICKER — only rendered when enabled ── */}
+      {profile.ticker_enabled !== false && (
+        <div className="border-y-3 border-ink py-3 overflow-hidden">
+          <div
+            className="flex whitespace-nowrap font-mono text-[0.78rem] uppercase gap-0"
+            style={{ animation: "scroll 25s linear infinite" }}
+          >
+            {[...tickerItems, ...tickerItems].map((item, i) => (
+              <span key={i} className="px-6">
+                {item} ✦
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </main>
   );
 }

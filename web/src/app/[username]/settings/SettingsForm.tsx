@@ -54,6 +54,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
 
   // ── Ticker sub-tab state ──
+  const [tickerEnabled, setTickerEnabled] = useState<boolean>(
+    profile.ticker_enabled !== false
+  );
   const [tickerItems, setTickerItems] = useState<string[]>(
     (profile.ticker_items as string[] | null) ?? []
   );
@@ -89,6 +92,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         factoids: factoids.length > 0 ? factoids : [],
         likes: likes.length > 0 ? likes : [],
         dislikes: dislikes.length > 0 ? dislikes : [],
+        ticker_enabled: tickerEnabled,
         ticker_items: tickerItems.length > 0 ? tickerItems : null,
         updated_at: new Date().toISOString(),
       };
@@ -229,19 +233,36 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           {/* ── Ticker sub-tab ── */}
           {profileSubTab === "Ticker" && (
             <div className="space-y-8">
-              <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-                Short items that scroll across the bottom of your profile page. Up to 10 items.
-                <br />
-                <strong className="opacity-80">Pin</strong> items to keep them when using reroll.
-              </p>
-
-              <div>
-                <div className={labelClass}>Ticker Items</div>
-                <TickerEditor
-                  items={tickerItems}
-                  onChange={setTickerItems}
+              {/* Enable/disable toggle */}
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={tickerEnabled}
+                  onChange={(e) => setTickerEnabled(e.target.checked)}
+                  className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer"
                 />
-              </div>
+                <span className="font-head font-bold text-[0.78rem] uppercase">
+                  Show ticker on profile
+                </span>
+              </label>
+
+              {tickerEnabled && (
+                <>
+                  <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
+                    Short items that scroll across the bottom of your profile page. Up to 10 items.
+                    <br />
+                    <strong className="opacity-80">Pin</strong> items to keep them when using reroll.
+                  </p>
+
+                  <div>
+                    <div className={labelClass}>Ticker Items</div>
+                    <TickerEditor
+                      items={tickerItems}
+                      onChange={setTickerItems}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

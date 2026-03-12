@@ -25,7 +25,12 @@ function LoginForm() {
   const [mode, setMode] = useState<AuthMode>('magic-link')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  // Pre-populate error from ?error=no_account (set by auth/callback when no profile exists) [SQ.S-W-2603-0049]
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') === 'no_account'
+      ? "Sorry, you don't appear to have an account."
+      : null
+  )
   const [loading, setLoading] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -43,7 +48,14 @@ function LoginForm() {
       .eq('id', userId)
       .single() as unknown as { data: { username: string } | null; error: unknown }
 
-    router.push(profileData?.username ? `/${profileData.username}` : '/')
+    if (!profileData?.username) {
+      // Authenticated but no profile — sign out and show error [SQ.S-W-2603-0049]
+      await supabase.auth.signOut()
+      setError("Sorry, you don't appear to have an account.")
+      return
+    }
+
+    router.push(`/${profileData.username}`)
     router.refresh()
   }
 

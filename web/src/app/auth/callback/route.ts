@@ -19,10 +19,26 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) {
-      // Use request.url origin — never trust x-forwarded-host
+    if (!error && sessionData.user) {
+      // Check that a profile exists for this user — no auto-creation [SQ.S-W-2603-0049]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any
+      const { data: profile } = await db
+        .from('profiles')
+        .select('username')
+        .eq('id', sessionData.user.id)
+        .single()
+
+      if (!profile) {
+        // No profile — sign out and redirect to login with error
+        await supabase.auth.signOut()
+        return NextResponse.redirect(
+          new URL('/login?error=no_account', requestUrl.origin)
+        )
+      }
+
       return NextResponse.redirect(new URL(next, requestUrl.origin))
     }
   }

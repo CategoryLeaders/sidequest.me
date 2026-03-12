@@ -4,7 +4,7 @@
  * Main site navigation.
  * When logged in: avatar circle top-right with dropdown (Post Image, Edit Profile, Logout).
  * When logged out: Login link.
- * [SQ.S-W-2603-0033]
+ * [SQ.S-W-2603-0033] [SQ.S-W-2603-0047]
  */
 
 import Link from "next/link";
@@ -43,7 +43,7 @@ export default function Nav({
   const profileBase = `/${NAV_USERNAME}`;
   const myProfileHref = currentUsername ? `/${currentUsername}` : profileBase;
   const links = [
-    { href: myProfileHref, label: "My Profile" },
+    { href: myProfileHref, label: currentUsername ? "My Profile" : "Profile" },
     { href: `${profileBase}/about`, label: "About" },
     { href: `${profileBase}/professional`, label: "Professional" },
     { href: `${profileBase}/photowall`, label: "Photowall" },
