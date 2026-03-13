@@ -107,17 +107,26 @@ export async function GET(request: Request) {
   const userId = searchParams.get('user_id')
   const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
   const offset = parseInt(searchParams.get('offset') || '0')
+  const tag = searchParams.get('tag') // optional tag filter
 
   if (!userId) {
     return NextResponse.json({ error: 'user_id is required' }, { status: 400 })
   }
 
-  const { data: photos, error, count } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from('photos')
     .select('*', { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
+
+  if (tag) {
+    // Filter to photos whose tags array contains this value
+    query = query.contains('tags', [tag])
+  }
+
+  const { data: photos, error, count } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

@@ -4,17 +4,9 @@ import { posts } from "@/lib/photowall-data";
 import { photowallUrl } from "@/lib/cdn";
 import { buildFeed } from "@/lib/feed-data";
 import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
+import { type SiteTag, DEFAULT_SITE_TAGS, slugify } from "@/lib/tags";
 
 const latestPhoto = posts[0];
-
-// Static fallbacks for Sophie's content (replace with DB-driven content in future sprint)
-const stickers = [
-  { label: "Product", color: "sticker-orange" },
-  { label: "Marketing", color: "sticker-green" },
-  { label: "Writing", color: "sticker-blue" },
-  { label: "Cybersecurity", color: "sticker-yellow" },
-  { label: "Side Projects", color: "sticker-lilac" },
-];
 
 /** Fallback ticker items used only if profile has no ticker_items set in DB */
 const DEFAULT_TICKER_ITEMS = [
@@ -71,6 +63,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const tickerItems = (profile.ticker_items && profile.ticker_items.length > 0)
     ? profile.ticker_items
     : DEFAULT_TICKER_ITEMS;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const siteTags: SiteTag[] = ((profile as any).site_tags as SiteTag[] | null)?.filter(
+    (t) => t?.label?.trim()
+  ) ?? DEFAULT_SITE_TAGS;
 
   return (
     <main className="max-w-[1100px] mx-auto px-8 py-12 relative">
@@ -112,10 +108,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {bio}
           </p>
           <div className="flex flex-wrap gap-2.5">
-            {stickers.map((s) => (
-              <span key={s.label} className={`sticker ${s.color}`}>
+            {siteTags.map((s) => (
+              <Link
+                key={s.label}
+                href={`/${username}/tags/${slugify(s.label)}`}
+                className={`sticker ${s.color} no-underline`}
+              >
                 {s.label}
-              </span>
+              </Link>
             ))}
           </div>
         </div>

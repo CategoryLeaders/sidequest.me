@@ -25,6 +25,8 @@ interface PhotowallGridProps {
   userId: string;
   username: string;
   isOwner: boolean;
+  /** When set, only show DB photos with this tag; skip archive entirely */
+  filterTag?: string;
 }
 
 const BATCH_SIZE = 30;
@@ -41,15 +43,15 @@ function archiveToUnified(): UnifiedPost[] {
   }));
 }
 
-export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGridProps) {
+export default function PhotowallGrid({ userId, username, isOwner, filterTag }: PhotowallGridProps) {
   const [dbPhotos, setDbPhotos] = useState<UnifiedPost[]>([]);
   const [dbTotal, setDbTotal] = useState(0);
   const [dbOffset, setDbOffset] = useState(0);
   const [dbLoading, setDbLoading] = useState(true);
   const [dbLoadingMore, setDbLoadingMore] = useState(false);
 
-  // Archive is static — always available immediately
-  const archive = archiveToUnified();
+  // Archive is skipped when filtering by tag (archive has no tags)
+  const archive = filterTag ? [] : archiveToUnified();
 
   // Visible count into the combined list
   const [visible, setVisible] = useState(BATCH_SIZE);
@@ -58,12 +60,13 @@ export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGr
   const [selected, setSelected] = useState<UnifiedPost | null>(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
 
-  // Fetch initial DB photos
+  // Fetch initial DB photos (with optional tag filter)
   useEffect(() => {
     async function fetchDb() {
       setDbLoading(true);
       try {
-        const res = await fetch(`/api/photos?user_id=${userId}&limit=${BATCH_SIZE}&offset=0`);
+        const tagParam = filterTag ? `&tag=${encodeURIComponent(filterTag)}` : "";
+        const res = await fetch(`/api/photos?user_id=${userId}&limit=${BATCH_SIZE}&offset=0${tagParam}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         const mapped: UnifiedPost[] = (data.photos ?? []).map(
@@ -86,11 +89,11 @@ export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGr
       }
     }
     fetchDb();
-  }, [userId]);
+  }, [userId, filterTag]);
 
-  // Merge: DB photos first, then archive
+  // Merge: DB photos first, then archive (archive empty when filtering)
   const allPosts: UnifiedPost[] = [...dbPhotos, ...archive];
-  const total = dbTotal + archive.length;
+  const total = filterTag ? dbTotal : dbTotal + archive.length;
   const displayed = allPosts.slice(0, visible);
 
   // Load more — extend visible window, fetch more DB photos if needed
@@ -103,7 +106,8 @@ export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGr
     if (nextVisible > dbFetched - 10 && dbFetched < dbTotal && !dbLoadingMore) {
       setDbLoadingMore(true);
       try {
-        const res = await fetch(`/api/photos?user_id=${userId}&limit=${BATCH_SIZE}&offset=${dbOffset}`);
+        const tagParam = filterTag ? `&tag=${encodeURIComponent(filterTag)}` : "";
+        const res = await fetch(`/api/photos?user_id=${userId}&limit=${BATCH_SIZE}&offset=${dbOffset}${tagParam}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         const mapped: UnifiedPost[] = (data.photos ?? []).map(
@@ -124,7 +128,7 @@ export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGr
         setDbLoadingMore(false);
       }
     }
-  }, [visible, allPosts.length, dbPhotos.length, dbTotal, dbLoadingMore, userId, dbOffset]);
+  }, [visible, allPosts.length, dbPhotos.length, dbTotal, dbLoadingMore, userId, dbOffset, filterTag]);
 
   // Intersection observer for infinite scroll
   useEffect(() => {
@@ -192,10 +196,14 @@ export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGr
         {/* Header */}
         <div className="mb-8 border-3 border-ink bg-bg p-6" style={{ boxShadow: "4px 4px 0 var(--ink)" }}>
           <h1 className="font-head font-[900] text-[2rem] uppercase tracking-tight leading-none mb-1">
-            Photowall
+            {filterTag ? filterTag : "Photowall"}
           </h1>
           <p className="font-mono text-[0.75rem] opacity-60">
-            {dbLoading ? "Loading…" : `${total} post${total === 1 ? "" : "s"}`}
+            {dbLoading
+              ? "Loading…"
+              : filterTag
+                ? `${total} photo${total === 1 ? "" : "s"} tagged "${filterTag}"`
+                : `${total} post${total === 1 ? "" : "s"}`}
           </p>
         </div>
 

@@ -13,9 +13,11 @@ import AvatarUpload from "@/components/AvatarUpload";
 import FactoidEditor from "@/components/settings/FactoidEditor";
 import LikesDislikesEditor from "@/components/settings/LikesDislikesEditor";
 import TickerEditor from "@/components/settings/TickerEditor";
+import SiteTagsEditor from "@/components/settings/SiteTagsEditor";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
+import type { SiteTag } from "@/lib/tags";
 
-const SETTINGS_TABS = ["Profile", "About", "Professional"] as const;
+const SETTINGS_TABS = ["Profile", "About", "Professional", "Site Tags"] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 const PROFILE_SUBTABS = ["Info", "Likes & Dislikes", "Ticker"] as const;
@@ -61,6 +63,13 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     (profile.ticker_items as string[] | null) ?? []
   );
 
+  // ── Site Tags tab state ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [siteTags, setSiteTags] = useState<SiteTag[]>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((profile as any).site_tags as SiteTag[] | null) ?? []
+  );
+
   // ── Shared save state ──
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +103,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         dislikes: dislikes.length > 0 ? dislikes : [],
         ticker_enabled: tickerEnabled,
         ticker_items: tickerItems.length > 0 ? tickerItems : null,
+        site_tags: siteTags.length > 0 ? siteTags : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -338,6 +348,20 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
               Full LinkedIn profile URL. Shown as a link on the Professional page.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ══════ SITE TAGS TAB ══════ */}
+      {tab === "Site Tags" && (
+        <div className="space-y-8">
+          <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
+            Sticker-style tags shown on your profile home page. Each tag links
+            to a filtered view of all your content with that tag.
+          </p>
+          <div>
+            <div className={labelClass}>Tags</div>
+            <SiteTagsEditor tags={siteTags} onChange={setSiteTags} />
           </div>
         </div>
       )}
