@@ -6,14 +6,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import me.sidequest.app.data.model.Profile
+import me.sidequest.app.data.model.ProfileUpdate
 import me.sidequest.app.data.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -38,17 +36,6 @@ sealed interface EditProfileState {
     ) : EditProfileState
     data class Error(val message: String) : EditProfileState
 }
-
-@Serializable
-private data class ProfileUpdate(
-    @SerialName("display_name")   val displayName   : String?,
-    val bio                                          : String?,
-    @SerialName("avatar_url")     val avatarUrl      : String?,
-    @SerialName("ticker_items")   val tickerItems    : List<String>?,
-    @SerialName("ticker_enabled") val tickerEnabled  : Boolean?,
-    val likes                                        : List<String>?,
-    val dislikes                                     : List<String>?,
-)
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
@@ -160,8 +147,10 @@ class EditProfileViewModel @Inject constructor(
     }
 
     /**
-     * Saves text fields immediately. Avatar upload to Supabase Storage is a
-     * TODO — requires a signed upload URL (via Edge Function per architecture decision).
+     * Saves text fields via [ProfileRepository.updateProfile], which handles
+     * online/offline routing automatically.
+     * Avatar upload to Supabase Storage is a TODO — requires a signed upload
+     * URL (via Edge Function per architecture decision).
      */
     fun save() {
         val s = _state.value as? EditProfileState.Ready ?: return
@@ -174,32 +163,21 @@ class EditProfileViewModel @Inject constructor(
             }
 
             // TODO [SQ.M-A-2603-0024]: upload s.pendingAvatar via Edge Function, get back URL
-            val avatarUrl = if (s.pendingAvatar != null) {
-                // placeholder: keep existing URL until upload is implemented
-                s.avatarUrl
-            } else {
-                s.avatarUrl
-            }
+            val avatarUrl = s.avatarUrl   // unchanged until upload is implemented
 
-            runCatching {
-                supabase.postgrest["profiles"].update(
-                    ProfileUpdate(
-                        displayName   = s.displayName.trim().ifBlank { null },
-                        bio           = s.bio.trim().ifBlank { null },
-                        avatarUrl     = avatarUrl.ifBlank { null },
-                        tickerItems   = s.tickerItems.ifEmpty { null },
-                        tickerEnabled = s.tickerEnabled,
-                        likes         = s.likes.ifEmpty { null },
-                        dislikes      = s.dislikes.ifEmpty { null },
-                    )
-                ) {
-                    filter { eq("id", userId) }
-                }
-            }.onSuccess {
-                _state.value = EditProfileState.Saved
-            }.onFailure { e ->
-                _state.value = EditProfileState.Error(e.message ?: "Save failed")
-            }
+            val update = ProfileUpdate(
+                displayName   = s.displayName.trim().ifBlank { null },
+                bio           = s.bio.trim().ifBlank { null },
+                avatarUrl     = avatarUrl.ifBlank { null },
+                tickerItems   = s.tickerItems.ifEmpty { null },
+                tickerEnabled = s.tickerEnabled,
+                likes         = s.likes.ifEmpty { null },
+                dislikes      = s.dislikes.ifEmpty { null },
+            )
+
+            val ok = repository.updateProfile(userId, update)
+            _state.value = if (ok) EditProfileState.Saved
+                           else    EditProfileState.Error("Save failed — will retry when online")
         }
     }
 }

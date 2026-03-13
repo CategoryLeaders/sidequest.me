@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.work)
+    kapt(libs.androidx.hilt.compiler)
 
     // Networking
     implementation(libs.retrofit)
@@ -89,6 +91,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+
+    // WorkManager — offline sync [SQ.M-A-2603-0031]
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Image Loading
     implementation(libs.coil.compose)

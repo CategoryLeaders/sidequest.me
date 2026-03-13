@@ -18,7 +18,20 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SideQuestMe">
+        android:theme="@style/Theme.SideQuestMe"
+        xmlns:tools="http://schemas.android.com/tools">
+
+        <!-- Disable default WorkManager initializer; we provide HiltWorkerFactory [SQ.M-A-2603-0031] -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <activity
             android:name="me.sidequest.app.MainActivity"
