@@ -43,6 +43,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -90,6 +91,12 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
+
+    // Supabase [SQ.M-A-2603-0022]
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.android)
 
     // Testing
     testImplementation(libs.junit)
