@@ -324,3 +324,70 @@ body {
   .tm-track-headers { grid-template-columns: 40px 1fr 1fr 1fr; }
   .pro-card-inner { padding: 16px 18px; }
 }
+
+/* ── Privacy page ──────────────────────────────────── */
+.privacy-page {
+  min-height: 100vh;
+  padding: 60px 20px 80px;
+}
+.privacy-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.privacy-container h1 {
+  font-family: var(--font-archivo);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+.privacy-meta {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 40px;
+}
+.privacy-container section {
+  margin-bottom: 36px;
+}
+.privacy-container h2 {
+  font-family: var(--font-archivo);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+.privacy-container h3 {
+  font-family: var(--font-dm-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 6px;
+  margin-top: 20px;
+}
+.privacy-container p {
+  font-family: var(--font-dm-sans);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #444;
+  margin-bottom: 12px;
+}
+.privacy-container ul {
+  font-family: var(--font-dm-sans);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #444;
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+.privacy-container li {
+  margin-bottom: 4px;
+}
+.privacy-container a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.privacy-container a:hover {
+  opacity: 0.7;
+}
