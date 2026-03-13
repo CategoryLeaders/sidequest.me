@@ -14,17 +14,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-// [SQ.M-A-2603-0021]
+// [SQ.M-A-2603-0021] [SQ.M-A-2603-0033]
 
 data class BottomNavItem(
-    val label: String,
-    val icon: ImageVector,
-    val screen: Screen,
+    val label      : String,
+    val icon       : ImageVector,
+    val screen     : Screen,
+    /** The literal route string to navigate to when tapping the tab. */
+    val navRoute   : String = screen.route,
+    /** Route prefix used to determine if this tab is "selected". */
+    val routePrefix: String = screen.route,
 )
 
 val bottomNavItems = listOf(
     BottomNavItem("Profile",  Icons.Filled.Person,       Screen.Profile),
-    BottomNavItem("Photos",   Icons.Filled.PhotoLibrary, Screen.Photowall),
+    // Photowall base route is "photowall" (unfiltered); the registered route template is "photowall?tag={tag}"
+    BottomNavItem(
+        label       = "Photos",
+        icon        = Icons.Filled.PhotoLibrary,
+        screen      = Screen.Photowall,
+        navRoute    = "photowall",
+        routePrefix = "photowall",
+    ),
     BottomNavItem("Writings", Icons.Filled.MenuBook,     Screen.Writings),
     BottomNavItem("Feed",     Icons.Filled.Home,         Screen.Feed),
 )
@@ -44,19 +55,20 @@ fun SideQuestBottomBar(navController: NavController) {
 
     NavigationBar {
         bottomNavItems.forEach { item ->
+            // A tab is "selected" if the current route starts with its prefix
+            val selected = currentRoute?.startsWith(item.routePrefix) == true
             NavigationBarItem(
-                selected = currentRoute == item.screen.route,
+                selected = selected,
                 onClick = {
-                    if (currentRoute != item.screen.route) {
-                        navController.navigate(item.screen.route) {
-                            // Avoid building up a large back stack
+                    if (!selected) {
+                        navController.navigate(item.navRoute) {
                             popUpTo(Screen.Profile.route) { saveState = true }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState    = true
                         }
                     }
                 },
-                icon = { Icon(item.icon, contentDescription = item.label) },
+                icon  = { Icon(item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
             )
         }

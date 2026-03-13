@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,15 +43,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import me.sidequest.app.data.model.Profile
+import me.sidequest.app.data.model.SiteTag
+import me.sidequest.app.data.model.StickerPalette
 import me.sidequest.app.ui.profile.ProfileState
 import me.sidequest.app.ui.profile.ProfileViewModel
 
-// [SQ.M-A-2603-0023] [SQ.M-A-2603-0026]
+// [SQ.M-A-2603-0023] [SQ.M-A-2603-0026] [SQ.M-A-2603-0033]
 
 @Composable
 fun ProfileScreen(
     onEditProfile: () -> Unit = {},
-    viewModel: ProfileViewModel = hiltViewModel(),
+    onTagClick   : (tag: String) -> Unit = {},
+    viewModel    : ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -84,8 +89,9 @@ fun ProfileScreen(
 
                 is ProfileState.Success -> {
                     ProfileContent(
-                        profile = s.profile,
-                        modifier = Modifier.fillMaxSize(),
+                        profile    = s.profile,
+                        onTagClick = onTagClick,
+                        modifier   = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -96,8 +102,9 @@ fun ProfileScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProfileContent(
-    profile: Profile,
-    modifier: Modifier = Modifier,
+    profile    : Profile,
+    onTagClick : (String) -> Unit,
+    modifier   : Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
@@ -232,6 +239,41 @@ private fun ProfileContent(
             }
         }
 
-        // TODO [SQ.M-A-2603-0033]: Site tags chips
+        // ── Site Tags ─────────────────────────────────────────────────────
+        val siteTags = profile.siteTags
+        if (!siteTags.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement   = Arrangement.spacedBy(8.dp),
+                modifier              = Modifier.fillMaxWidth(),
+            ) {
+                siteTags.forEach { tag ->
+                    SiteTagChip(tag = tag, onClick = { onTagClick(tag.label) })
+                }
+            }
+        }
+    }
+}
+
+/** A coloured sticker chip that mirrors the web palette. Tap → filtered photowall. */
+@Composable
+private fun SiteTagChip(
+    tag    : SiteTag,
+    onClick: () -> Unit,
+) {
+    val style = StickerPalette.styleFor(tag.color)
+    Surface(
+        onClick      = onClick,
+        color        = style.background,
+        shape        = RoundedCornerShape(50),   // pill shape
+        tonalElevation = 0.dp,
+    ) {
+        Text(
+            text  = tag.label,
+            color = style.textColor,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+        )
     }
 }

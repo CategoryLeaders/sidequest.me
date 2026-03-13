@@ -3,8 +3,10 @@ package me.sidequest.app.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import me.sidequest.app.ui.screens.EditProfileScreen
 import me.sidequest.app.ui.screens.FeedScreen
 import me.sidequest.app.ui.screens.LightboxScreen
@@ -13,8 +15,11 @@ import me.sidequest.app.ui.screens.PhotowallScreen
 import me.sidequest.app.ui.screens.ProfileScreen
 import me.sidequest.app.ui.screens.WritingDetailScreen
 import me.sidequest.app.ui.screens.WritingsScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
-// [SQ.M-A-2603-0021] [SQ.M-A-2603-0024] [SQ.M-A-2603-0027] [SQ.M-A-2603-0029] [SQ.M-A-2603-0030]
+// [SQ.M-A-2603-0021] [SQ.M-A-2603-0024] [SQ.M-A-2603-0027] [SQ.M-A-2603-0029] [SQ.M-A-2603-0030] [SQ.M-A-2603-0033]
 
 @Composable
 fun SideQuestNavHost(
@@ -22,9 +27,9 @@ fun SideQuestNavHost(
     modifier: Modifier = Modifier,
 ) {
     NavHost(
-        navController = navController,
+        navController    = navController,
         startDestination = Screen.Login.route,
-        modifier = modifier,
+        modifier         = modifier,
     ) {
         composable(Screen.Login.route) {
             LoginScreen(
@@ -39,6 +44,9 @@ fun SideQuestNavHost(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                onTagClick    = { tag ->
+                    navController.navigate(Screen.Photowall.routeFor(tag))
+                },
             )
         }
 
@@ -49,18 +57,31 @@ fun SideQuestNavHost(
             )
         }
 
-        composable(Screen.Photowall.route) {
+        // Photowall: optional "tag" arg — null = all photos, non-null = filtered
+        composable(
+            route     = Screen.Photowall.route,
+            arguments = listOf(navArgument("tag") {
+                type     = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }),
+        ) { backStack ->
+            val rawTag   = backStack.arguments?.getString("tag")
+            val activeTag = rawTag?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.name()) }
             PhotowallScreen(
                 onPhotoClick = { index ->
                     navController.navigate(Screen.Lightbox.routeFor(index))
                 },
+                onBack = if (activeTag != null) {
+                    { navController.popBackStack() }
+                } else null,
             )
         }
 
         composable(
-            route    = Screen.Lightbox.route,
-            arguments = listOf(androidx.navigation.navArgument("index") {
-                type = androidx.navigation.NavType.IntType
+            route     = Screen.Lightbox.route,
+            arguments = listOf(navArgument("index") {
+                type = NavType.IntType
             }),
         ) { backStack ->
             val startIndex = backStack.arguments?.getInt("index") ?: 0
@@ -80,8 +101,8 @@ fun SideQuestNavHost(
 
         composable(
             route     = Screen.WritingDetail.route,
-            arguments = listOf(androidx.navigation.navArgument("id") {
-                type = androidx.navigation.NavType.StringType
+            arguments = listOf(navArgument("id") {
+                type = NavType.StringType
             }),
         ) {
             WritingDetailScreen(
@@ -99,10 +120,23 @@ sealed class Screen(val route: String) {
     data object Login       : Screen("login")
     data object Profile     : Screen("profile")
     data object EditProfile : Screen("edit_profile")
-    data object Photowall   : Screen("photowall")
-    data object Lightbox    : Screen("lightbox/{index}") {
+
+    /**
+     * Photowall supports an optional tag filter.
+     * Route: "photowall?tag={tag}" — tag is URL-encoded to handle spaces.
+     */
+    data object Photowall : Screen("photowall?tag={tag}") {
+        /** Navigate to unfiltered photowall. */
+        fun route() = "photowall"
+        /** Navigate to photowall filtered by [tag]. */
+        fun routeFor(tag: String) =
+            "photowall?tag=${URLEncoder.encode(tag, StandardCharsets.UTF_8.name())}"
+    }
+
+    data object Lightbox : Screen("lightbox/{index}") {
         fun routeFor(index: Int) = "lightbox/$index"
     }
+
     data object Writings      : Screen("writings")
     data object WritingDetail : Screen("writing/{id}") {
         fun routeFor(id: String) = "writing/$id"
