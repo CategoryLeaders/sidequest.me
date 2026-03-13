@@ -1,4 +1,4 @@
-import { getProfileByUsername } from "@/lib/profiles";
+import { getProfileByUsername, getCurrentUserProfile } from "@/lib/profiles";
 import { notFound } from "next/navigation";
 import PhotowallGrid from "./PhotowallGrid";
 
@@ -8,8 +8,13 @@ interface Props {
 
 export default async function PhotowallPage({ params }: Props) {
   const { username } = await params;
-  const profile = await getProfileByUsername(username);
+  const [profile, currentUserProfile] = await Promise.all([
+    getProfileByUsername(username),
+    getCurrentUserProfile(),
+  ]);
   if (!profile) notFound();
 
-  return <PhotowallGrid userId={profile.id} username={profile.username} />;
+  const isOwner = currentUserProfile?.id === profile.id;
+
+  return <PhotowallGrid userId={profile.id} username={profile.username} isOwner={isOwner} />;
 }

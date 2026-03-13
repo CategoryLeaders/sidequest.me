@@ -125,3 +125,65 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ photos, total: count })
 }
+
+/**
+ * DELETE /api/photos — delete a photo by ID.
+ * Query params: id (required) — the photo UUID
+ * Requires auth; user must own the photo.
+ * Deletes the DB record and all associated files from Supabase Storage. [SQ.S-W-2603-0053]
+ */
+export async function DELETE(request: Request) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const photoId = searchParams.get('id')
+
+  if (!photoId) {
+    return NextResponse.json({ error: 'id is required' }, { status: 400 })
+  }
+
+  // Fetch the photo to verify ownership and get storage paths
+  const { data: photo, error: fetchError } = await (supabase
+    .from('photos') as ReturnType<typeof supabase.from>)
+    .select('id, user_id, image_urls')
+    .eq('id', photoId)
+    .single() as { data: { id: string; user_id: string; image_urls: string[] } | null; error: unknown }
+
+  if (fetchError || !photo) {
+    return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
+  }
+
+  if (photo.user_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // Extract storage paths from the public URLs (everything after /object/public/photos/)
+  const storagePaths: string[] = photo.image_urls
+    .map((url: string) => {
+      const match = url.match(/\/object\/public\/photos\/(.+)$/)
+      return match ? match[1] : null
+    })
+    .filter((p): p is string => p !== null)
+
+  // Delete files from storage (best effort — don't fail if storage delete errors)
+  if (storagePaths.length > 0) {
+    await supabase.storage.from('photos').remove(storagePaths)
+  }
+
+  // Delete the DB record (RLS enforces ownership)
+  const { error: deleteError } = await supabase
+    .from('photos')
+    .delete()
+    .eq('id', photoId)
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}

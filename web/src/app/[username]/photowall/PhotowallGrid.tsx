@@ -23,6 +23,7 @@ interface UnifiedPost {
 interface PhotowallGridProps {
   userId: string;
   username: string;
+  isOwner: boolean;
 }
 
 const BATCH_SIZE = 30;
@@ -38,7 +39,7 @@ function archiveToUnified(): UnifiedPost[] {
   }));
 }
 
-export default function PhotowallGrid({ userId, username }: PhotowallGridProps) {
+export default function PhotowallGrid({ userId, username, isOwner }: PhotowallGridProps) {
   const [dbPhotos, setDbPhotos] = useState<UnifiedPost[]>([]);
   const [dbTotal, setDbTotal] = useState(0);
   const [dbOffset, setDbOffset] = useState(0);
@@ -162,6 +163,17 @@ export default function PhotowallGrid({ userId, username }: PhotowallGridProps) 
 
   const openPost = (post: UnifiedPost) => { setSelected(post); setCarouselIdx(0); };
 
+  // Delete a DB photo — removes from state and closes lightbox [SQ.S-W-2603-0053]
+  const handleDelete = async (post: UnifiedPost) => {
+    if (post.source !== "db") return;
+    const photoId = post.id.replace("db_", "");
+    const res = await fetch(`/api/photos?id=${photoId}`, { method: "DELETE" });
+    if (!res.ok) return; // silently ignore; production would show an error toast
+    setDbPhotos((prev) => prev.filter((p) => p.id !== post.id));
+    setDbTotal((prev) => Math.max(0, prev - 1));
+    setSelected(null);
+  };
+
   return (
     <>
       <main className="max-w-[1400px] mx-auto px-4 py-8">
@@ -227,6 +239,8 @@ export default function PhotowallGrid({ userId, username }: PhotowallGridProps) 
           carouselIdx={carouselIdx}
           setCarouselIdx={setCarouselIdx}
           onClose={() => setSelected(null)}
+          isOwner={isOwner}
+          onDelete={handleDelete}
           onPrev={() => {
             const idx = displayed.findIndex((p) => p.id === selected.id);
             if (idx > 0) { setSelected(displayed[idx - 1]); setCarouselIdx(0); }
@@ -247,6 +261,8 @@ function Lightbox({
   carouselIdx,
   setCarouselIdx,
   onClose,
+  isOwner,
+  onDelete,
   onPrev,
   onNext,
 }: {
@@ -255,9 +271,12 @@ function Lightbox({
   carouselIdx: number;
   setCarouselIdx: (i: number) => void;
   onClose: () => void;
+  isOwner: boolean;
+  onDelete: (post: UnifiedPost) => void;
   onPrev: () => void;
   onNext: () => void;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const currentImage = post.imageUrls[carouselIdx] || post.imageUrls[0];
   const hasMultiple = post.imageUrls.length > 1;
   const postDate = post.date
@@ -340,8 +359,53 @@ function Lightbox({
               {carouselIdx + 1} of {post.imageUrls.length} photos
             </p>
           )}
+
+          {/* Delete button — owner only, DB photos only [SQ.S-W-2603-0053] */}
+          {isOwner && post.source === "db" && (
+            <div className="mt-6 pt-4 border-t-2 border-ink/10">
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="flex items-center gap-2 font-mono text-[0.72rem] text-red-500 border-2 border-red-300 px-3 py-1.5 cursor-pointer hover:bg-red-50 transition-colors w-full justify-center"
+                  title="Delete this photo"
+                >
+                  <TrashIcon />
+                  Delete photo
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <p className="font-mono text-[0.65rem] opacity-60 text-center">Are you sure?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { onDelete(post); setConfirmDelete(false); }}
+                      className="flex-1 font-mono text-[0.72rem] text-bg bg-red-500 border-2 border-red-500 px-3 py-1.5 cursor-pointer hover:bg-red-600 transition-colors"
+                    >
+                      Yes, delete
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      className="flex-1 font-mono text-[0.72rem] border-2 border-ink/20 px-3 py-1.5 cursor-pointer hover:bg-ink/5 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4h6v2" />
+    </svg>
   );
 }
