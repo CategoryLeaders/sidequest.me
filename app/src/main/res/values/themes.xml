@@ -3,6 +3,5 @@
     <style name="Theme.SideQuestMe" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:colorSecondary">@color/secondary</item>
-        <item name="android:colorTertiary">@color/tertiary</item>
     </style>
 </resources>
