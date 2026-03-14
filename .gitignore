@@ -25,7 +25,6 @@ app/.idea/**
 app/captures/
 app/.externalNativeBuild/
 app/.cxx/
-app/google-services.json
 app/keystore/
 *.keystore
 *.jks
