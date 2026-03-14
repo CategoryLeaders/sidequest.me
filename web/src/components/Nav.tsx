@@ -150,6 +150,14 @@ export default function Nav({
                   </Link>
 
                   <Link
+                    href={`/${currentUsername}/admin/writings`}
+                    className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
+                  >
+                    <span className="text-[0.9rem]">✍️</span>
+                    Writings
+                  </Link>
+
+                  <Link
                     href={`/${currentUsername}/settings`}
                     className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
                   >
