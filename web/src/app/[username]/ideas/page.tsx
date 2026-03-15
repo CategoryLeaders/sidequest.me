@@ -159,7 +159,7 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {w.tags.map((tag, j) => {
                       const siteTag = siteTags.find((st) => st.label === tag)
-                      const stickerClass = siteTag?.color ?? 'sticker-lilac'
+                      const isSiteTag = !!siteTag
                       return (
                         <Link
                           key={tag}
@@ -168,7 +168,11 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                               ? `/${username}/ideas/tags/${slugify(tag)}`
                               : `/${username}/ideas?q=${encodeURIComponent(tag)}`
                           }
-                          className={`sticker ${stickerClass} text-[0.6rem] !px-2.5 !py-1 !border-2`}
+                          className={
+                            isSiteTag
+                              ? `sticker ${siteTag.color} text-[0.6rem] !px-2.5 !py-1 !border-2`
+                              : 'inline-block text-[0.6rem] px-2.5 py-1 border-2 border-dashed border-ink/20 text-ink/40 font-head font-bold uppercase'
+                          }
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,
                           }}
