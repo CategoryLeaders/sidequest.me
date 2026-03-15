@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "@/app/actions/auth";
 import Avatar from "./Avatar";
+import PreferencesModal from "./PreferencesModal";
 
 interface NavProps {
   currentUsername: string | null;
@@ -38,6 +39,7 @@ export default function Nav({
 }: NavProps) {
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const profileBase = `/${NAV_USERNAME}`;
@@ -165,6 +167,18 @@ export default function Nav({
                     Edit Profile
                   </Link>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      setPreferencesOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink bg-transparent border-0 cursor-pointer hover:bg-ink/5 transition-colors text-left"
+                  >
+                    <span className="text-[0.9rem]">🎨</span>
+                    Preferences
+                  </button>
+
                   <div className="border-t-2 border-ink/10 my-1" />
 
                   <form action={signOut}>
@@ -198,6 +212,11 @@ export default function Nav({
           </>
         )}
       </div>
+
+      <PreferencesModal
+        open={preferencesOpen}
+        onClose={() => setPreferencesOpen(false)}
+      />
     </nav>
   );
 }

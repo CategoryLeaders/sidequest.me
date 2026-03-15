@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@notionhq/client": "^5.11.0",
     "@supabase/ssr": "^0.6.0",
     "@supabase/supabase-js": "^2.40.0",
     "@tiptap/extension-character-count": "^3.20.1",

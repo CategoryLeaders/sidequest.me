@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import ThemeProvider from "@/components/ThemeProvider";
 import { getCurrentUserProfile } from "@/lib/profiles";
 
 export const metadata: Metadata = {
@@ -41,13 +42,15 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Nav
-          currentUsername={currentProfile?.username ?? null}
-          displayName={currentProfile?.display_name ?? null}
-          avatarUrl={currentProfile?.avatar_url ?? null}
-        />
-        {children}
-        <Footer />
+        <ThemeProvider>
+          <Nav
+            currentUsername={currentProfile?.username ?? null}
+            displayName={currentProfile?.display_name ?? null}
+            avatarUrl={currentProfile?.avatar_url ?? null}
+          />
+          {children}
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );
