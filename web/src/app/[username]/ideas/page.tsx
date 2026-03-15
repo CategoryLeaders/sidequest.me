@@ -73,12 +73,12 @@ export default async function IdeasPage({ params, searchParams }: Props) {
       />
 
       <h1 className="font-head font-[900] text-[clamp(1.8rem,4vw,2.8rem)] uppercase leading-[0.95] mb-2">
-        {filterLabel ? `#${filterLabel}` : 'Ideas & Thoughts'}
+        {filterLabel ? `#${filterLabel}` : 'Ideas, Thoughts & Writings'}
       </h1>
       <p className="text-[0.95rem] opacity-60 mb-6">
         {filterLabel ? (
           <Link href={`/${username}/ideas`} className="text-ink/50 hover:text-ink transition-colors border-b-2 border-ink/20 hover:border-ink/50 font-mono text-[0.8rem]">
-            &larr; All ideas &amp; thoughts
+            &larr; All ideas, thoughts &amp; writings
           </Link>
         ) : (
           'Long-form articles and short-form hot takes.'
@@ -164,20 +164,20 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                         <Link
                           key={tag}
                           href={
-                            siteTag
+                            isSiteTag
                               ? `/${username}/ideas/tags/${slugify(tag)}`
                               : `/${username}/ideas?q=${encodeURIComponent(tag)}`
                           }
                           className={
                             isSiteTag
                               ? `sticker ${siteTag.color} text-[0.6rem] !px-2.5 !py-1 !border-2`
-                              : 'inline-block text-[0.6rem] px-2.5 py-1 border-2 border-dashed border-ink/20 text-ink/40 font-head font-bold uppercase'
+                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/15 text-ink/30 bg-ink/[0.03] font-mono rounded-sm hover:border-ink/30 hover:text-ink/50 transition-colors'
                           }
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,
                           }}
                         >
-                          {tag}
+                          {isSiteTag ? tag : `#${tag}`}
                         </Link>
                       )
                     })}
