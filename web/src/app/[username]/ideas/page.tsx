@@ -132,21 +132,29 @@ export default async function IdeasPage({ params, searchParams }: Props) {
           {rows.map((w) => {
             const excerpt = w.body_html ? excerptFromHtml(w.body_html, 250) : ''
             const readTime = w.word_count ? readTimeMinutes(w.word_count) : null
-            const borderColor = w.tags && w.tags.length > 0
-              ? (() => {
-                  const firstTag = siteTags.find((st) => st.label === w.tags![0])
-                  if (!firstTag) return 'var(--lilac)'
-                  const colorMap: Record<string, string> = {
-                    'sticker-orange': 'var(--orange)',
-                    'sticker-green': 'var(--green)',
-                    'sticker-blue': 'var(--blue)',
-                    'sticker-yellow': 'var(--yellow)',
-                    'sticker-lilac': 'var(--lilac)',
-                    'sticker-pink': 'var(--pink)',
-                  }
-                  return colorMap[firstTag.color] ?? 'var(--lilac)'
-                })()
-              : 'var(--lilac)'
+            const colorMap: Record<string, string> = {
+              'sticker-orange': 'var(--orange)',
+              'sticker-green': 'var(--green)',
+              'sticker-blue': 'var(--blue)',
+              'sticker-yellow': 'var(--yellow)',
+              'sticker-lilac': 'var(--lilac)',
+              'sticker-pink': 'var(--pink)',
+            }
+            // Pick border color from a non-"Writing" site tag; random if multiple
+            const borderColor = (() => {
+              if (!w.tags || w.tags.length === 0) return 'var(--lilac)'
+              const matchedSiteTags = w.tags
+                .filter((t) => t !== 'Writing')
+                .map((t) => siteTags.find((st) => st.label === t))
+                .filter(Boolean) as SiteTag[]
+              if (matchedSiteTags.length === 0) {
+                // Fall back to the Writing site tag if that's all there is
+                const writingTag = siteTags.find((st) => st.label === 'Writing')
+                return writingTag ? (colorMap[writingTag.color] ?? 'var(--lilac)') : 'var(--lilac)'
+              }
+              const pick = matchedSiteTags[Math.floor(Math.random() * matchedSiteTags.length)]
+              return colorMap[pick.color] ?? 'var(--lilac)'
+            })()
 
             return (
               <article
@@ -171,7 +179,7 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                           className={
                             isSiteTag
                               ? `sticker ${siteTag.color} text-[0.6rem] !px-2.5 !py-1 !border-2`
-                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/15 text-ink/30 bg-ink/[0.03] font-mono rounded-sm hover:border-ink/30 hover:text-ink/50 transition-colors'
+                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono rounded-sm hover:border-ink/40 hover:text-ink/60 transition-colors'
                           }
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,
