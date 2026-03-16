@@ -52,7 +52,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
-  const feed = buildFeed();
 
   // Both calls are React.cache-deduped — no extra DB round-trips vs layout
   const [profile, user] = await Promise.all([
@@ -61,6 +60,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   ]);
 
   if (!profile) notFound();
+
+  const feed = await buildFeed(profile.id);
 
   const isOwner = user?.id === profile.id;
 

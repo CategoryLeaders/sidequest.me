@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import type { Writing } from '@/lib/writings'
 import { readTimeMinutes, excerptFromHtml } from '@/lib/writings'
 import { slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
+import { getLinksForWriting } from '@/lib/writing-links'
 
 interface Props {
   params: Promise<{ username: string; slug: string }>
@@ -80,6 +82,33 @@ export default async function WritingPostPage({ params }: Props) {
   const siteTags = ((profile as any).site_tags ?? []) as SiteTag[]
   const readTime = readTimeMinutes(writing.word_count)
 
+  // Fetch writing links and resolve company/project names
+  const writingLinks = await getLinksForWriting(writing.id)
+  const linkedCompanyIds = writingLinks.filter((l) => l.entity_type === 'company').map((l) => l.entity_id)
+  const linkedProjectIds = writingLinks.filter((l) => l.entity_type === 'project').map((l) => l.entity_id)
+
+  let linkedCompanies: Array<{ id: string; name: string; slug: string; logo: string | null; brand_colour: string | null }> = []
+  let linkedProjects: Array<{ id: string; title: string; slug: string }> = []
+
+  if (linkedCompanyIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from('companies')
+      .select('id, name, slug, logo, brand_colour')
+      .in('id', linkedCompanyIds) as { data: Array<{ id: string; name: string; slug: string; logo: string | null; brand_colour: string | null }> | null }
+    linkedCompanies = data ?? []
+  }
+  if (linkedProjectIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from('projects')
+      .select('id, title, slug')
+      .in('id', linkedProjectIds) as { data: Array<{ id: string; title: string; slug: string }> | null }
+    linkedProjects = data ?? []
+  }
+
+  const hasLinks = linkedCompanies.length > 0 || linkedProjects.length > 0
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       {/* Breadcrumb */}
@@ -144,7 +173,52 @@ export default async function WritingPostPage({ params }: Props) {
             })}
           </div>
         )}
+        {/* Related to */}
+        {hasLinks && (
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Related to</span>
+            {linkedCompanies.map((c) => (
+              <Link
+                key={c.id}
+                href={`/${username}/professional`}
+                className="inline-flex items-center gap-1.5 text-xs border px-2.5 py-1 rounded-full hover:opacity-80 transition-colors no-underline"
+                style={{
+                  borderColor: c.brand_colour ?? '#e5e7eb',
+                  color: c.brand_colour ?? '#4b5563',
+                }}
+              >
+                {c.logo && (
+                  <Image src={c.logo} alt={c.name} width={14} height={14} className="rounded-sm" />
+                )}
+                {c.name}
+              </Link>
+            ))}
+            {linkedProjects.map((p) => (
+              <Link
+                key={p.id}
+                href={`/${username}/projects`}
+                className="inline-flex items-center gap-1.5 text-xs border border-gray-200 px-2.5 py-1 rounded-full hover:border-gray-400 transition-colors no-underline text-gray-600"
+              >
+                {p.title}
+              </Link>
+            ))}
+          </div>
+        )}
       </header>
+
+      {/* Hero image */}
+      {writing.image_url && (
+        <div className="mb-8 -mx-4 sm:mx-0 sm:rounded-lg overflow-hidden">
+          <Image
+            src={writing.image_url}
+            alt={writing.title}
+            width={1200}
+            height={630}
+            className="w-full h-auto"
+            priority
+          />
+        </div>
+      )}
 
       {/* Body */}
       <article

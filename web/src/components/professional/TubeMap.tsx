@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Station, DISCIPLINE_COLOURS, TRACK_LABELS } from "@/lib/career-data";
+import type { CompanyRole } from "@/lib/company-types";
+import { DISCIPLINE_COLOURS, TRACK_LABELS } from "@/lib/company-types";
 
 interface TubeMapProps {
-  stations: Station[];
+  roles: CompanyRole[];
 }
 
-export default function TubeMap({ stations }: TubeMapProps) {
+export default function TubeMap({ roles }: TubeMapProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  /* Sort stations descending by idx so highest (most recent) renders at top */
-  const sorted = [...stations].sort((a, b) => b.idx - a.idx);
+  /* Sort roles descending by sort_order so highest (most recent) renders at top */
+  const sorted = [...roles].sort((a, b) => b.sort_order - a.sort_order);
 
   useEffect(() => {
     drawTubeLines();
@@ -162,33 +163,33 @@ export default function TubeMap({ stations }: TubeMapProps) {
         ))}
       </div>
 
-      {/* Grid with stations (highest idx at top) */}
+      {/* Grid with stations (highest sort_order at top) */}
       <div className="tm-grid" ref={gridRef}>
-        {sorted.map((s) => (
-          <StationRow key={s.idx} station={s} />
+        {sorted.map((r) => (
+          <StationRow key={r.sort_order} role={r} />
         ))}
       </div>
     </>
   );
 }
 
-function StationRow({ station }: { station: Station }) {
-  const s = station;
-  const colour = DISCIPLINE_COLOURS[s.discipline];
+function StationRow({ role }: { role: CompanyRole }) {
+  const r = role;
+  const colour = DISCIPLINE_COLOURS[r.discipline ?? ""] ?? "#999";
   return (
     <>
-      <div className="tm-year">{s.year}</div>
+      <div className="tm-year">{r.year}</div>
       <div
         className="tm-station"
-        data-idx={s.idx}
-        data-disc={s.discipline}
-        style={{ gridColumn: s.track + 1 }}
+        data-idx={r.sort_order}
+        data-disc={r.discipline}
+        style={{ gridColumn: (r.track ?? 1) + 1 }}
       >
         <div className="tm-dot" style={{ background: colour }} />
         <div className="tm-label">
-          <span className="tm-role">{s.role}</span>
+          <span className="tm-role">{r.role}</span>
           <br />
-          <span className="tm-date">{s.dates}</span>
+          <span className="tm-date">{r.dates}</span>
         </div>
       </div>
     </>

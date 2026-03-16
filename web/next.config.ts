@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "loawjmjuwrjjgmedswro.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "www.hackthebox.com",
+      },
+      {
+        protocol: "https",
+        hostname: "webcore.1e.com",
+      },
     ],
   },
   redirects: async () => [

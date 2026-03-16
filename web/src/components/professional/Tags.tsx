@@ -1,6 +1,6 @@
-import { Tag } from "@/lib/career-data";
+import type { CompanyTag } from "@/lib/company-types";
 
-export default function Tags({ tags }: { tags: Tag[] }) {
+export default function Tags({ tags }: { tags: CompanyTag[] }) {
   return (
     <div className="pro-tags">
       {tags.map((t, i) =>

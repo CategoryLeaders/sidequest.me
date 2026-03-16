@@ -9,6 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      companies: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          slug: string
+          logo: string | null
+          logo_text: string | null
+          brand_colour: string | null
+          type: string
+          sub_line: string | null
+          role_title: string | null
+          role_dates: string | null
+          tags: Json
+          blurb_left: Json | null
+          blurb_right: Json | null
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          slug: string
+          logo?: string | null
+          logo_text?: string | null
+          brand_colour?: string | null
+          type: string
+          sub_line?: string | null
+          role_title?: string | null
+          role_dates?: string | null
+          tags?: Json
+          blurb_left?: Json | null
+          blurb_right?: Json | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          slug?: string
+          logo?: string | null
+          logo_text?: string | null
+          brand_colour?: string | null
+          type?: string
+          sub_line?: string | null
+          role_title?: string | null
+          role_dates?: string | null
+          tags?: Json
+          blurb_left?: Json | null
+          blurb_right?: Json | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_roles: {
+        Row: {
+          id: string
+          company_id: string
+          role: string
+          dates: string | null
+          discipline: string | null
+          track: number | null
+          year: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          role: string
+          dates?: string | null
+          discipline?: string | null
+          track?: number | null
+          year?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          role?: string
+          dates?: string | null
+          discipline?: string | null
+          track?: number | null
+          year?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       ideas: {
         Row: {
           created_at: string | null
@@ -84,6 +188,51 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          slug: string
+          url: string | null
+          description: string | null
+          status: string
+          status_color: string | null
+          stack: string[]
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          slug: string
+          url?: string | null
+          description?: string | null
+          status?: string
+          status_color?: string | null
+          stack?: string[]
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          slug?: string
+          url?: string | null
+          description?: string | null
+          status?: string
+          status_color?: string | null
+          stack?: string[]
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about_bio: string | null
@@ -141,6 +290,102 @@ export type Database = {
           ticker_items?: string[] | null
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      writing_links: {
+        Row: {
+          id: string
+          writing_id: string
+          entity_type: string
+          entity_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          writing_id: string
+          entity_type: string
+          entity_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          writing_id?: string
+          entity_type?: string
+          entity_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writing_links_writing_id_fkey"
+            columns: ["writing_id"]
+            isOneToOne: false
+            referencedRelation: "writings"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      writings: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          slug: string
+          body: Json | null
+          body_html: string | null
+          tags: string[] | null
+          status: string
+          published_at: string | null
+          scheduled_at: string | null
+          word_count: number | null
+          canonical_url: string | null
+          in_series_nav: boolean | null
+          series_id: string | null
+          series_position: number | null
+          created_at: string | null
+          updated_at: string | null
+          fts: string | null
+          external_url: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          slug: string
+          body?: Json | null
+          body_html?: string | null
+          tags?: string[] | null
+          status?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          word_count?: number | null
+          canonical_url?: string | null
+          in_series_nav?: boolean | null
+          series_id?: string | null
+          series_position?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          external_url?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          slug?: string
+          body?: Json | null
+          body_html?: string | null
+          tags?: string[] | null
+          status?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          word_count?: number | null
+          canonical_url?: string | null
+          in_series_nav?: boolean | null
+          series_id?: string | null
+          series_position?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          external_url?: string | null
         }
         Relationships: []
       }

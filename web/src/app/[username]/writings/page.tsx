@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import type { Writing } from '@/lib/writings'
 import { excerptFromHtml, readTimeMinutes } from '@/lib/writings'
@@ -64,6 +65,38 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
   const total = count ?? 0
   const totalPages = Math.ceil(total / PER_PAGE)
 
+  // Fetch linked companies for professional writings (for logo display)
+  const writingIds = rows.map((w) => w.id).filter(Boolean) as string[]
+  let writingCompanyMap: Map<string, Array<{ name: string; logo: string | null; brand_colour: string | null }>> = new Map()
+
+  if (writingIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: links } = await (supabase as any)
+      .from('writing_links')
+      .select('writing_id, entity_id')
+      .eq('entity_type', 'company')
+      .in('writing_id', writingIds) as { data: Array<{ writing_id: string; entity_id: string }> | null }
+
+    const companyIds = [...new Set((links ?? []).map((l) => l.entity_id))]
+    if (companyIds.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: companies } = await (supabase as any)
+        .from('companies')
+        .select('id, name, logo, brand_colour')
+        .in('id', companyIds) as { data: Array<{ id: string; name: string; logo: string | null; brand_colour: string | null }> | null }
+
+      const companyMap = new Map((companies ?? []).map((c) => [c.id, c]))
+
+      for (const link of links ?? []) {
+        const co = companyMap.get(link.entity_id)
+        if (!co) continue
+        const existing = writingCompanyMap.get(link.writing_id) ?? []
+        existing.push({ name: co.name, logo: co.logo, brand_colour: co.brand_colour })
+        writingCompanyMap.set(link.writing_id, existing)
+      }
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       {/* Header */}
@@ -118,58 +151,96 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
         </p>
       ) : (
         <div className="space-y-10">
-          {rows.map((w) => (
-            <article key={w.id}>
-              <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                {w.published_at && (
-                  <time dateTime={w.published_at}>
-                    {new Date(w.published_at).toLocaleDateString('en-GB', {
-                      day: 'numeric', month: 'long', year: 'numeric',
-                    })}
-                  </time>
-                )}
-                {w.word_count ? (
-                  <>
-                    <span>·</span>
-                    <span>{readTimeMinutes(w.word_count)} min read</span>
-                  </>
-                ) : null}
-              </div>
-              <h2 className="text-xl font-semibold mb-2">
-                <Link
-                  href={`/${username}/writings/${w.slug}`}
-                  className="hover:underline"
-                >
-                  {w.title}
-                </Link>
-              </h2>
-              {w.body_html && (
-                <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">
-                  {excerptFromHtml(w.body_html, 250)}
-                </p>
-              )}
-              {w.tags && w.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {w.tags.map((tag) => {
-                    const siteTag = siteTags.find((st) => st.label === tag)
-                    return (
-                      <Link
-                        key={tag}
-                        href={
-                          siteTag
-                            ? `/${username}/writings/tags/${slugify(tag)}`
-                            : `/${username}/writings?q=${encodeURIComponent(tag)}`
-                        }
-                        className="text-xs text-gray-400 hover:text-gray-700"
-                      >
-                        #{tag}
-                      </Link>
-                    )
-                  })}
+          {rows.map((w) => {
+            const linkedCos = w.id ? writingCompanyMap.get(w.id) ?? [] : []
+            const accentColour = linkedCos.length > 0 ? linkedCos[0].brand_colour : null
+            return (
+              <article
+                key={w.id}
+                className={accentColour ? 'pl-4 border-l-3' : ''}
+                style={accentColour ? { borderLeftColor: accentColour } : undefined}
+              >
+                <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                  {w.published_at && (
+                    <time dateTime={w.published_at}>
+                      {new Date(w.published_at).toLocaleDateString('en-GB', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                      })}
+                    </time>
+                  )}
+                  {w.word_count ? (
+                    <>
+                      <span>·</span>
+                      <span>{readTimeMinutes(w.word_count)} min read</span>
+                    </>
+                  ) : null}
                 </div>
-              )}
-            </article>
-          ))}
+                <div className="flex items-start gap-3">
+                  {linkedCos.length > 0 && (
+                    <div className="flex -space-x-1 mt-1 shrink-0">
+                      {linkedCos.map((co) =>
+                        co.logo ? (
+                          <Image
+                            key={co.name}
+                            src={co.logo}
+                            alt={co.name}
+                            width={24}
+                            height={24}
+                            className="rounded-sm border border-gray-100"
+                            title={co.name}
+                          />
+                        ) : (
+                          <span
+                            key={co.name}
+                            className="w-6 h-6 rounded-sm border border-gray-100 flex items-center justify-center text-[10px] font-bold text-white"
+                            style={{ backgroundColor: co.brand_colour ?? '#6b7280' }}
+                            title={co.name}
+                          >
+                            {co.name.charAt(0)}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h2 className="text-xl font-semibold mb-2">
+                      <Link
+                        href={`/${username}/writings/${w.slug}`}
+                        className="hover:underline"
+                      >
+                        {w.title}
+                      </Link>
+                    </h2>
+                    {w.body_html && (
+                      <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">
+                        {excerptFromHtml(w.body_html, 250)}
+                      </p>
+                    )}
+                    {w.tags && w.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {w.tags.map((tag) => {
+                          const siteTag = siteTags.find((st) => st.label === tag)
+                          return (
+                            <Link
+                              key={tag}
+                              href={
+                                siteTag
+                                  ? `/${username}/writings/tags/${slugify(tag)}`
+                                  : `/${username}/writings?q=${encodeURIComponent(tag)}`
+                              }
+                              className="text-xs text-gray-400 hover:text-gray-700"
+                            >
+                              #{tag}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            )
+          })}
         </div>
       )}
 

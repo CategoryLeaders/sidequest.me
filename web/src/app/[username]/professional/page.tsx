@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
-import { companies } from "@/lib/career-data";
+import { getCompaniesForUser } from "@/lib/companies";
+import { countWritingsForEntities } from "@/lib/writing-links";
 import { getProfileByUsername } from "@/lib/profiles";
 import CareerCard from "@/components/professional/CareerCard";
 import SingleRoleCard from "@/components/professional/SingleRoleCard";
 
 /**
  * Professional page — career journey + optional professional name & LinkedIn.
+ * Now reads companies from Supabase, with related writing counts.
  * [SQ.S-W-2603-0038]
  */
 
@@ -32,6 +34,13 @@ export default async function ProfessionalPage({ params }: ProfessionalPageProps
   }
 
   const heading = profile.professional_name ?? profile.display_name ?? username;
+  const companies = await getCompaniesForUser(profile.id);
+
+  // Batch-fetch related writing counts for all companies
+  const writingCounts = await countWritingsForEntities(
+    "company",
+    companies.map((c) => c.id)
+  );
 
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem" }}>
@@ -108,9 +117,9 @@ export default async function ProfessionalPage({ params }: ProfessionalPageProps
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {companies.map((c) =>
           c.type === "multi" ? (
-            <CareerCard key={c.name} company={c} />
+            <CareerCard key={c.id} company={c} username={username} writingCount={writingCounts.get(c.id) ?? 0} />
           ) : (
-            <SingleRoleCard key={c.name} company={c} />
+            <SingleRoleCard key={c.id} company={c} username={username} writingCount={writingCounts.get(c.id) ?? 0} />
           )
         )}
       </div>

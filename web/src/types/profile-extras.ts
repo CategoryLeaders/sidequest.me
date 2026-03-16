@@ -11,6 +11,7 @@ export interface Factoid {
 }
 
 export interface LikeDislike {
+  id?: string;
   emoji: string;
   text: string;
 }

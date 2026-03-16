@@ -10,16 +10,37 @@ import { slugifyTitle } from '@/lib/writings'
 // Lazy-load editor to avoid SSR issues with ProseMirror
 const WritingEditor = dynamic(() => import('./WritingEditor'), { ssr: false })
 
+/* ── Linkable entity types passed from server ── */
+interface LinkableCompany { id: string; name: string; slug: string; brandColour: string | null }
+interface LinkableProject { id: string; name: string; slug: string }
+interface LinkableItem { id: string; label: string }
+
+export interface LinkableEntities {
+  companies: LinkableCompany[]
+  projects: LinkableProject[]
+  likes: LinkableItem[]
+  dislikes: LinkableItem[]
+}
+
+export interface WritingLinkRef {
+  entity_type: string
+  entity_id: string
+}
+
 interface WritingEditorFormProps {
   username: string
   writing?: Partial<Writing>           // undefined = new post
   availableTags?: string[]             // profile site tags
+  linkableEntities?: LinkableEntities
+  existingLinks?: WritingLinkRef[]
 }
 
 export default function WritingEditorForm({
   username,
   writing,
   availableTags = [],
+  linkableEntities,
+  existingLinks = [],
 }: WritingEditorFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -35,6 +56,8 @@ export default function WritingEditorForm({
   const [tags, setTags] = useState<string[]>(writing?.tags ?? [])
   const [customTag, setCustomTag] = useState('')
   const [externalUrl, setExternalUrl] = useState(writing?.external_url ?? '')
+  const [imageUrl, setImageUrl] = useState(writing?.image_url ?? '')
+  const [links, setLinks] = useState<WritingLinkRef[]>(existingLinks)
   const [status, setStatus] = useState<WritingStatus>(writing?.status ?? 'draft')
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -75,6 +98,19 @@ export default function WritingEditorForm({
     setSaved(false)
   }
 
+  /* ── Link toggling ── */
+  const toggleLink = (entityType: string, entityId: string) => {
+    setLinks((prev) => {
+      const exists = prev.some((l) => l.entity_type === entityType && l.entity_id === entityId)
+      if (exists) return prev.filter((l) => !(l.entity_type === entityType && l.entity_id === entityId))
+      return [...prev, { entity_type: entityType, entity_id: entityId }]
+    })
+    setSaved(false)
+  }
+
+  const isLinked = (entityType: string, entityId: string) =>
+    links.some((l) => l.entity_type === entityType && l.entity_id === entityId)
+
   const handleImageUpload = async (file: File): Promise<string> => {
     const form = new FormData()
     form.append('file', file)
@@ -97,6 +133,7 @@ export default function WritingEditorForm({
         tags,
         status: targetStatus,
         external_url: externalUrl.trim() || null,
+        image_url: imageUrl.trim() || null,
       }
 
       const url = writing?.id
@@ -115,7 +152,18 @@ export default function WritingEditorForm({
         return
       }
 
-      const { slug: savedSlug } = await res.json() as { slug: string }
+      const { id: savedId, slug: savedSlug } = await res.json() as { id?: string; slug: string }
+      const writingId = writing?.id ?? savedId
+
+      // Sync writing links
+      if (writingId) {
+        await fetch('/api/writing-links', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ writing_id: writingId, links }),
+        })
+      }
+
       setStatus(targetStatus)
       setSaved(true)
 
@@ -128,9 +176,16 @@ export default function WritingEditorForm({
   const statusLabel: Record<WritingStatus, string> = {
     draft:     'Save draft',
     scheduled: 'Schedule',
-    published: 'Publish',
+    published: 'Publish changes',
     unlisted:  'Save as unlisted',
   }
+
+  const hasLinkable = linkableEntities && (
+    linkableEntities.companies.length > 0 ||
+    linkableEntities.projects.length > 0 ||
+    linkableEntities.likes.length > 0 ||
+    linkableEntities.dislikes.length > 0
+  )
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -213,6 +268,109 @@ export default function WritingEditorForm({
         </div>
       </div>
 
+      {/* Related to — link picker */}
+      {hasLinkable && (
+        <div className="mt-6">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Related to</p>
+
+          {/* Companies */}
+          {linkableEntities!.companies.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1.5">Companies</p>
+              <div className="flex flex-wrap gap-2">
+                {linkableEntities!.companies.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleLink('company', c.id)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      isLinked('company', c.id)
+                        ? 'text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    }`}
+                    style={isLinked('company', c.id)
+                      ? { background: c.brandColour ?? '#000', borderColor: c.brandColour ?? '#000' }
+                      : undefined
+                    }
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Projects */}
+          {linkableEntities!.projects.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1.5">Projects</p>
+              <div className="flex flex-wrap gap-2">
+                {linkableEntities!.projects.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleLink('project', p.id)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      isLinked('project', p.id)
+                        ? 'border-black bg-black text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Likes */}
+          {linkableEntities!.likes.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1.5">Likes</p>
+              <div className="flex flex-wrap gap-2">
+                {linkableEntities!.likes.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => toggleLink('like', l.id)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      isLinked('like', l.id)
+                        ? 'border-green-600 bg-green-600 text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dislikes */}
+          {linkableEntities!.dislikes.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1.5">Hates</p>
+              <div className="flex flex-wrap gap-2">
+                {linkableEntities!.dislikes.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => toggleLink('dislike', d.id)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      isLinked('dislike', d.id)
+                        ? 'border-red-600 bg-red-600 text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* External URL */}
       <div className="mt-6">
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">External URL</p>
@@ -222,6 +380,23 @@ export default function WritingEditorForm({
           placeholder="https://… (link to the original if hosted elsewhere)"
           className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
         />
+      </div>
+
+      {/* Featured Image URL */}
+      <div className="mt-6">
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Featured Image</p>
+        <input
+          value={imageUrl}
+          onChange={(e) => { setImageUrl(e.target.value); setSaved(false) }}
+          placeholder="https://… (hero image URL)"
+          className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+        />
+        {imageUrl.trim() && (
+          <div className="mt-2 rounded-md overflow-hidden border border-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl} alt="Preview" className="w-full h-auto max-h-48 object-cover" />
+          </div>
+        )}
       </div>
 
       {/* Actions */}

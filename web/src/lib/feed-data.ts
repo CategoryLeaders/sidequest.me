@@ -1,7 +1,7 @@
 /* ── Aggregated feed for the homepage "What's New" section ── */
 
 import { posts } from "./photowall-data";
-import { companies } from "./career-data";
+import { createClient } from "@/lib/supabase/server";
 
 export type FeedItem = {
   id: string;
@@ -16,46 +16,27 @@ export type FeedItem = {
   sortDate: string; // ISO for sorting
 };
 
-const projects = [
-  {
-    title: "Sidequest Ventures",
-    url: "sidequestventures.com",
-    desc: "Angel investing in early-stage startups focused on developer tools, productivity, and creative software.",
-    status: "Active",
-  },
-  {
-    title: "ProductLobby",
-    url: "productlobby.com",
-    desc: "A community for product builders to share what they're working on and find collaborators for side projects.",
-    status: "Building",
-  },
-  {
-    title: "Category Leaders",
-    url: "categoryleaders.co.uk",
-    desc: "Boutique consultancy helping B2B SaaS companies nail their positioning, messaging, and go-to-market.",
-    status: "Active",
-  },
-  {
-    title: "sidequest.me",
-    url: "sidequest.me",
-    desc: "This very website. A personal homepage that consolidates everything in one self-owned corner of the internet.",
-    status: "Building",
-  },
-];
-
-export function buildFeed(): FeedItem[] {
+export async function buildFeed(userId: string): Promise<FeedItem[]> {
+  const supabase = await createClient();
   const items: FeedItem[] = [];
 
   // ── Photos disabled: images are gitignored (213MB) and not deployed ──
   // TODO: re-enable when photos are hosted externally (e.g. Cloudinary / S3)
 
-  // ── Projects (all) ──
-  projects.forEach((proj, i) => {
+  // ── Projects (from Supabase) ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: projects } = await (supabase as any)
+    .from("projects")
+    .select("id, title, description, status, status_color")
+    .eq("user_id", userId)
+    .order("sort_order", { ascending: true }) as { data: Array<{ id: string; title: string; description: string | null; status: string; status_color: string }> | null };
+
+  (projects ?? []).forEach((proj) => {
     items.push({
-      id: `project-${i}`,
+      id: `project-${proj.id}`,
       type: "project",
       title: proj.title,
-      desc: proj.desc.slice(0, 80) + (proj.desc.length > 80 ? "…" : ""),
+      desc: (proj.description ?? "").slice(0, 80) + ((proj.description ?? "").length > 80 ? "…" : ""),
       badge: proj.status === "Building" ? "badge-orange" : "badge-green",
       badgeLabel: proj.status === "Building" ? "Building" : "Project",
       link: "/projects",
@@ -64,24 +45,48 @@ export function buildFeed(): FeedItem[] {
     });
   });
 
-  // ── Career highlights (latest 2 companies) ──
-  companies.slice(0, 2).forEach((co, i) => {
-    const role = co.type === "single" ? co.roleTitle : co.stations?.[co.stations.length - 1]?.role;
-    const dates = co.type === "single" ? co.roleDates : co.subLine;
+  // ── Career highlights (latest 2 companies from Supabase) ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: companies } = await (supabase as any)
+    .from("companies")
+    .select("id, name, type, role_title, role_dates, sub_line, blurb_left, sort_order")
+    .eq("user_id", userId)
+    .order("sort_order", { ascending: true })
+    .limit(2) as { data: Array<{ id: string; name: string; type: string; role_title: string | null; role_dates: string | null; sub_line: string | null; blurb_left: { content?: string } | null; sort_order: number }> | null };
+
+  for (const co of companies ?? []) {
+    let role = co.role_title ?? "";
+    const dates = co.type === "single" ? co.role_dates : co.sub_line;
+
+    // For multi-role companies, get the latest role
+    if (co.type === "multi") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: latestRole } = await (supabase as any)
+        .from("company_roles")
+        .select("role")
+        .eq("company_id", co.id)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .single() as { data: { role: string } | null };
+      role = latestRole?.role ?? "";
+    }
+
+    const blurbContent = (co.blurb_left as { content?: string } | null)?.content ?? "";
+
     items.push({
-      id: `career-${i}`,
+      id: `career-${co.id}`,
       type: "career",
       title: co.name,
-      desc: role || co.blurbLeft.content.slice(0, 80) + "…",
+      desc: role || blurbContent.slice(0, 80) + "…",
       badge: "badge-blue",
       badgeLabel: "Career",
       link: "/professional",
       date: dates || "",
-      sortDate: co.type === "single" && co.roleDates
-        ? `${co.roleDates.split("–")[0].trim().split(" ")[0]}-01-01`
+      sortDate: co.type === "single" && co.role_dates
+        ? `${co.role_dates.split("–")[0].trim().split(" ")[0]}-01-01`
         : "2020-01-01",
     });
-  });
+  }
 
   // Sort by date descending, then limit to 6 for a 2×3 grid
   items.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
