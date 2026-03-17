@@ -31,59 +31,47 @@ export function formatPledge(amount: string | null, currency: string | null): st
 export const CROWDFUNDING_STATUSES = ["crowdfunding", "in_production", "shipping", "received"] as const;
 export type CrowdfundingStatus = (typeof CROWDFUNDING_STATUSES)[number];
 
-/** Status → display colour class */
-export function statusColor(status: string): string {
-  switch (status) {
-    case "crowdfunding":
-      return "sticker-green";
-    case "in_production":
-      return "sticker-orange";
-    case "shipping":
-      return "sticker-blue";
-    case "received":
-      return "sticker-lilac";
-    // Legacy statuses (still in DB, will phase out)
-    case "active":
-      return "sticker-green";
-    case "delivered":
-      return "sticker-lilac";
-    case "shipped":
-      return "sticker-blue";
-    case "dropped":
-    case "failed":
-      return "sticker-pink";
-    case "suspended":
-      return "sticker-yellow";
-    default:
-      return "sticker-lilac";
-  }
+/** Pipeline stage data for the status indicator */
+export interface StatusStepData {
+  /** 0-indexed step number (0 = crowdfunding, 3 = received) */
+  step: number;
+  /** Short label: Fund, Make, Ship, Here! */
+  shortLabel: string;
+  /** Full label */
+  label: string;
+  /** CSS class for the highlighter colour */
+  highlightClass: string;
 }
 
-/** Status → human label */
+const STEP_MAP: Record<string, StatusStepData> = {
+  crowdfunding: { step: 0, shortLabel: "Fund", label: "Crowdfunding", highlightClass: "pipeline-hl-green" },
+  in_production: { step: 1, shortLabel: "Make", label: "In Production", highlightClass: "pipeline-hl-orange" },
+  shipping: { step: 2, shortLabel: "Ship", label: "Shipping", highlightClass: "pipeline-hl-blue" },
+  received: { step: 3, shortLabel: "Here!", label: "Received", highlightClass: "pipeline-hl-lilac" },
+  // Legacy mappings
+  active: { step: 0, shortLabel: "Fund", label: "Crowdfunding", highlightClass: "pipeline-hl-green" },
+  delivered: { step: 3, shortLabel: "Here!", label: "Received", highlightClass: "pipeline-hl-lilac" },
+  shipped: { step: 2, shortLabel: "Ship", label: "Shipping", highlightClass: "pipeline-hl-blue" },
+};
+
+/** Get pipeline step data for a status string */
+export function statusStep(status: string): StatusStepData {
+  return STEP_MAP[status] ?? { step: 0, shortLabel: "Fund", label: status, highlightClass: "pipeline-hl-green" };
+}
+
+/** Status → human label (kept for backward compat) */
 export function statusLabel(status: string): string {
-  switch (status) {
-    case "crowdfunding":
-      return "Crowdfunding";
-    case "in_production":
-      return "In Production";
-    case "shipping":
-      return "Shipping";
-    case "received":
-      return "Received";
-    // Legacy statuses
-    case "active":
-      return "Crowdfunding";
-    case "delivered":
-      return "Received";
-    case "shipped":
-      return "Shipping";
-    case "dropped":
-      return "Dropped";
-    case "failed":
-      return "Failed";
-    case "suspended":
-      return "Suspended";
-    default:
-      return status;
+  return statusStep(status).label;
+}
+
+/** Status → display colour class (kept for backward compat, e.g. editor dropdown) */
+export function statusColor(status: string): string {
+  const s = statusStep(status);
+  switch (s.step) {
+    case 0: return "sticker-green";
+    case 1: return "sticker-orange";
+    case 2: return "sticker-blue";
+    case 3: return "sticker-lilac";
+    default: return "sticker-lilac";
   }
 }

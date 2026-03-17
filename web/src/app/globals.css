@@ -223,6 +223,66 @@ body {
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+/* ═══════════════ STATUS PIPELINE ═══════════════ */
+.pipeline { display: flex; align-items: center; gap: 0; }
+
+.pipeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: transparent;
+  flex-shrink: 0;
+}
+.pipeline-dot-done { background: var(--ink); }
+.pipeline-dot-current {
+  background: var(--ink);
+  width: 10px;
+  height: 10px;
+}
+
+.pipeline-line {
+  width: 12px;
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 15%, transparent);
+  flex-shrink: 0;
+}
+.pipeline-line-done { background: var(--ink); }
+
+.pipeline-label {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-left: 0.4rem;
+  position: relative;
+  display: inline-block;
+  padding: 0 0.15rem;
+  z-index: 1;
+  white-space: nowrap;
+}
+.pipeline-label::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -1px;
+  height: 7px;
+  z-index: -1;
+  transform: rotate(-0.5deg);
+}
+
+.pipeline-hl-green::after { background: var(--green); opacity: 0.5; }
+.pipeline-hl-orange::after { background: var(--orange); opacity: 0.5; }
+.pipeline-hl-blue::after { background: var(--blue); opacity: 0.5; }
+.pipeline-hl-lilac::after { background: var(--lilac); opacity: 0.5; }
+
+/* Compact variant — sits inline next to titles */
+.pipeline-compact .pipeline-dot { width: 6px; height: 6px; border-width: 1.5px; }
+.pipeline-compact .pipeline-dot-current { width: 8px; height: 8px; }
+.pipeline-compact .pipeline-line { width: 8px; height: 1.5px; }
+.pipeline-compact .pipeline-label { font-size: 0.45rem; }
+
 /* ═══════════════ SCROLLBAR HIDE ═══════════════ */
 .scrollbar-hide {
   -ms-overflow-style: none;

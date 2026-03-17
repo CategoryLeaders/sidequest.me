@@ -8,7 +8,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database";
-import { statusColor, statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import { statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import StatusPipeline from "@/components/StatusPipeline";
 
 type Project = Tables<"crowdfunding_projects">;
 
@@ -222,26 +223,26 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
                       <h4 className="font-head font-bold text-[0.82rem] uppercase truncate">
                         {project.title}
                       </h4>
-                      <select
-                        value={project.status}
-                        onChange={(e) => changeStatus(project, e.target.value)}
-                        className={`sticker text-[0.5rem] px-1.5 py-0.5 cursor-pointer border-0 appearance-none ${statusColor(
-                          project.status
-                        )}`}
-                        style={{ paddingRight: "1rem", backgroundImage: "none" }}
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {statusLabel(s)}
-                          </option>
-                        ))}
-                        {/* Show current value if it's a legacy status not in the new list */}
-                        {!STATUSES.includes(project.status as typeof STATUSES[number]) && (
-                          <option value={project.status}>
-                            {statusLabel(project.status)} (legacy)
-                          </option>
-                        )}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <StatusPipeline status={project.status} compact />
+                        <select
+                          value={project.status}
+                          onChange={(e) => changeStatus(project, e.target.value)}
+                          className="font-mono text-[0.5rem] px-1 py-0.5 border border-ink/20 bg-bg-card cursor-pointer opacity-40 hover:opacity-80 transition-opacity"
+                          title="Change status"
+                        >
+                          {STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {statusLabel(s)}
+                            </option>
+                          ))}
+                          {!STATUSES.includes(project.status as typeof STATUSES[number]) && (
+                            <option value={project.status}>
+                              {statusLabel(project.status)} (legacy)
+                            </option>
+                          )}
+                        </select>
+                      </div>
                       {project.pledge_status === "unpublished" && (
                         <span className="font-mono text-[0.5rem] opacity-40 uppercase">
                           hidden

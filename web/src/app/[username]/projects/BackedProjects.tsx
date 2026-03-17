@@ -8,7 +8,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
-import { formatPledge, statusColor, statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import { formatPledge, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import StatusPipeline from "@/components/StatusPipeline";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
@@ -105,24 +106,22 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
               )}
 
               {/* Header */}
-              <div className="flex justify-between items-start gap-2 mb-2">
-                <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight flex-1">
-                  {project.external_url ? (
-                    <a
-                      href={project.external_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="no-underline hover:text-orange transition-colors"
-                    >
-                      {project.title}
-                    </a>
-                  ) : (
-                    project.title
-                  )}
-                </h3>
-                <span className={`sticker text-[0.55rem] px-2 py-0.5 whitespace-nowrap ${statusColor(project.status)}`}>
-                  {statusLabel(project.status)}
-                </span>
+              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-1">
+                {project.external_url ? (
+                  <a
+                    href={project.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="no-underline hover:text-orange transition-colors"
+                  >
+                    {project.title}
+                  </a>
+                ) : (
+                  project.title
+                )}
+              </h3>
+              <div className="mb-2">
+                <StatusPipeline status={project.status} />
               </div>
 
               {/* Pledge amount (only if toggled on) */}
