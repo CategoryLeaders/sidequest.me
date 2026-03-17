@@ -132,11 +132,11 @@ export default function ProjectImageUpload({
       {displayUrl ? (
         /* ── Has image: show preview with replace/delete ── */
         <div className="relative group">
-          <div className="w-full h-32 overflow-hidden border-3 border-ink bg-bg-card">
+          <div className="w-full border-3 border-ink bg-bg-card flex items-center justify-center">
             <img
               src={displayUrl}
               alt="Project image"
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain"
             />
           </div>
           {/* Hover overlay */}

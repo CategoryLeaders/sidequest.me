@@ -90,11 +90,11 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
             >
               {/* Image placeholder */}
               {project.image_url ? (
-                <div className="w-full h-32 mb-3 overflow-hidden border-2 border-ink/10">
+                <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
                   <img
                     src={project.image_url}
                     alt={project.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               ) : (
