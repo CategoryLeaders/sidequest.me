@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { JSONContent } from '@tiptap/core'
@@ -62,6 +62,10 @@ export default function WritingEditorForm({
   const [status, setStatus] = useState<WritingStatus>(writing?.status ?? 'draft')
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [tagsOpen, setTagsOpen] = useState(false)
+  const [heroUploading, setHeroUploading] = useState(false)
+  const [heroDragOver, setHeroDragOver] = useState(false)
+  const heroInputRef = useRef<HTMLInputElement>(null)
 
   const handleTitleChange = (val: string) => {
     setTitle(val)
@@ -115,10 +119,38 @@ export default function WritingEditorForm({
   const handleImageUpload = async (file: File): Promise<string> => {
     const form = new FormData()
     form.append('file', file)
+    form.append('context', 'writings')
     const res = await fetch('/api/upload-image', { method: 'POST', body: form })
     if (!res.ok) throw new Error('Upload failed')
     const { url } = await res.json() as { url: string }
     return url
+  }
+
+  const handleHeroUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setHeroUploading(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('context', 'writings')
+      if (writing?.id) form.append('entityId', writing.id)
+      const res = await fetch('/api/upload-image', { method: 'POST', body: form })
+      if (!res.ok) throw new Error('Upload failed')
+      const { url } = await res.json() as { url: string }
+      setImageUrl(url)
+      setSaved(false)
+    } catch {
+      setError('Hero image upload failed')
+    } finally {
+      setHeroUploading(false)
+    }
+  }
+
+  const handleHeroDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setHeroDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleHeroUpload(file)
   }
 
   const save = (nextStatus?: WritingStatus) => {
@@ -199,6 +231,64 @@ export default function WritingEditorForm({
         ← All writings
       </a>
 
+      {/* Hero Image — drag/drop + click to upload */}
+      <div
+        className={`relative w-full mb-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+          heroDragOver
+            ? 'border-blue-400 bg-blue-50'
+            : imageUrl
+              ? 'border-transparent'
+              : 'border-gray-200 hover:border-gray-400'
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setHeroDragOver(true) }}
+        onDragLeave={() => setHeroDragOver(false)}
+        onDrop={handleHeroDrop}
+        onClick={() => heroInputRef.current?.click()}
+      >
+        <input
+          ref={heroInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleHeroUpload(file)
+            e.target.value = ''
+          }}
+        />
+        {imageUrl ? (
+          <div className="relative group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl} alt="Hero" className="w-full h-48 object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+              <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                {heroUploading ? 'Uploading…' : 'Click or drop to replace'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setImageUrl(''); setSaved(false) }}
+              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+            {heroUploading ? (
+              <span className="text-sm">Uploading…</span>
+            ) : (
+              <>
+                <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+                <span className="text-sm">Drop a hero image here, or click to browse</span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Title */}
       <input
         value={title}
@@ -225,49 +315,74 @@ export default function WritingEditorForm({
         onImageUpload={handleImageUpload}
       />
 
-      {/* Tags */}
-      <div className="mt-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Tags</p>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {availableTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => toggleTag(tag)}
-              className={`px-3 py-1 rounded-full text-sm border transition-all ${
-                tags.includes(tag)
-                  ? 'border-black bg-black text-white'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
-              }`}
+      {/* Tags — collapsible */}
+      <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setTagsOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+        >
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            Tags{tags.length > 0 && ` (${tags.length})`}
+          </span>
+          <div className="flex items-center gap-2">
+            {!tagsOpen && tags.length > 0 && (
+              <span className="text-xs text-gray-400 truncate max-w-[200px]">
+                {tags.join(', ')}
+              </span>
+            )}
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform ${tagsOpen ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
-              {tag}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={customTag}
-            onChange={(e) => setCustomTag(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
-            placeholder="Add custom tag…"
-            className="text-sm border border-gray-200 rounded-md px-3 py-1.5 outline-none focus:border-gray-400 w-48"
-          />
-          {tags.filter((t) => !availableTags.includes(t)).map((t) => (
-            <span
-              key={t}
-              className="flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-gray-300 text-gray-600"
-            >
-              {t}
-              <button
-                type="button"
-                onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
-                className="text-gray-400 hover:text-black ml-0.5"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+        {tagsOpen && (
+          <div className="px-4 pb-4 border-t border-gray-100">
+            <div className="flex flex-wrap gap-2 mt-3 mb-2">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                    tags.includes(tag)
+                      ? 'border-black bg-black text-white'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
+                placeholder="Add custom tag…"
+                className="text-sm border border-gray-200 rounded-md px-3 py-1.5 outline-none focus:border-gray-400 w-48"
+              />
+              {tags.filter((t) => !availableTags.includes(t)).map((t) => (
+                <span
+                  key={t}
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-gray-300 text-gray-600"
+                >
+                  {t}
+                  <button
+                    type="button"
+                    onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
+                    className="text-gray-400 hover:text-black ml-0.5"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Related to — link picker */}
@@ -407,22 +522,7 @@ export default function WritingEditorForm({
         />
       </div>
 
-      {/* Featured Image URL */}
-      <div className="mt-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Featured Image</p>
-        <input
-          value={imageUrl}
-          onChange={(e) => { setImageUrl(e.target.value); setSaved(false) }}
-          placeholder="https://… (hero image URL)"
-          className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
-        />
-        {imageUrl.trim() && (
-          <div className="mt-2 rounded-md overflow-hidden border border-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="Preview" className="w-full h-auto max-h-48 object-cover" />
-          </div>
-        )}
-      </div>
+      {/* Featured Image URL is now the drag/drop zone above the title */}
 
       {/* Actions */}
       <div className="mt-8 flex items-center gap-3">
