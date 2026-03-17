@@ -189,9 +189,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               >
                 {i + 1}
               </span>
-              <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-white/90 leading-none whitespace-nowrap z-10" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
-                {item.date}
-              </span>
+              {item.image ? (
+                <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-white/90 leading-none whitespace-nowrap z-10" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                  {item.date}
+                </span>
+              ) : (
+                <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-ink-muted leading-none whitespace-nowrap z-10">
+                  {item.date}
+                </span>
+              )}
 
               {item.image && (
                 // eslint-disable-next-line @next/next/no-img-element
