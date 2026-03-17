@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database";
-import { statusColor, statusLabel } from "@/lib/crowdfunding";
+import { statusColor, statusLabel } from "@/lib/crowdfunding-utils";
 
 type Project = Tables<"crowdfunding_projects">;
 

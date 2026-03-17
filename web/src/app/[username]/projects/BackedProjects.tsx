@@ -7,8 +7,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { CrowdfundingProject } from "@/lib/crowdfunding";
-import { formatPledge, statusColor, statusLabel } from "@/lib/crowdfunding";
+import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
+import { formatPledge, statusColor, statusLabel } from "@/lib/crowdfunding-utils";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
