@@ -5,13 +5,21 @@
  * [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041]
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
 
 const tabs = ["Bio", "Loves & Hates"] as const;
 type Tab = (typeof tabs)[number];
 
 const tabColors = ["sticker-orange", "sticker-pink"];
+
+interface CrowdfundingCardData {
+  title: string;
+  autoScroll: boolean;
+  projects: { id: string; title: string; slug: string; image_url: string | null }[];
+  username: string;
+}
 
 interface AboutContentProps {
   displayName: string;
@@ -21,6 +29,7 @@ interface AboutContentProps {
   totalFactoids: number;
   likes: LikeDislike[];
   dislikes: LikeDislike[];
+  crowdfunding?: CrowdfundingCardData;
 }
 
 /**
@@ -59,6 +68,147 @@ function renderBioText(text: string) {
   });
 }
 
+/** Horizontal carousel of crowdfunding project thumbnails for the About page. */
+function CrowdfundingCarousel({
+  title,
+  autoScroll,
+  projects,
+  username,
+}: CrowdfundingCardData) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollButtons = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!autoScroll) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const interval = setInterval(() => {
+      // If we've reached the end, scroll back to start
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 2) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: 200, behavior: "smooth" });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [autoScroll]);
+
+  // Update button visibility on mount & scroll
+  useEffect(() => {
+    updateScrollButtons();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateScrollButtons, { passive: true });
+    return () => el.removeEventListener("scroll", updateScrollButtons);
+  }, []);
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
+  };
+
+  const rotations = ["-0.8deg", "0.6deg", "-0.4deg", "0.9deg", "-0.6deg", "0.3deg"];
+
+  return (
+    <section className="mt-12 pt-8 border-t-3 border-ink/10">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-5">
+        <h2
+          className="font-head font-[900] text-[clamp(1rem,2.5vw,1.4rem)] uppercase leading-tight"
+          style={{ transform: "rotate(-0.3deg)" }}
+        >
+          {title}
+        </h2>
+        <Link
+          href={`/${username}/projects?tab=backed`}
+          className="font-mono text-[0.65rem] font-semibold uppercase text-orange no-underline opacity-60 hover:opacity-100 transition-opacity"
+        >
+          View all →
+        </Link>
+      </div>
+
+      {/* Carousel wrapper */}
+      <div className="relative">
+        {/* Left arrow */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-ink text-bg border-2 border-ink flex items-center justify-center cursor-pointer hover:bg-ink/80 transition-colors"
+            style={{ transform: "translateY(-50%) rotate(-1deg)" }}
+            aria-label="Scroll left"
+          >
+            ←
+          </button>
+        )}
+
+        {/* Scrollable track */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide"
+          style={{ scrollSnapType: "x mandatory" }}
+        >
+          {projects.map((project, i) => (
+            <Link
+              key={project.id}
+              href={`/${username}/projects?tab=backed`}
+              className="flex-shrink-0 no-underline group"
+              style={{ scrollSnapAlign: "start" }}
+            >
+              <div
+                className="w-[140px] border-3 border-ink bg-bg-card overflow-hidden card-hover"
+                style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+              >
+                {project.image_url ? (
+                  <div className="w-full h-[100px] overflow-hidden">
+                    <img
+                      src={project.image_url}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-[100px] bg-ink/5 flex items-center justify-center">
+                    <span className="font-mono text-[0.5rem] opacity-30 uppercase">No image</span>
+                  </div>
+                )}
+                <div className="px-2.5 py-2">
+                  <p className="font-head font-bold text-[0.6rem] uppercase leading-tight line-clamp-2">
+                    {project.title}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Right arrow */}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-ink text-bg border-2 border-ink flex items-center justify-center cursor-pointer hover:bg-ink/80 transition-colors"
+            style={{ transform: "translateY(-50%) rotate(1deg)" }}
+            aria-label="Scroll right"
+          >
+            →
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function AboutContent({
   displayName,
   aboutBio,
@@ -66,6 +216,7 @@ export default function AboutContent({
   totalFactoids,
   likes,
   dislikes,
+  crowdfunding,
 }: AboutContentProps) {
   const [active, setActive] = useState<Tab>("Bio");
 
@@ -192,6 +343,16 @@ export default function AboutContent({
             </p>
           )}
         </div>
+      )}
+
+      {/* ── CROWDFUNDING CARD ── */}
+      {crowdfunding && crowdfunding.projects.length > 0 && (
+        <CrowdfundingCarousel
+          title={crowdfunding.title}
+          autoScroll={crowdfunding.autoScroll}
+          projects={crowdfunding.projects}
+          username={crowdfunding.username}
+        />
       )}
     </main>
   );

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProfileByUsername } from "@/lib/profiles";
 import AboutContent from "./AboutContent";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
+import { getPublishedCrowdfundingProjects } from "@/lib/crowdfunding";
 
 /**
  * About page — data-driven from the profiles table.
@@ -45,6 +46,23 @@ export default async function AboutPage({ params }: AboutPageProps) {
       ? shuffleArray(allFactoids).slice(0, FACTOID_DISPLAY_LIMIT)
       : allFactoids;
 
+  // Fetch crowdfunding data for the About card if enabled
+  const crowdfundingEnabled = (profile as Record<string, unknown>).crowdfunding_enabled as boolean ?? false;
+  const crowdfundingTitle = (profile as Record<string, unknown>).crowdfunding_title as string ?? "Weird Projects I Backed";
+  const crowdfundingCarouselAuto = (profile as Record<string, unknown>).crowdfunding_carousel_auto as boolean ?? false;
+
+  let crowdfundingProjects: { id: string; title: string; slug: string; image_url: string | null }[] = [];
+  if (crowdfundingEnabled) {
+    const allBacked = await getPublishedCrowdfundingProjects(profile.id);
+    // Take the 15 most recent (by sort_order, which is import order = most recent first)
+    crowdfundingProjects = allBacked.slice(0, 15).map((p) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      image_url: p.image_url,
+    }));
+  }
+
   return (
     <AboutContent
       displayName={profile.display_name ?? username}
@@ -53,6 +71,12 @@ export default async function AboutPage({ params }: AboutPageProps) {
       totalFactoids={totalFactoids}
       likes={(profile.likes as LikeDislike[] | null) ?? []}
       dislikes={(profile.dislikes as LikeDislike[] | null) ?? []}
+      crowdfunding={crowdfundingEnabled ? {
+        title: crowdfundingTitle,
+        autoScroll: crowdfundingCarouselAuto,
+        projects: crowdfundingProjects,
+        username,
+      } : undefined}
     />
   );
 }

@@ -233,12 +233,90 @@ export type Database = {
         }
         Relationships: []
       }
+      crowdfunding_projects: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          slug: string
+          description: string | null
+          image_url: string | null
+          external_url: string | null
+          platform: string
+          pledge_amount: string | null
+          pledge_currency: string | null
+          reward_tier: string | null
+          status: string
+          pledge_status: string
+          pledged_at: string | null
+          deadline: string | null
+          est_delivery: string | null
+          show_pledge_amount: boolean
+          tags: string[]
+          sort_order: number
+          featured: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          slug: string
+          description?: string | null
+          image_url?: string | null
+          external_url?: string | null
+          platform?: string
+          pledge_amount?: string | null
+          pledge_currency?: string | null
+          reward_tier?: string | null
+          status?: string
+          pledge_status?: string
+          pledged_at?: string | null
+          deadline?: string | null
+          est_delivery?: string | null
+          show_pledge_amount?: boolean
+          tags?: string[]
+          sort_order?: number
+          featured?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          slug?: string
+          description?: string | null
+          image_url?: string | null
+          external_url?: string | null
+          platform?: string
+          pledge_amount?: string | null
+          pledge_currency?: string | null
+          reward_tier?: string | null
+          status?: string
+          pledge_status?: string
+          pledged_at?: string | null
+          deadline?: string | null
+          est_delivery?: string | null
+          show_pledge_amount?: boolean
+          tags?: string[]
+          sort_order?: number
+          featured?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about_bio: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
+          crowdfunding_enabled: boolean
+          crowdfunding_title: string | null
+          crowdfunding_carousel_auto: boolean
           dislikes: Json | null
           display_name: string | null
           factoids: Json | null
@@ -258,6 +336,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          crowdfunding_enabled?: boolean
+          crowdfunding_title?: string | null
+          crowdfunding_carousel_auto?: boolean
           dislikes?: Json | null
           display_name?: string | null
           factoids?: Json | null
@@ -277,6 +358,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          crowdfunding_enabled?: boolean
+          crowdfunding_title?: string | null
+          crowdfunding_carousel_auto?: boolean
           dislikes?: Json | null
           display_name?: string | null
           factoids?: Json | null

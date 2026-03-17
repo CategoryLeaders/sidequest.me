@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Profile settings form — tabbed: Profile (sub: Info · Likes & Dislikes · Ticker) · About · Professional · Site Tags · API Keys
+ * Profile settings form — tabbed: Profile (sub: Info · Likes & Dislikes · Ticker) · About · Professional · Crowdfunding · Settings (sub: Site Tags · API Keys)
  * [SQ.S-W-2603-0034] [SQ.S-W-2603-0038] [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041] [SQ.S-W-2603-0046] [SQ.S-W-2603-0056]
  */
 
@@ -18,12 +18,16 @@ import ApiKeysEditor from "@/components/settings/ApiKeysEditor";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
 import type { SiteTag, SiteTagsDisplay } from "@/lib/tags";
 import { DEFAULT_SITE_TAGS_DISPLAY } from "@/lib/tags";
+import CrowdfundingEditor from "@/components/settings/CrowdfundingEditor";
 
-const SETTINGS_TABS = ["Profile", "About", "Professional", "Site Tags", "API Keys"] as const;
+const SETTINGS_TABS = ["Profile", "About", "Professional", "Crowdfunding", "Settings"] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 const PROFILE_SUBTABS = ["Info", "Likes & Dislikes", "Ticker"] as const;
 type ProfileSubTab = (typeof PROFILE_SUBTABS)[number];
+
+const SETTINGS_SUBTABS = ["Site Tags", "API Keys"] as const;
+type SettingsSubTab = (typeof SETTINGS_SUBTABS)[number];
 
 interface SettingsFormProps {
   profile: Profile;
@@ -34,6 +38,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
   const router = useRouter();
   const [tab, setTab] = useState<SettingsTab>("Profile");
   const [profileSubTab, setProfileSubTab] = useState<ProfileSubTab>("Info");
+  const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>("Site Tags");
 
   // ── Profile tab state ──
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
@@ -76,6 +81,20 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
     ((profile as any).site_tags_display as SiteTagsDisplay | null) ?? DEFAULT_SITE_TAGS_DISPLAY
   );
 
+  // ── Crowdfunding tab state ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [crowdfundingEnabled, setCrowdfundingEnabled] = useState<boolean>(
+    (profile as any).crowdfunding_enabled ?? false
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [crowdfundingTitle, setCrowdfundingTitle] = useState<string>(
+    (profile as any).crowdfunding_title ?? "Weird Projects I Backed"
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [crowdfundingCarouselAuto, setCrowdfundingCarouselAuto] = useState<boolean>(
+    (profile as any).crowdfunding_carousel_auto ?? false
+  );
+
   // ── Shared save state ──
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +130,9 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
         ticker_items: tickerItems.length > 0 ? tickerItems : null,
         site_tags: siteTags.length > 0 ? siteTags : null,
         site_tags_display: siteTagsDisplay,
+        crowdfunding_enabled: crowdfundingEnabled,
+        crowdfunding_title: crowdfundingTitle.trim() || "Weird Projects I Backed",
+        crowdfunding_carousel_auto: crowdfundingCarouselAuto,
         updated_at: new Date().toISOString(),
       };
 
@@ -359,44 +381,127 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
         </div>
       )}
 
-      {/* ══════ SITE TAGS TAB ══════ */}
-      {tab === "Site Tags" && (
+      {/* ══════ CROWDFUNDING TAB ══════ */}
+      {tab === "Crowdfunding" && (
         <div className="space-y-8">
           <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-            Sticker-style tags shown on your profile home page. Each tag links
-            to a filtered view of all your content with that tag.
+            Show crowdfunding projects you&apos;ve backed on your profile.
           </p>
-          <SiteTagsEditor
-            tags={siteTags}
-            display={siteTagsDisplay}
-            onChange={setSiteTags}
-            onDisplayChange={setSiteTagsDisplay}
-            writingTags={writingTags}
-          />
+
+          {/* Enable/disable toggle */}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={crowdfundingEnabled}
+              onChange={(e) => setCrowdfundingEnabled(e.target.checked)}
+              className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer"
+            />
+            <span className="font-head font-bold text-[0.78rem] uppercase">
+              Show crowdfunding on profile
+            </span>
+          </label>
+
+          {crowdfundingEnabled && (
+            <>
+              <div>
+                <label htmlFor="crowdfundingTitle" className={labelClass}>
+                  About Card Title
+                </label>
+                <input
+                  id="crowdfundingTitle"
+                  type="text"
+                  value={crowdfundingTitle}
+                  onChange={(e) => setCrowdfundingTitle(e.target.value)}
+                  placeholder="Weird Projects I Backed"
+                  maxLength={80}
+                  className={inputClass}
+                />
+                <p className="font-mono text-[0.68rem] opacity-50 mt-1.5">
+                  Title shown on the About page card and the Backed tab heading.
+                </p>
+              </div>
+
+              {/* Auto-scroll toggle */}
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={crowdfundingCarouselAuto}
+                  onChange={(e) => setCrowdfundingCarouselAuto(e.target.checked)}
+                  className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer"
+                />
+                <span className="font-head font-bold text-[0.78rem] uppercase">
+                  Auto-scroll About page carousel
+                </span>
+              </label>
+
+              {/* Project CRUD editor */}
+              <CrowdfundingEditor userId={profile.id} username={profile.username} />
+            </>
+          )}
         </div>
       )}
 
-      {/* ══════ API KEYS TAB ══════ */}
-      {tab === "API Keys" && (
-        <div className="space-y-8">
-          <ApiKeysEditor userId={profile.id} />
+      {/* ══════ SETTINGS TAB (sub: Site Tags · API Keys) ══════ */}
+      {tab === "Settings" && (
+        <div className="space-y-6">
+          {/* Settings sub-tab bar */}
+          <div className="flex gap-1 border-2 border-ink/30 overflow-x-auto">
+            {SETTINGS_SUBTABS.map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setSettingsSubTab(st)}
+                className={`flex-1 min-w-0 py-2 px-3 font-head font-bold text-[0.68rem] uppercase cursor-pointer transition-colors whitespace-nowrap ${
+                  settingsSubTab === st
+                    ? "bg-ink/10 text-ink border-b-2 border-ink"
+                    : "bg-bg-card text-ink/50 hover:bg-ink/5 hover:text-ink"
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+
+          {/* Site Tags sub-tab */}
+          {settingsSubTab === "Site Tags" && (
+            <div className="space-y-8">
+              <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
+                Sticker-style tags shown on your profile home page. Each tag links
+                to a filtered view of all your content with that tag.
+              </p>
+              <SiteTagsEditor
+                tags={siteTags}
+                display={siteTagsDisplay}
+                onChange={setSiteTags}
+                onDisplayChange={setSiteTagsDisplay}
+                writingTags={writingTags}
+              />
+            </div>
+          )}
+
+          {/* API Keys sub-tab */}
+          {settingsSubTab === "API Keys" && (
+            <div className="space-y-8">
+              <ApiKeysEditor userId={profile.id} />
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── Status messages (profile tabs only) ── */}
-      {tab !== "API Keys" && error && (
+      {/* ── Status messages (hidden on API Keys sub-tab — that editor manages its own state) ── */}
+      {!(tab === "Settings" && settingsSubTab === "API Keys") && error && (
         <div className="border-3 border-red-500 bg-red-50 p-3 font-mono text-[0.78rem] text-red-600">
           {error}
         </div>
       )}
-      {tab !== "API Keys" && saved && (
+      {!(tab === "Settings" && settingsSubTab === "API Keys") && saved && (
         <div className="border-3 border-green bg-green/10 p-3 font-mono text-[0.78rem] text-ink">
           ✓ Profile updated successfully
         </div>
       )}
 
-      {/* ── Actions (hidden on API Keys tab — that tab manages its own state) ── */}
-      {tab !== "API Keys" && (
+      {/* ── Actions (hidden on API Keys sub-tab — that editor manages its own state) ── */}
+      {!(tab === "Settings" && settingsSubTab === "API Keys") && (
         <div className="flex gap-3">
           <button
             type="submit"

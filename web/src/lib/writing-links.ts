@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /* ── Types ── */
 
-export type EntityType = "company" | "company_role" | "project" | "like" | "dislike" | "adventure";
+export type EntityType = "company" | "company_role" | "project" | "like" | "dislike" | "adventure" | "crowdfunding";
 
 export type WritingLink = {
   id: string;

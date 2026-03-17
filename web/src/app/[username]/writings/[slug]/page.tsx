@@ -86,9 +86,11 @@ export default async function WritingPostPage({ params }: Props) {
   const writingLinks = await getLinksForWriting(writing.id)
   const linkedCompanyIds = writingLinks.filter((l) => l.entity_type === 'company').map((l) => l.entity_id)
   const linkedProjectIds = writingLinks.filter((l) => l.entity_type === 'project').map((l) => l.entity_id)
+  const linkedCrowdfundingIds = writingLinks.filter((l) => l.entity_type === 'crowdfunding').map((l) => l.entity_id)
 
   let linkedCompanies: Array<{ id: string; name: string; slug: string; logo: string | null; brand_colour: string | null }> = []
   let linkedProjects: Array<{ id: string; title: string; slug: string }> = []
+  let linkedCrowdfunding: Array<{ id: string; title: string; slug: string }> = []
 
   if (linkedCompanyIds.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,8 +108,16 @@ export default async function WritingPostPage({ params }: Props) {
       .in('id', linkedProjectIds) as { data: Array<{ id: string; title: string; slug: string }> | null }
     linkedProjects = data ?? []
   }
+  if (linkedCrowdfundingIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from('crowdfunding_projects')
+      .select('id, title, slug')
+      .in('id', linkedCrowdfundingIds) as { data: Array<{ id: string; title: string; slug: string }> | null }
+    linkedCrowdfunding = data ?? []
+  }
 
-  const hasLinks = linkedCompanies.length > 0 || linkedProjects.length > 0
+  const hasLinks = linkedCompanies.length > 0 || linkedProjects.length > 0 || linkedCrowdfunding.length > 0
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
@@ -200,6 +210,15 @@ export default async function WritingPostPage({ params }: Props) {
                 className="inline-flex items-center gap-1.5 text-xs border border-gray-200 px-2.5 py-1 rounded-full hover:border-gray-400 transition-colors no-underline text-gray-600"
               >
                 {p.title}
+              </Link>
+            ))}
+            {linkedCrowdfunding.map((cf) => (
+              <Link
+                key={cf.id}
+                href={`/${username}/projects?tab=backed`}
+                className="inline-flex items-center gap-1.5 text-xs border border-orange/30 px-2.5 py-1 rounded-full hover:border-orange/60 transition-colors no-underline text-orange"
+              >
+                🎯 {cf.title}
               </Link>
             ))}
           </div>

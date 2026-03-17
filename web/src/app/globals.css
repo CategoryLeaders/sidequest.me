@@ -223,6 +223,15 @@ body {
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+/* ═══════════════ SCROLLBAR HIDE ═══════════════ */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ═══════════════ SECTION TITLE ═══════════════ */
 .section-title {
   font-family: var(--font-head);

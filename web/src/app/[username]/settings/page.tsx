@@ -44,7 +44,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     <main className="max-w-[680px] mx-auto px-8 py-12">
       <div className="mb-8">
         <h1 className="font-head font-[900] text-[2rem] uppercase leading-tight mb-1">
-          Profile Settings
+          Manage my Sidequests
         </h1>
         <p className="font-mono text-[0.78rem] opacity-60">@{username}</p>
       </div>

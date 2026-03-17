@@ -18,6 +18,7 @@ interface LinkableItem { id: string; label: string }
 export interface LinkableEntities {
   companies: LinkableCompany[]
   projects: LinkableProject[]
+  crowdfunding?: LinkableProject[]
   likes: LinkableItem[]
   dislikes: LinkableItem[]
 }
@@ -183,6 +184,7 @@ export default function WritingEditorForm({
   const hasLinkable = linkableEntities && (
     linkableEntities.companies.length > 0 ||
     linkableEntities.projects.length > 0 ||
+    (linkableEntities.crowdfunding?.length ?? 0) > 0 ||
     linkableEntities.likes.length > 0 ||
     linkableEntities.dislikes.length > 0
   )
@@ -317,6 +319,29 @@ export default function WritingEditorForm({
                     }`}
                   >
                     {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Crowdfunding (Backed Projects) */}
+          {(linkableEntities!.crowdfunding?.length ?? 0) > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1.5">Backed Projects</p>
+              <div className="flex flex-wrap gap-2">
+                {linkableEntities!.crowdfunding!.map((cf) => (
+                  <button
+                    key={cf.id}
+                    type="button"
+                    onClick={() => toggleLink('crowdfunding', cf.id)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      isLinked('crowdfunding', cf.id)
+                        ? 'border-orange bg-orange text-white'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    }`}
+                  >
+                    {cf.name}
                   </button>
                 ))}
               </div>
