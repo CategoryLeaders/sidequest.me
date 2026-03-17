@@ -27,7 +27,7 @@ const DEFAULT_TICKER_ITEMS = [
   "Always a sidequest in progress",
 ];
 
-const feedRotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
+const feedRotations = ["0deg", "0deg", "0deg", "0deg", "0deg", "0deg"];
 
 const badgeCircleColor: Record<string, string> = {
   "badge-orange": "var(--orange)",
@@ -155,7 +155,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
         <div
           className="hidden md:block border-3 border-ink bg-bg-card p-2.5"
-          style={{ transform: "rotate(1.5deg) translateZ(0)", boxShadow: "5px 5px 0 var(--ink)" }}
+          style={{ boxShadow: "5px 5px 0 var(--ink)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
