@@ -8,11 +8,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database";
-import { statusColor, statusLabel } from "@/lib/crowdfunding-utils";
+import { statusColor, statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
 
 type Project = Tables<"crowdfunding_projects">;
 
-const STATUSES = ["active", "delivered", "shipped", "dropped", "failed", "suspended"] as const;
+const STATUSES = CROWDFUNDING_STATUSES;
 const PLATFORMS = ["kickstarter", "indiegogo", "gamefound", "backerkit", "other"] as const;
 const CURRENCIES = ["GBP", "USD", "EUR", "HKD", "JPY", "CAD", "AUD"] as const;
 
@@ -95,6 +95,24 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
     } else {
       setProjects((prev) =>
         prev.map((p) => (p.id === project.id ? { ...p, show_pledge_amount: next } : p))
+      );
+    }
+  };
+
+  // ── Quick status change ──
+  const changeStatus = async (project: Project, newStatus: string) => {
+    const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: updateErr } = await (supabase as any)
+      .from("crowdfunding_projects")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", project.id);
+
+    if (updateErr) {
+      setError(updateErr.message);
+    } else {
+      setProjects((prev) =>
+        prev.map((p) => (p.id === project.id ? { ...p, status: newStatus } : p))
       );
     }
   };
@@ -204,13 +222,26 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
                       <h4 className="font-head font-bold text-[0.82rem] uppercase truncate">
                         {project.title}
                       </h4>
-                      <span
-                        className={`sticker text-[0.5rem] px-1.5 py-0.5 ${statusColor(
+                      <select
+                        value={project.status}
+                        onChange={(e) => changeStatus(project, e.target.value)}
+                        className={`sticker text-[0.5rem] px-1.5 py-0.5 cursor-pointer border-0 appearance-none ${statusColor(
                           project.status
                         )}`}
+                        style={{ paddingRight: "1rem", backgroundImage: "none" }}
                       >
-                        {statusLabel(project.status)}
-                      </span>
+                        {STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {statusLabel(s)}
+                          </option>
+                        ))}
+                        {/* Show current value if it's a legacy status not in the new list */}
+                        {!STATUSES.includes(project.status as typeof STATUSES[number]) && (
+                          <option value={project.status}>
+                            {statusLabel(project.status)} (legacy)
+                          </option>
+                        )}
+                      </select>
                       {project.pledge_status === "unpublished" && (
                         <span className="font-mono text-[0.5rem] opacity-40 uppercase">
                           hidden
@@ -309,7 +340,7 @@ function ProjectForm({ userId, project, nextSortOrder, onSaved, onCancel }: Proj
   const [pledgeAmount, setPledgeAmount] = useState(project?.pledge_amount ?? "");
   const [pledgeCurrency, setPledgeCurrency] = useState(project?.pledge_currency ?? "GBP");
   const [rewardTier, setRewardTier] = useState(project?.reward_tier ?? "");
-  const [status, setStatus] = useState(project?.status ?? "active");
+  const [status, setStatus] = useState(project?.status ?? "crowdfunding");
   const [pledgeStatus, setPledgeStatus] = useState(project?.pledge_status ?? "unpublished");
   const [estDelivery, setEstDelivery] = useState(project?.est_delivery ?? "");
   const [showPledge, setShowPledge] = useState(project?.show_pledge_amount ?? false);

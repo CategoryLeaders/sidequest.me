@@ -27,17 +27,29 @@ export function formatPledge(amount: string | null, currency: string | null): st
   return `${sym}${formatted}`;
 }
 
+/** Canonical status values */
+export const CROWDFUNDING_STATUSES = ["crowdfunding", "in_production", "shipping", "received"] as const;
+export type CrowdfundingStatus = (typeof CROWDFUNDING_STATUSES)[number];
+
 /** Status → display colour class */
 export function statusColor(status: string): string {
   switch (status) {
+    case "crowdfunding":
+      return "sticker-green";
+    case "in_production":
+      return "sticker-orange";
+    case "shipping":
+      return "sticker-blue";
+    case "received":
+      return "sticker-lilac";
+    // Legacy statuses (still in DB, will phase out)
     case "active":
       return "sticker-green";
     case "delivered":
-      return "sticker-blue";
+      return "sticker-lilac";
     case "shipped":
-      return "sticker-orange";
+      return "sticker-blue";
     case "dropped":
-      return "sticker-pink";
     case "failed":
       return "sticker-pink";
     case "suspended":
@@ -50,12 +62,21 @@ export function statusColor(status: string): string {
 /** Status → human label */
 export function statusLabel(status: string): string {
   switch (status) {
+    case "crowdfunding":
+      return "Crowdfunding";
+    case "in_production":
+      return "In Production";
+    case "shipping":
+      return "Shipping";
+    case "received":
+      return "Received";
+    // Legacy statuses
     case "active":
-      return "Active";
+      return "Crowdfunding";
     case "delivered":
-      return "Delivered";
+      return "Received";
     case "shipped":
-      return "Shipped";
+      return "Shipping";
     case "dropped":
       return "Dropped";
     case "failed":

@@ -8,11 +8,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
-import { formatPledge, statusColor, statusLabel } from "@/lib/crowdfunding-utils";
+import { formatPledge, statusColor, statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
-type StatusFilter = "all" | "active" | "delivered" | "shipped" | "dropped";
+type StatusFilter = "all" | "crowdfunding" | "in_production" | "shipping" | "received";
 
 interface BackedProjectsProps {
   projects: CrowdfundingProject[];
@@ -26,24 +26,35 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
   const filtered = filter === "all"
     ? projects
     : projects.filter((p) => {
-        if (filter === "dropped") return p.status === "dropped" || p.status === "failed" || p.status === "suspended";
-        return p.status === filter;
+        // Map legacy statuses to new equivalents for filtering
+        const mapped = p.status === "active" ? "crowdfunding"
+          : p.status === "delivered" ? "received"
+          : p.status === "shipped" ? "shipping"
+          : p.status;
+        return mapped === filter;
       });
+
+  // Count including legacy status mappings
+  const statusBucket = (s: string) =>
+    s === "active" ? "crowdfunding"
+    : s === "delivered" ? "received"
+    : s === "shipped" ? "shipping"
+    : s;
 
   const counts = {
     all: projects.length,
-    active: projects.filter((p) => p.status === "active").length,
-    delivered: projects.filter((p) => p.status === "delivered").length,
-    shipped: projects.filter((p) => p.status === "shipped").length,
-    dropped: projects.filter((p) => ["dropped", "failed", "suspended"].includes(p.status)).length,
+    crowdfunding: projects.filter((p) => statusBucket(p.status) === "crowdfunding").length,
+    in_production: projects.filter((p) => statusBucket(p.status) === "in_production").length,
+    shipping: projects.filter((p) => statusBucket(p.status) === "shipping").length,
+    received: projects.filter((p) => statusBucket(p.status) === "received").length,
   };
 
   const filters: { key: StatusFilter; label: string }[] = [
     { key: "all", label: "All" },
-    { key: "active", label: "Active" },
-    { key: "delivered", label: "Delivered" },
-    { key: "shipped", label: "Shipped" },
-    ...(counts.dropped > 0 ? [{ key: "dropped" as StatusFilter, label: "Dropped" }] : []),
+    ...(counts.crowdfunding > 0 ? [{ key: "crowdfunding" as StatusFilter, label: "Crowdfunding" }] : []),
+    ...(counts.in_production > 0 ? [{ key: "in_production" as StatusFilter, label: "In Production" }] : []),
+    ...(counts.shipping > 0 ? [{ key: "shipping" as StatusFilter, label: "Shipping" }] : []),
+    ...(counts.received > 0 ? [{ key: "received" as StatusFilter, label: "Received" }] : []),
   ];
 
   return (
