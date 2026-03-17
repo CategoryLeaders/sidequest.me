@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database";
 import { statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
+import ProjectImageUpload from "./ProjectImageUpload";
 
 type Project = Tables<"crowdfunding_projects">;
 
@@ -96,6 +97,24 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
     } else {
       setProjects((prev) =>
         prev.map((p) => (p.id === project.id ? { ...p, show_pledge_amount: next } : p))
+      );
+    }
+  };
+
+  // ── Quick image update ──
+  const updateImage = async (project: Project, url: string | null) => {
+    const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: updateErr } = await (supabase as any)
+      .from("crowdfunding_projects")
+      .update({ image_url: url, updated_at: new Date().toISOString() })
+      .eq("id", project.id);
+
+    if (updateErr) {
+      setError(updateErr.message);
+    } else {
+      setProjects((prev) =>
+        prev.map((p) => (p.id === project.id ? { ...p, image_url: url } : p))
       );
     }
   };
@@ -217,6 +236,14 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
                   transform: `rotate(${i % 2 === 0 ? "-0.15deg" : "0.15deg"})`,
                 }}
               >
+                {/* Image upload row */}
+                <ProjectImageUpload
+                  userId={userId}
+                  projectId={project.id}
+                  currentImageUrl={project.image_url}
+                  onUploaded={(url) => updateImage(project, url)}
+                />
+
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -551,18 +578,18 @@ function ProjectForm({ userId, project, nextSortOrder, onSaved, onCancel }: Proj
         </div>
       </div>
 
-      {/* Row 4: URLs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Image upload (edit mode) or URL field (new project) */}
+      {isEdit && project ? (
         <div>
-          <label className={labelClass}>External URL</label>
-          <input
-            type="url"
-            value={externalUrl}
-            onChange={(e) => setExternalUrl(e.target.value)}
-            placeholder="https://www.kickstarter.com/projects/..."
-            className={inputClass}
+          <label className={labelClass}>Project Image</label>
+          <ProjectImageUpload
+            userId={userId}
+            projectId={project.id}
+            currentImageUrl={imageUrl || null}
+            onUploaded={(url) => setImageUrl(url ?? "")}
           />
         </div>
+      ) : (
         <div>
           <label className={labelClass}>Image URL</label>
           <input
@@ -573,6 +600,18 @@ function ProjectForm({ userId, project, nextSortOrder, onSaved, onCancel }: Proj
             className={inputClass}
           />
         </div>
+      )}
+
+      {/* Row 4: External URL */}
+      <div>
+        <label className={labelClass}>External URL</label>
+        <input
+          type="url"
+          value={externalUrl}
+          onChange={(e) => setExternalUrl(e.target.value)}
+          placeholder="https://www.kickstarter.com/projects/..."
+          className={inputClass}
+        />
       </div>
 
       {/* Row 5: Reward tier + Tags */}
