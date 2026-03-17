@@ -6,6 +6,7 @@
  * Visually distinct from sticker/tag components.
  */
 
+import { useMemo } from "react";
 import { statusStep } from "@/lib/crowdfunding-utils";
 
 interface StatusPipelineProps {
@@ -16,8 +17,15 @@ interface StatusPipelineProps {
 
 const TOTAL_STEPS = 4;
 
+/** Random rotation between -5 and +5 degrees */
+function randomRotation(): string {
+  const deg = (Math.random() * 10 - 5).toFixed(1);
+  return `${deg}deg`;
+}
+
 export default function StatusPipeline({ status, compact = false }: StatusPipelineProps) {
   const step = statusStep(status);
+  const hlRotate = useMemo(() => randomRotation(), []);
 
   const elements: React.ReactNode[] = [];
 
@@ -46,7 +54,10 @@ export default function StatusPipeline({ status, compact = false }: StatusPipeli
   return (
     <div className={`pipeline ${compact ? "pipeline-compact" : ""}`}>
       {elements}
-      <span className={`pipeline-label ${step.highlightClass}`}>
+      <span
+        className={`pipeline-label ${step.highlightClass}`}
+        style={{ "--hl-rotate": hlRotate } as React.CSSProperties}
+      >
         {step.label}
       </span>
     </div>

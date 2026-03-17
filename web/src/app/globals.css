@@ -266,10 +266,12 @@ body {
   position: absolute;
   left: -2px;
   right: -2px;
-  bottom: -1px;
+  top: 50%;
+  margin-top: -3px;
   height: 7px;
   z-index: -1;
-  transform: rotate(-0.5deg);
+  /* rotation set inline via --hl-rotate custom property, fallback -0.5deg */
+  transform: rotate(var(--hl-rotate, -0.5deg));
 }
 
 .pipeline-hl-green::after { background: var(--green); opacity: 0.5; }
