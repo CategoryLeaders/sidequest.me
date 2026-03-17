@@ -105,7 +105,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
   };
 
   const inputClass =
-    "flex-1 px-3 py-2 border-3 border-ink bg-white font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
+    "flex-1 px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
 
   return (
     <div>
@@ -120,7 +120,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
               className={`w-8 h-8 flex items-center justify-center border-3 border-ink text-[0.9rem] transition-colors cursor-pointer flex-shrink-0 ${
                 row.pinned
                   ? "bg-ink text-bg"
-                  : "bg-white text-ink hover:bg-ink/5"
+                  : "bg-bg-card text-ink hover:bg-ink/5"
               }`}
             >
               📌
@@ -141,7 +141,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
               type="button"
               title="Remove"
               onClick={() => handleRemove(idx)}
-              className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-white font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+              className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
             >
               ✕
             </button>
@@ -155,7 +155,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
           <button
             type="button"
             onClick={handleAdd}
-            className="px-4 py-2 border-3 border-ink bg-white font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors cursor-pointer"
+            className="px-4 py-2 border-3 border-ink bg-bg-card font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors cursor-pointer"
           >
             + Add item
           </button>
@@ -166,7 +166,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
           onClick={handleReroll}
           disabled={generating}
           title="Auto-generate ticker items from your profile. Pinned items are kept."
-          className="flex items-center gap-2 px-4 py-2 border-3 border-ink bg-white font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors disabled:opacity-40 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 border-3 border-ink bg-bg-card font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors disabled:opacity-40 cursor-pointer"
         >
           <span className={generating ? "animate-spin inline-block" : ""}>
             🎲

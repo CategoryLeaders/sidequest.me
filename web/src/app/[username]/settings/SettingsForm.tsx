@@ -135,7 +135,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
   };
 
   const inputClass =
-    "w-full px-4 py-2.5 border-3 border-ink bg-white font-mono text-[0.88rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
+    "w-full px-4 py-2.5 border-3 border-ink bg-bg-card font-mono text-[0.88rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
   const labelClass =
     "block font-head font-bold text-[0.78rem] uppercase mb-2";
 
@@ -149,7 +149,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
             type="button"
             onClick={() => setTab(t)}
             className={`flex-1 min-w-0 py-2.5 px-3 font-head font-bold text-[0.72rem] uppercase cursor-pointer transition-colors whitespace-nowrap ${
-              tab === t ? "bg-ink text-bg" : "bg-white text-ink hover:bg-ink/5"
+              tab === t ? "bg-ink text-bg" : "bg-bg-card text-ink hover:bg-ink/5"
             }`}
           >
             {t}
@@ -170,7 +170,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
                 className={`flex-1 min-w-0 py-2 px-3 font-head font-bold text-[0.68rem] uppercase cursor-pointer transition-colors whitespace-nowrap ${
                   profileSubTab === st
                     ? "bg-ink/10 text-ink border-b-2 border-ink"
-                    : "bg-white text-ink/50 hover:bg-ink/5 hover:text-ink"
+                    : "bg-bg-card text-ink/50 hover:bg-ink/5 hover:text-ink"
                 }`}
               >
                 {st}

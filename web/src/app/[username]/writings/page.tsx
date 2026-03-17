@@ -117,7 +117,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
           name="q"
           defaultValue={q}
           placeholder="Search writings…"
-          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-gray-400 bg-white"
+          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-gray-400 bg-bg-card"
         />
       </form>
 

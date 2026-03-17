@@ -112,7 +112,7 @@ export default function WritingEditor({
   if (!editor) return null
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-bg-card">
       {/* Toolbar */}
       {!readOnly && (
         <div className="flex flex-wrap gap-0.5 p-2 border-b border-gray-200 bg-gray-50">

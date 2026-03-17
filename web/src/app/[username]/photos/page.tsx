@@ -61,7 +61,7 @@ export default function PhotosPage() {
         {filtered.map((photo, i) => (
           <div
             key={photo.id}
-            className={`border-3 border-ink bg-white p-2 card-hover ${
+            className={`border-3 border-ink bg-bg-card p-2 card-hover ${
               photo.span === "row" ? "md:row-span-2" : ""
             } ${photo.span === "col" ? "md:col-span-2" : ""}`}
             style={{ transform: `rotate(${rotations[i % rotations.length]})` }}

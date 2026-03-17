@@ -121,7 +121,7 @@ export default function AboutContent({
               {factoids.map((f, i) => (
                 <div
                   key={`${f.category}-${i}`}
-                  className="border-3 border-ink p-4 bg-white"
+                  className="border-3 border-ink p-4 bg-bg-card"
                   style={{
                     transform: `rotate(${i % 4 === 0 ? "-1deg" : i % 4 === 1 ? "0.5deg" : i % 4 === 2 ? "-0.7deg" : "0.4deg"})`,
                   }}
@@ -155,7 +155,7 @@ export default function AboutContent({
                 {likes.map((item, i) => (
                   <div
                     key={`${item.text}-${i}`}
-                    className="border-3 border-ink px-4 py-3 flex items-center gap-3 bg-white"
+                    className="border-3 border-ink px-4 py-3 flex items-center gap-3 bg-bg-card"
                     style={{
                       transform: `rotate(${i % 2 === 0 ? "-0.3deg" : "0.3deg"})`,
                     }}
@@ -174,7 +174,7 @@ export default function AboutContent({
                 {dislikes.map((item, i) => (
                   <div
                     key={`${item.text}-${i}`}
-                    className="border-3 border-ink px-4 py-3 flex items-center gap-3 bg-white"
+                    className="border-3 border-ink px-4 py-3 flex items-center gap-3 bg-bg-card"
                     style={{
                       transform: `rotate(${i % 2 === 0 ? "0.3deg" : "-0.3deg"})`,
                     }}

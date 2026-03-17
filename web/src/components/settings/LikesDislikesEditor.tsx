@@ -58,7 +58,7 @@ export default function LikesDislikesEditor({
   };
 
   const inputClass =
-    "px-3 py-2 border-3 border-ink bg-white font-mono text-[0.82rem] focus:outline-none focus:shadow-[2px_2px_0_var(--ink)] transition-shadow";
+    "px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[2px_2px_0_var(--ink)] transition-shadow";
 
   return (
     <div className="space-y-3">
@@ -66,7 +66,7 @@ export default function LikesDislikesEditor({
       {items.map((item, i) => (
         <div
           key={`${item.text}-${i}`}
-          className="flex items-center gap-2 border-3 border-ink p-3 bg-white"
+          className="flex items-center gap-2 border-3 border-ink p-3 bg-bg-card"
         >
           <input
             type="text"

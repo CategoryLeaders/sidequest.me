@@ -140,7 +140,7 @@ export default function PhotoUpload({ siteTags = [], onUploaded }: PhotoUploadPr
         onChange={e => setCaption(e.target.value)}
         placeholder="Caption (optional)"
         rows={2}
-        className="w-full px-3 py-2 border-3 border-ink bg-white font-body text-[0.85rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow resize-none mb-4"
+        className="w-full px-3 py-2 border-3 border-ink bg-bg-card font-body text-[0.85rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow resize-none mb-4"
       />
 
       {/* Tags */}
@@ -180,7 +180,7 @@ export default function PhotoUpload({ siteTags = [], onUploaded }: PhotoUploadPr
           value={customTags}
           onChange={e => setCustomTags(e.target.value)}
           placeholder="Custom tags (comma-separated)"
-          className="w-full px-3 py-2 border-3 border-ink bg-white font-mono text-[0.78rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow"
+          className="w-full px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.78rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow"
         />
         {siteTags.length > 0 && (
           <p className="font-mono text-[0.62rem] opacity-40 mt-1">

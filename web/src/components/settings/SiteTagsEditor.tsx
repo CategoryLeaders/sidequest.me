@@ -137,13 +137,13 @@ export default function SiteTagsEditor({
   const validTagCount = rows.filter((r) => r.label.trim()).length;
 
   const inputClass =
-    "flex-1 px-3 py-2 border-3 border-ink bg-white font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
+    "flex-1 px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
 
   const radioClass = (active: boolean) =>
     `flex items-center gap-2 px-3 py-2 border-3 cursor-pointer transition-colors font-mono text-[0.72rem] select-none ${
       active
         ? "border-ink bg-ink text-bg"
-        : "border-ink/30 bg-white hover:border-ink/60"
+        : "border-ink/30 bg-bg-card hover:border-ink/60"
     }`;
 
   return (
@@ -197,7 +197,7 @@ export default function SiteTagsEditor({
             value={display.limit === 0 ? "" : display.limit}
             onChange={(e) => handleLimitChange(e.target.value)}
             placeholder="All"
-            className="w-20 px-3 py-1.5 border-3 border-ink bg-white font-mono text-[0.78rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow"
+            className="w-20 px-3 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.78rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow"
           />
           <span className="font-mono text-[0.65rem] opacity-40">
             tags &nbsp;(blank = show all)
@@ -241,7 +241,7 @@ export default function SiteTagsEditor({
                 value={row.color}
                 onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
                 title="Tag colour"
-                className="px-2 py-2 border-3 border-ink bg-white font-mono text-[0.75rem] focus:outline-none cursor-pointer flex-shrink-0"
+                className="px-2 py-2 border-3 border-ink bg-bg-card font-mono text-[0.75rem] focus:outline-none cursor-pointer flex-shrink-0"
                 style={{ minWidth: 90 }}
               >
                 {STICKER_COLORS.map((c) => (
@@ -282,7 +282,7 @@ export default function SiteTagsEditor({
                 type="button"
                 title="Remove"
                 onClick={() => handleRemove(idx)}
-                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-white font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
               >
                 ✕
               </button>
@@ -294,7 +294,7 @@ export default function SiteTagsEditor({
           <button
             type="button"
             onClick={handleAdd}
-            className="px-4 py-2 border-3 border-ink bg-white font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors cursor-pointer"
+            className="px-4 py-2 border-3 border-ink bg-bg-card font-head font-bold text-[0.72rem] uppercase hover:bg-ink/5 transition-colors cursor-pointer"
           >
             + Add tag
           </button>
@@ -316,7 +316,7 @@ export default function SiteTagsEditor({
                 key={wt}
                 type="button"
                 onClick={() => handlePromote(wt)}
-                className="group flex items-center gap-1.5 px-3 py-1.5 border-2 border-dashed border-ink/30 bg-white font-mono text-[0.7rem] text-ink/60 hover:border-ink hover:text-ink hover:bg-ink/5 transition-all cursor-pointer"
+                className="group flex items-center gap-1.5 px-3 py-1.5 border-2 border-dashed border-ink/30 bg-bg-card font-mono text-[0.7rem] text-ink/60 hover:border-ink hover:text-ink hover:bg-ink/5 transition-all cursor-pointer"
                 title={`Promote "${wt}" to site tag`}
               >
                 <span className="text-[0.6rem] opacity-40 group-hover:opacity-100 transition-opacity">+</span>

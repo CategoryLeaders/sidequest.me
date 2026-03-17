@@ -154,7 +154,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
 
         <div
-          className="hidden md:block border-3 border-ink bg-white p-2.5"
+          className="hidden md:block border-3 border-ink bg-bg-card p-2.5"
           style={{ transform: "rotate(1.5deg)", boxShadow: "5px 5px 0 var(--ink)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -177,7 +177,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <Link
               key={item.id}
               href={item.link}
-              className="block border-3 border-ink bg-white card-hover no-underline text-ink overflow-visible relative"
+              className="block border-3 border-ink bg-bg-card card-hover no-underline text-ink overflow-visible relative"
               style={{ transform: `rotate(${feedRotations[i % feedRotations.length]})` }}
             >
               <span

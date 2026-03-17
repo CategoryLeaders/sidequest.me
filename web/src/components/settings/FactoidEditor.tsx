@@ -60,7 +60,7 @@ export default function FactoidEditor({ factoids, onChange }: FactoidEditorProps
   };
 
   const inputClass =
-    "w-full px-3 py-2 border-3 border-ink bg-white font-mono text-[0.82rem] focus:outline-none focus:shadow-[2px_2px_0_var(--ink)] transition-shadow";
+    "w-full px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[2px_2px_0_var(--ink)] transition-shadow";
 
   return (
     <div className="space-y-3">
@@ -68,7 +68,7 @@ export default function FactoidEditor({ factoids, onChange }: FactoidEditorProps
       {factoids.map((f, i) => (
         <div
           key={`${f.category}-${i}`}
-          className="flex items-center gap-2 border-3 border-ink p-3 bg-white"
+          className="flex items-center gap-2 border-3 border-ink p-3 bg-bg-card"
         >
           <span className="text-lg shrink-0">{f.emoji}</span>
           <div className="flex-1 min-w-0">

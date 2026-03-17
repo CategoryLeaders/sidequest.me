@@ -43,7 +43,7 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
           return (
             <div
               key={project.id}
-              className="border-3 border-ink p-6 bg-white card-hover"
+              className="border-3 border-ink p-6 bg-bg-card card-hover"
               style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
             >
               <div className="flex justify-between items-start mb-3">
