@@ -48,7 +48,7 @@ export default function PhotosPage() {
             onClick={() => setFilter(f)}
             className={`sticker ${filter === f ? "bg-ink !text-bg" : filterColors[i]} cursor-pointer`}
             style={{
-              transform: `rotate(${i === 0 ? "-0.5deg" : i === 1 ? "0.7deg" : i === 2 ? "-0.3deg" : "0.5deg"})`,
+              transform: `rotate(${i === 0 ? "-0.5deg" : i === 1 ? "0.7deg" : i === 2 ? "-0.3deg" : "0.5deg"}) translateZ(0)`,
             }}
           >
             {f}
@@ -64,7 +64,7 @@ export default function PhotosPage() {
             className={`border-3 border-ink bg-bg-card p-2 card-hover ${
               photo.span === "row" ? "md:row-span-2" : ""
             } ${photo.span === "col" ? "md:col-span-2" : ""}`}
-            style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+            style={{ transform: `rotate(${rotations[i % rotations.length]}) translateZ(0)` }}
           >
             <div
               className="w-full"

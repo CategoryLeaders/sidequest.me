@@ -112,7 +112,7 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                   isActive ? 'ring-2 ring-ink ring-offset-2 scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
                 style={{
-                  transform: isActive ? 'scale(1.05)' : `rotate(${tagRotations[i % tagRotations.length]})`,
+                  transform: isActive ? 'scale(1.05) translateZ(0)' : `rotate(${tagRotations[i % tagRotations.length]}) translateZ(0)`,
                 }}
               >
                 {t.label}
@@ -182,7 +182,7 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                               : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono rounded-sm hover:border-ink/40 hover:text-ink/60 transition-colors'
                           }
                           style={{
-                            transform: `rotate(${tagRotations[j % tagRotations.length]})`,
+                            transform: `rotate(${tagRotations[j % tagRotations.length]}) translateZ(0)`,
                           }}
                         >
                           {isSiteTag ? tag : `#${tag}`}

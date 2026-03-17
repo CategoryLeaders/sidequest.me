@@ -44,7 +44,7 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
             <div
               key={project.id}
               className="border-3 border-ink p-6 bg-bg-card card-hover"
-              style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+              style={{ transform: `rotate(${rotations[i % rotations.length]}) translateZ(0)` }}
             >
               <div className="flex justify-between items-start mb-3">
                 <h2 className="font-head font-bold text-[1.1rem] uppercase">
@@ -94,7 +94,7 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
         {/* Add Project Card */}
         <div
           className="border-3 border-dashed border-ink p-6 flex flex-col items-center justify-center opacity-35 hover:opacity-70 transition-opacity cursor-pointer min-h-[200px]"
-          style={{ transform: "rotate(-0.4deg)" }}
+          style={{ transform: "rotate(-0.4deg) translateZ(0)" }}
         >
           <span className="font-head font-[900] text-4xl mb-2">+</span>
           <span className="font-head font-bold text-[0.85rem] uppercase">

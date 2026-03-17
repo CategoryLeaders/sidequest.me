@@ -188,14 +188,14 @@ body {
   text-decoration: none;
   color: var(--ink);
 }
-.sticker:hover { transform: rotate(-2deg) scale(1.06); }
+.sticker:hover { transform: rotate(-2deg) scale(1.06) translateZ(0); }
 
-.sticker-orange { background: var(--orange); color: var(--on-orange); transform: rotate(-1deg); }
-.sticker-green { background: var(--green); color: var(--on-green); transform: rotate(1deg); border-radius: 20px; }
-.sticker-pink { background: var(--pink); color: var(--on-pink); transform: rotate(-2deg); }
-.sticker-blue { background: var(--blue); color: var(--on-blue); transform: rotate(1.5deg); border-radius: 8px; }
-.sticker-yellow { background: var(--yellow); color: var(--on-yellow); transform: rotate(-0.5deg); }
-.sticker-lilac { background: var(--lilac); color: var(--on-lilac); transform: rotate(2deg); border-radius: 4px; }
+.sticker-orange { background: var(--orange); color: var(--on-orange); transform: rotate(-1deg) translateZ(0); }
+.sticker-green { background: var(--green); color: var(--on-green); transform: rotate(1deg) translateZ(0); border-radius: 20px; }
+.sticker-pink { background: var(--pink); color: var(--on-pink); transform: rotate(-2deg) translateZ(0); }
+.sticker-blue { background: var(--blue); color: var(--on-blue); transform: rotate(1.5deg) translateZ(0); border-radius: 8px; }
+.sticker-yellow { background: var(--yellow); color: var(--on-yellow); transform: rotate(-0.5deg) translateZ(0); }
+.sticker-lilac { background: var(--lilac); color: var(--on-lilac); transform: rotate(2deg) translateZ(0); border-radius: 4px; }
 
 /* ═══════════════ BADGE COMPONENT ═══════════════ */
 .badge {
