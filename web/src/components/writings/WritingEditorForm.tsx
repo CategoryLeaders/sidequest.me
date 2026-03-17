@@ -65,6 +65,7 @@ export default function WritingEditorForm({
   const [tagsOpen, setTagsOpen] = useState(false)
   const [heroUploading, setHeroUploading] = useState(false)
   const [heroDragOver, setHeroDragOver] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const heroInputRef = useRef<HTMLInputElement>(null)
 
   const handleTitleChange = (val: string) => {
@@ -151,6 +152,19 @@ export default function WritingEditorForm({
     setHeroDragOver(false)
     const file = e.dataTransfer.files[0]
     if (file) handleHeroUpload(file)
+  }
+
+  const handleDelete = () => {
+    if (!writing?.id) return
+    startTransition(async () => {
+      const res = await fetch(`/api/writings/${writing.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const { error: e } = await res.json().catch(() => ({ error: 'Delete failed' })) as { error: string }
+        setError(e)
+        return
+      }
+      router.replace(`/${username}/admin/writings`)
+    })
   }
 
   const save = (nextStatus?: WritingStatus) => {
@@ -567,9 +581,43 @@ export default function WritingEditorForm({
           </button>
         )}
 
-        <span className="ml-auto text-xs text-gray-400">
-          {wordCount} words
-        </span>
+        {/* Delete */}
+        {!isNew && (
+          confirmDelete ? (
+            <span className="flex items-center gap-2 ml-auto">
+              <span className="text-xs text-red-500">Delete this writing?</span>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isPending}
+                className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-40 transition-colors"
+              >
+                {isPending ? 'Deleting…' : 'Yes, delete'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="ml-auto text-xs text-gray-300 hover:text-red-500 transition-colors"
+            >
+              Delete
+            </button>
+          )
+        )}
+
+        {(isNew || confirmDelete) && (
+          <span className={`${confirmDelete ? '' : 'ml-auto'} text-xs text-gray-400`}>
+            {wordCount} words
+          </span>
+        )}
       </div>
 
       {error && (
