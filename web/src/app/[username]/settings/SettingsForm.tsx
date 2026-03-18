@@ -20,6 +20,8 @@ import TickerEditor from "@/components/settings/TickerEditor";
 import SiteTagsEditor from "@/components/settings/SiteTagsEditor";
 import ApiKeysEditor from "@/components/settings/ApiKeysEditor";
 import CrowdfundingEditor from "@/components/settings/CrowdfundingEditor";
+import WritingsManager from "@/components/settings/WritingsManager";
+import AdventuresManager from "@/components/settings/AdventuresManager";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
 import type { SiteTag, SiteTagsDisplay } from "@/lib/tags";
 import { DEFAULT_SITE_TAGS_DISPLAY } from "@/lib/tags";
@@ -110,8 +112,11 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
   const [saved, setSaved] = useState(false);
 
   // Sections that manage their own save (don't show the global save button)
+  // Sections that don't use the global save button
   const isSelfManaged = (activeTab === "site" && currentSubTab === "API Keys")
-    || (activeTab === "sidequests" && currentSubTab !== "Projects I Backed");
+    || (activeTab === "sidequests" && currentSubTab === "Adventures")
+    || (activeTab === "sidequests" && currentSubTab === "My Projects")
+    || (activeTab === "content" && currentSubTab === "Writings");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -295,17 +300,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
 
         {/* ── SIDEQUESTS ── */}
         {activeTab === "sidequests" && currentSubTab === "Adventures" && (
-          <div className="space-y-4">
-            <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-              Manage your Adventures from the dedicated admin area.
-            </p>
-            <a
-              href={`/${profile.username}/admin/adventures`}
-              className="inline-block px-5 py-2.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.78rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
-            >
-              Open Adventures →
-            </a>
-          </div>
+          <AdventuresManager username={profile.username} />
         )}
 
         {activeTab === "sidequests" && currentSubTab === "My Projects" && (
@@ -349,17 +344,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
 
         {/* ── CONTENT ── */}
         {activeTab === "content" && currentSubTab === "Writings" && (
-          <div className="space-y-4">
-            <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-              Manage your writings from the dedicated admin area.
-            </p>
-            <a
-              href={`/${profile.username}/admin/writings`}
-              className="inline-block px-5 py-2.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.78rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
-            >
-              Open Writings →
-            </a>
-          </div>
+          <WritingsManager username={profile.username} />
         )}
 
         {activeTab === "content" && currentSubTab === "Ticker" && (
