@@ -27,15 +27,13 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
     projects.map((p) => p.id)
   );
 
-  // Fetch crowdfunding projects if enabled
-  const crowdfundingEnabled = (profile as Record<string, unknown>).crowdfunding_enabled as boolean ?? false;
-  let backedProjects: Awaited<ReturnType<typeof getPublishedCrowdfundingProjects>> = [];
+  // Always fetch crowdfunding projects for the Projects page
+  // (crowdfunding_enabled only controls the About page carousel)
+  const backedProjects = await getPublishedCrowdfundingProjects(profile.id);
+  const hasBacked = backedProjects.length > 0;
+
   let backedWritingCounts: Record<string, number> = {};
-
-  if (crowdfundingEnabled) {
-    backedProjects = await getPublishedCrowdfundingProjects(profile.id);
-
-    // Batch-fetch writing counts for backed projects
+  if (hasBacked) {
     const backedCountsMap = await countWritingsForEntities(
       "crowdfunding",
       backedProjects.map((p) => p.id)
@@ -43,7 +41,7 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
     backedWritingCounts = Object.fromEntries(backedCountsMap);
   }
 
-  const activeTab = tab === "backed" && crowdfundingEnabled ? "backed" : "projects";
+  const activeTab = tab === "backed" && hasBacked ? "backed" : "projects";
 
   return (
     <main className="max-w-[1100px] mx-auto px-8 py-12 relative">
@@ -59,8 +57,8 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
         Things I&apos;m building, investing in, and tinkering with.
       </p>
 
-      {/* Sub-tabs — only show if crowdfunding is enabled */}
-      {crowdfundingEnabled && (
+      {/* Sub-tabs — show if there are backed projects */}
+      {hasBacked && (
         <ProjectsTabs
           activeTab={activeTab}
           username={username}
@@ -138,7 +136,7 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
       )}
 
       {/* Backed tab */}
-      {activeTab === "backed" && crowdfundingEnabled && (
+      {activeTab === "backed" && hasBacked && (
         <BackedProjectsLazy
           projects={backedProjects}
           username={username}
