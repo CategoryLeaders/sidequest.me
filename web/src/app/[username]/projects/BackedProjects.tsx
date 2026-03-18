@@ -105,8 +105,8 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
                 </div>
               )}
 
-              {/* Header */}
-              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-1">
+              {/* Header: short_name + tagline */}
+              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-0.5">
                 {project.external_url ? (
                   <a
                     href={project.external_url}
@@ -114,12 +114,17 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
                     rel="noopener noreferrer"
                     className="no-underline hover:text-orange transition-colors"
                   >
-                    {project.title}
+                    {(project as any).short_name || project.title}
                   </a>
                 ) : (
-                  project.title
+                  (project as any).short_name || project.title
                 )}
               </h3>
+              {(project as any).tagline && (
+                <p className="font-mono text-[0.65rem] opacity-40 leading-snug mb-1 line-clamp-2">
+                  {(project as any).tagline}
+                </p>
+              )}
               <div className="mb-2">
                 <StatusPipeline status={project.status} />
               </div>
