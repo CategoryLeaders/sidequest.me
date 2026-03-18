@@ -8,7 +8,7 @@
  * [SQ.S-W-2603-0055]
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, type Dispatch, type SetStateAction } from "react";
 import {
   type SiteTag,
   type StickerColor,
@@ -98,6 +98,7 @@ export default function SiteTagsEditor({
   const [rows, setRows] = useState<SiteTag[]>(
     tags.length > 0 ? tags : [{ label: "", color: "sticker-orange" }]
   );
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
   // Drag-to-reorder state (preference mode only)
   const dragIdx = useRef<number | null>(null);
@@ -286,92 +287,113 @@ export default function SiteTagsEditor({
         </div>
 
         <div className="space-y-2 mb-4">
-          {rows.map((row, idx) => (
-            <div
-              key={idx}
-              draggable={isPref}
-              onDragStart={isPref ? () => handleDragStart(idx) : undefined}
-              onDragOver={isPref ? (e) => handleDragOver(e, idx) : undefined}
-              onDragEnd={isPref ? handleDragEnd : undefined}
-              className={`flex items-center gap-2 transition-opacity ${
-                dragOver === idx && dragIdx.current !== idx ? "opacity-40" : ""
-              }`}
-            >
-              {/* Drag handle — visible + active only in preference mode */}
-              <span
-                className={`flex-shrink-0 font-mono text-[0.75rem] select-none w-5 text-center transition-opacity ${
-                  isPref ? "opacity-40 cursor-grab active:cursor-grabbing" : "opacity-10 cursor-default"
+          {rows.map((row, idx) => {
+            const isExpanded = expandedIdx === idx;
+            return (
+              <div
+                key={idx}
+                className={`transition-opacity ${
+                  dragOver === idx && dragIdx.current !== idx ? "opacity-40" : ""
                 }`}
-                title={isPref ? "Drag to reorder" : undefined}
               >
-                ⠿
-              </span>
+                {/* Main row: drag handle, label, preview, remove */}
+                <div
+                  draggable={isPref}
+                  onDragStart={isPref ? () => handleDragStart(idx) : undefined}
+                  onDragOver={isPref ? (e) => handleDragOver(e, idx) : undefined}
+                  onDragEnd={isPref ? handleDragEnd : undefined}
+                  className="flex items-center gap-2"
+                >
+                  {/* Drag handle */}
+                  <span
+                    className={`flex-shrink-0 font-mono text-[0.75rem] select-none w-5 text-center transition-opacity ${
+                      isPref ? "opacity-40 cursor-grab active:cursor-grabbing" : "opacity-10 cursor-default"
+                    }`}
+                    title={isPref ? "Drag to reorder" : undefined}
+                  >
+                    ⠿
+                  </span>
 
-              {/* Colour picker */}
-              <select
-                value={row.color}
-                onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
-                title="Tag colour"
-                className="px-2 py-2 border-3 border-ink bg-bg-card font-mono text-[0.75rem] focus:outline-none cursor-pointer flex-shrink-0"
-                style={{ minWidth: 90 }}
-              >
-                {STICKER_COLORS.map((c) => (
-                  <option key={c} value={c}>
-                    {STICKER_COLOR_LABELS[c]}
-                  </option>
-                ))}
-              </select>
+                  {/* Label input */}
+                  <input
+                    type="text"
+                    value={row.label}
+                    onChange={(e) => handleLabelChange(idx, e.target.value)}
+                    placeholder={`Tag ${idx + 1} label`}
+                    maxLength={40}
+                    className={inputClass}
+                  />
 
-              {/* Icon input (emoji) */}
-              <input
-                type="text"
-                value={row.icon ?? ""}
-                onChange={(e) => handleIconChange(idx, e.target.value.slice(0, 4))}
-                placeholder="🏷️"
-                title="Icon (emoji)"
-                className="w-12 px-2 py-2 border-3 border-ink bg-bg-card text-center text-[1rem] focus:outline-none flex-shrink-0"
-                style={{ minWidth: 44 }}
-              />
+                  {/* Preview — click to expand style options */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                    title="Click to edit style"
+                    className={`flex-shrink-0 cursor-pointer transition-all ${isExpanded ? "ring-2 ring-orange/50 rounded" : "hover:scale-105"}`}
+                  >
+                    <TagPreview tag={row} />
+                  </button>
 
-              {/* Shape picker */}
-              <select
-                value={row.shape ?? "sticker"}
-                onChange={(e) => handleShapeChange(idx, e.target.value as TagShape)}
-                title="Tag shape"
-                className="px-2 py-2 border-3 border-ink bg-bg-card font-mono text-[0.75rem] focus:outline-none cursor-pointer flex-shrink-0"
-                style={{ minWidth: 95 }}
-              >
-                {TAG_SHAPES.map((s) => (
-                  <option key={s} value={s}>
-                    {TAG_SHAPE_LABELS[s]}
-                  </option>
-                ))}
-              </select>
+                  {/* Remove */}
+                  <button
+                    type="button"
+                    title="Remove"
+                    onClick={() => { handleRemove(idx); if (isExpanded) setExpandedIdx(null); }}
+                    className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-              {/* Preview swatch */}
-              <TagPreview tag={row} />
+                {/* Expanded style options */}
+                {isExpanded && (
+                  <div className="ml-7 mt-2 mb-3 pl-4 border-l-2 border-ink/10 flex flex-wrap items-center gap-3">
+                    {/* Colour */}
+                    <div>
+                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Colour</div>
+                      <select
+                        value={row.color}
+                        onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
+                        className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                        style={{ minWidth: 85 }}
+                      >
+                        {STICKER_COLORS.map((c) => (
+                          <option key={c} value={c}>{STICKER_COLOR_LABELS[c]}</option>
+                        ))}
+                      </select>
+                    </div>
 
-              {/* Label input */}
-              <input
-                type="text"
-                value={row.label}
-                onChange={(e) => handleLabelChange(idx, e.target.value)}
-                placeholder={`Tag ${idx + 1} label`}
-                maxLength={40}
-                className={inputClass}
-              />
+                    {/* Shape */}
+                    <div>
+                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Shape</div>
+                      <select
+                        value={row.shape ?? "sticker"}
+                        onChange={(e) => handleShapeChange(idx, e.target.value as TagShape)}
+                        className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                        style={{ minWidth: 90 }}
+                      >
+                        {TAG_SHAPES.map((s) => (
+                          <option key={s} value={s}>{TAG_SHAPE_LABELS[s]}</option>
+                        ))}
+                      </select>
+                    </div>
 
-              {/* Remove */}
-              <button
-                type="button"
-                title="Remove"
-                onClick={() => handleRemove(idx)}
-                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+                    {/* Icon */}
+                    <div>
+                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Icon</div>
+                      <input
+                        type="text"
+                        value={row.icon ?? ""}
+                        onChange={(e) => handleIconChange(idx, e.target.value.slice(0, 4))}
+                        placeholder="emoji"
+                        className="w-16 px-2 py-1.5 border-3 border-ink bg-bg-card text-center text-[0.9rem] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {rows.length < MAX_SITE_TAGS && (
