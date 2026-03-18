@@ -28,9 +28,7 @@ export default function ProjectsTabs({ activeTab, username, backedCount }: Proje
           className={`sticker cursor-pointer no-underline ${
             activeTab === tab.key
               ? "bg-ink !text-bg"
-              : i === 0
-                ? "sticker-orange"
-                : "sticker-green"
+              : "bg-bg-card text-ink"
           }`}
           style={{
             transform: `rotate(${i === 0 ? "-0.5deg" : "0.7deg"})`,
