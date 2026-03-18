@@ -16,11 +16,42 @@ export const TAG_SHAPE_LABELS: Record<TagShape, string> = {
   underline: 'Underline',
 }
 
+/** Sticker-specific shape for the background form. Only applies when shape='sticker'. */
+export type StickerForm = 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'star' | 'banner' | 'torn'
+
+export const STICKER_FORMS: StickerForm[] = ['rectangle', 'rounded', 'circle', 'diamond', 'star', 'banner', 'torn']
+
+export const STICKER_FORM_LABELS: Record<StickerForm, string> = {
+  rectangle: 'Rectangle',
+  rounded:   'Rounded',
+  circle:    'Circle',
+  diamond:   'Diamond',
+  star:      'Star',
+  banner:    'Banner',
+  torn:      'Torn Edge',
+}
+
+/** Texture/effect applied to the sticker. */
+export type StickerTexture = 'flat' | 'tape' | 'shadow' | 'glossy' | 'matte'
+
+export const STICKER_TEXTURES: StickerTexture[] = ['flat', 'tape', 'shadow', 'glossy', 'matte']
+
+export const STICKER_TEXTURE_LABELS: Record<StickerTexture, string> = {
+  flat:   'Flat',
+  tape:   'Tape',
+  shadow: 'Shadow',
+  glossy: 'Glossy',
+  matte:  'Matte',
+}
+
 export interface SiteTag {
   label: string
   color: StickerColor
-  icon?: string        // emoji icon (e.g. '⛵', '🏳️‍⚧️', '💼')
-  shape?: TagShape     // visual shape — defaults to 'sticker' if unset
+  icon?: string            // emoji icon (e.g. '⛵', '🏳️‍⚧️', '💼')
+  shape?: TagShape         // visual shape — defaults to 'sticker' if unset
+  stickerForm?: StickerForm   // sticker background shape (only when shape='sticker')
+  stickerTexture?: StickerTexture  // sticker texture/effect
+  rotation?: number        // tilt in degrees (e.g. -3, 2, 0). null/0 = no tilt
 }
 
 export type StickerColor =

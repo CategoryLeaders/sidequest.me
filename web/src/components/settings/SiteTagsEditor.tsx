@@ -8,20 +8,29 @@
  * [SQ.S-W-2603-0055]
  */
 
-import { useState, useRef, type Dispatch, type SetStateAction } from "react";
+import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import {
   type SiteTag,
   type StickerColor,
   type TagShape,
+  type StickerForm,
+  type StickerTexture,
   type SiteTagsDisplay,
   type SiteTagsDisplayMode,
   STICKER_COLORS,
   STICKER_COLOR_LABELS,
   TAG_SHAPES,
   TAG_SHAPE_LABELS,
+  STICKER_FORMS,
+  STICKER_FORM_LABELS,
+  STICKER_TEXTURES,
+  STICKER_TEXTURE_LABELS,
   DEFAULT_SITE_TAGS_DISPLAY,
   MAX_SITE_TAGS,
 } from "@/lib/tags";
+
+const EmojiPicker = dynamic(() => import("@/components/ui/EmojiPicker"), { ssr: false });
 
 interface SiteTagsEditorProps {
   tags: SiteTag[];
@@ -130,6 +139,26 @@ export default function SiteTagsEditor({
 
   const handleShapeChange = (idx: number, shape: TagShape) => {
     const next = rows.map((r, i) => (i === idx ? { ...r, shape } : r));
+    setRows(next);
+    emitTags(next);
+  };
+
+  const handleStickerFormChange = (idx: number, stickerForm: StickerForm) => {
+    const next = rows.map((r, i) => (i === idx ? { ...r, stickerForm } : r));
+    setRows(next);
+    emitTags(next);
+  };
+
+  const handleTextureChange = (idx: number, stickerTexture: StickerTexture) => {
+    const next = rows.map((r, i) => (i === idx ? { ...r, stickerTexture } : r));
+    setRows(next);
+    emitTags(next);
+  };
+
+  const handleRotationChange = (idx: number, raw: string) => {
+    const n = parseFloat(raw);
+    const rotation = isNaN(n) ? 0 : Math.max(-15, Math.min(15, n));
+    const next = rows.map((r, i) => (i === idx ? { ...r, rotation } : r));
     setRows(next);
     emitTags(next);
   };
@@ -347,48 +376,97 @@ export default function SiteTagsEditor({
 
                 {/* Expanded style options */}
                 {isExpanded && (
-                  <div className="ml-7 mt-2 mb-3 pl-4 border-l-2 border-ink/10 flex flex-wrap items-center gap-3">
-                    {/* Colour */}
-                    <div>
-                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Colour</div>
-                      <select
-                        value={row.color}
-                        onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
-                        className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                        style={{ minWidth: 85 }}
-                      >
-                        {STICKER_COLORS.map((c) => (
-                          <option key={c} value={c}>{STICKER_COLOR_LABELS[c]}</option>
-                        ))}
-                      </select>
+                  <div className="ml-7 mt-2 mb-3 pl-4 border-l-2 border-ink/10">
+                    {/* Row 1: Icon, Colour, Shape */}
+                    <div className="flex flex-wrap items-end gap-3 mb-3">
+                      <div>
+                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Icon</div>
+                        <EmojiPicker
+                          value={row.icon ?? ""}
+                          onChange={(emoji) => handleIconChange(idx, emoji)}
+                        />
+                      </div>
+
+                      <div>
+                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Colour</div>
+                        <select
+                          value={row.color}
+                          onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
+                          className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                          style={{ minWidth: 85 }}
+                        >
+                          {STICKER_COLORS.map((c) => (
+                            <option key={c} value={c}>{STICKER_COLOR_LABELS[c]}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Style</div>
+                        <select
+                          value={row.shape ?? "sticker"}
+                          onChange={(e) => handleShapeChange(idx, e.target.value as TagShape)}
+                          className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                          style={{ minWidth: 90 }}
+                        >
+                          {TAG_SHAPES.map((s) => (
+                            <option key={s} value={s}>{TAG_SHAPE_LABELS[s]}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Tilt</div>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="range"
+                            min={-10}
+                            max={10}
+                            step={0.5}
+                            value={row.rotation ?? 0}
+                            onChange={(e) => handleRotationChange(idx, e.target.value)}
+                            className="w-20 h-6 accent-orange cursor-pointer"
+                            title={`${row.rotation ?? 0}°`}
+                          />
+                          <span className="font-mono text-[0.6rem] opacity-50 w-8 text-right">
+                            {row.rotation ?? 0}°
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Shape */}
-                    <div>
-                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Shape</div>
-                      <select
-                        value={row.shape ?? "sticker"}
-                        onChange={(e) => handleShapeChange(idx, e.target.value as TagShape)}
-                        className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                        style={{ minWidth: 90 }}
-                      >
-                        {TAG_SHAPES.map((s) => (
-                          <option key={s} value={s}>{TAG_SHAPE_LABELS[s]}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {/* Row 2: Sticker-specific options (only when shape=sticker) */}
+                    {(row.shape ?? "sticker") === "sticker" && (
+                      <div className="flex flex-wrap items-end gap-3">
+                        <div>
+                          <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Sticker shape</div>
+                          <select
+                            value={row.stickerForm ?? "rounded"}
+                            onChange={(e) => handleStickerFormChange(idx, e.target.value as StickerForm)}
+                            className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                            style={{ minWidth: 100 }}
+                          >
+                            {STICKER_FORMS.map((f) => (
+                              <option key={f} value={f}>{STICKER_FORM_LABELS[f]}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* Icon */}
-                    <div>
-                      <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Icon</div>
-                      <input
-                        type="text"
-                        value={row.icon ?? ""}
-                        onChange={(e) => handleIconChange(idx, e.target.value.slice(0, 4))}
-                        placeholder="emoji"
-                        className="w-16 px-2 py-1.5 border-3 border-ink bg-bg-card text-center text-[0.9rem] focus:outline-none"
-                      />
-                    </div>
+                        <div>
+                          <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Texture</div>
+                          <select
+                            value={row.stickerTexture ?? "flat"}
+                            onChange={(e) => handleTextureChange(idx, e.target.value as StickerTexture)}
+                            className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
+                            style={{ minWidth: 85 }}
+                          >
+                            {STICKER_TEXTURES.map((t) => (
+                              <option key={t} value={t}>{STICKER_TEXTURE_LABELS[t]}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
