@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import WritingEditorForm from '@/components/writings/WritingEditorForm'
 import { DEFAULT_SITE_TAGS } from '@/lib/tags'
+import type { SiteTag } from '@/lib/tags'
 import type { Writing } from '@/lib/writings'
 import { getCompaniesForUser } from '@/lib/companies'
 import { getProjectsForUser } from '@/lib/projects-data'
@@ -38,8 +39,7 @@ export default async function EditWritingPage({
 
   if (!writing) notFound()
 
-  const siteTags = ((profile as any).site_tags ?? DEFAULT_SITE_TAGS) as Array<{ label: string }>
-  const tagLabels = siteTags.map((t) => t.label)
+  const siteTags = ((profile as any).site_tags ?? DEFAULT_SITE_TAGS) as SiteTag[]
 
   // Fetch linkable entities + existing links
   const [companies, projects, crowdfundingProjects, existingLinks] = await Promise.all([
@@ -56,7 +56,7 @@ export default async function EditWritingPage({
     <WritingEditorForm
       username={username}
       writing={writing}
-      availableTags={tagLabels}
+      availableTags={siteTags}
       linkableEntities={{
         companies: companies.map((c) => ({ id: c.id, name: c.name, slug: c.slug, brandColour: c.brand_colour })),
         projects: projects.map((p) => ({ id: p.id, name: p.title, slug: p.slug })),

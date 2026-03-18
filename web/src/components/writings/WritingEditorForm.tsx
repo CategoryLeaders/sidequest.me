@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import type { JSONContent } from '@tiptap/core'
 import type { Writing, WritingStatus } from '@/lib/writings'
 import { slugifyTitle } from '@/lib/writings'
+import type { SiteTag } from '@/lib/tags'
 
 // Lazy-load editor to avoid SSR issues with ProseMirror
 const WritingEditor = dynamic(() => import('./WritingEditor'), { ssr: false })
@@ -31,7 +32,7 @@ export interface WritingLinkRef {
 interface WritingEditorFormProps {
   username: string
   writing?: Partial<Writing>           // undefined = new post
-  availableTags?: string[]             // profile site tags
+  availableTags?: SiteTag[]            // profile site tags with colours
   linkableEntities?: LinkableEntities
   existingLinks?: WritingLinkRef[]
 }
@@ -343,18 +344,21 @@ export default function WritingEditorForm({
 
         {/* Site tags — always visible, styled with their configured colours */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {availableTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => toggleTag(tag)}
-              className={`sticker cursor-pointer text-[0.75rem] transition-all ${
-                tags.includes(tag) ? 'bg-ink !text-bg shadow-[2px_2px_0_var(--orange)]' : 'opacity-40 hover:opacity-70'
-              }`}
-            >
-              {tag}
-            </button>
-          ))}
+          {availableTags.map((siteTag) => {
+            const isActive = tags.includes(siteTag.label)
+            return (
+              <button
+                key={siteTag.label}
+                type="button"
+                onClick={() => toggleTag(siteTag.label)}
+                className={`sticker ${siteTag.color} cursor-pointer text-[0.75rem] transition-all ${
+                  isActive ? 'shadow-[2px_2px_0_var(--ink)] opacity-100' : 'opacity-30 hover:opacity-60'
+                }`}
+              >
+                {siteTag.icon ? `${siteTag.icon} ${siteTag.label}` : siteTag.label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Custom tags + input */}
@@ -366,7 +370,7 @@ export default function WritingEditorForm({
             placeholder="Add custom tag…"
             className="text-sm border border-gray-200 rounded-md px-3 py-1.5 outline-none focus:border-gray-400 w-48"
           />
-          {tags.filter((t) => !availableTags.includes(t)).map((t) => (
+          {tags.filter((t) => !availableTags.some((st) => st.label === t)).map((t) => (
             <span
               key={t}
               className="flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-gray-300 text-gray-600"
