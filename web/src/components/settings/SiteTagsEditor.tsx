@@ -2,9 +2,8 @@
 
 /**
  * Editor for site-wide filter tags shown on the profile home page.
- * Each tag has a label and a sticker colour.
- * Includes display-mode settings: preference order (drag), volume, or random,
- * plus a limit for how many tags to show on the home page.
+ * Each tag has a label, colour, and optional emoji icon.
+ * Tag style (shape) is a global setting that applies to all tags.
  * [SQ.S-W-2603-0055]
  */
 
@@ -42,14 +41,15 @@ interface SiteTagsEditorProps {
 }
 
 /** Preview a tag in its configured shape. */
-function TagPreview({ tag }: { tag: SiteTag }) {
+function TagPreview({ tag, globalShape }: { tag: SiteTag; globalShape: TagShape }) {
   const label = tag.label || "Preview";
   const icon = tag.icon;
-  const shape = tag.shape ?? "sticker";
+  const shape = globalShape;
   const display = icon ? `${icon} ${label}` : label;
+  const rotation = tag.rotation ?? 0;
 
   const base = "flex-shrink-0 font-mono text-[0.7rem] whitespace-nowrap overflow-hidden text-ellipsis transition-all";
-  const maxW = { maxWidth: 120, minWidth: 0 };
+  const maxW = { maxWidth: 130, minWidth: 0, transform: rotation ? `rotate(${rotation}deg)` : undefined };
 
   switch (shape) {
     case "sticker":
@@ -107,14 +107,37 @@ export default function SiteTagsEditor({
   const [rows, setRows] = useState<SiteTag[]>(
     tags.length > 0 ? tags : [{ label: "", color: "sticker-orange" }]
   );
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  // Global tag style — read from first tag's shape (they all share it), default to 'sticker'
+  const [globalShape, setGlobalShape] = useState<TagShape>(tags[0]?.shape ?? "sticker");
+  const [globalStickerForm, setGlobalStickerForm] = useState<StickerForm>(tags[0]?.stickerForm ?? "rounded");
+  const [globalTexture, setGlobalTexture] = useState<StickerTexture>(tags[0]?.stickerTexture ?? "flat");
 
   // Drag-to-reorder state (preference mode only)
   const dragIdx = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
 
   const emitTags = (next: SiteTag[]) => {
-    onChange(next.filter((t) => t.label.trim() !== ""));
+    // Apply global shape/stickerForm/texture to all tags before emitting
+    const withGlobals = next
+      .filter((t) => t.label.trim() !== "")
+      .map((t) => ({
+        ...t,
+        shape: globalShape,
+        stickerForm: globalStickerForm,
+        stickerTexture: globalTexture,
+      }));
+    onChange(withGlobals);
+  };
+
+  const emitAll = (nextRows: SiteTag[], shape?: TagShape, form?: StickerForm, texture?: StickerTexture) => {
+    const s = shape ?? globalShape;
+    const f = form ?? globalStickerForm;
+    const tx = texture ?? globalTexture;
+    const withGlobals = nextRows
+      .filter((t) => t.label.trim() !== "")
+      .map((t) => ({ ...t, shape: s, stickerForm: f, stickerTexture: tx }));
+    onChange(withGlobals);
   };
 
   // ── Tag list handlers ──────────────────────────────────────────────────────
@@ -133,32 +156,6 @@ export default function SiteTagsEditor({
 
   const handleIconChange = (idx: number, icon: string) => {
     const next = rows.map((r, i) => (i === idx ? { ...r, icon: icon || undefined } : r));
-    setRows(next);
-    emitTags(next);
-  };
-
-  const handleShapeChange = (idx: number, shape: TagShape) => {
-    const next = rows.map((r, i) => (i === idx ? { ...r, shape } : r));
-    setRows(next);
-    emitTags(next);
-  };
-
-  const handleStickerFormChange = (idx: number, stickerForm: StickerForm) => {
-    const next = rows.map((r, i) => (i === idx ? { ...r, stickerForm } : r));
-    setRows(next);
-    emitTags(next);
-  };
-
-  const handleTextureChange = (idx: number, stickerTexture: StickerTexture) => {
-    const next = rows.map((r, i) => (i === idx ? { ...r, stickerTexture } : r));
-    setRows(next);
-    emitTags(next);
-  };
-
-  const handleRotationChange = (idx: number, raw: string) => {
-    const n = parseFloat(raw);
-    const rotation = isNaN(n) ? 0 : Math.max(-15, Math.min(15, n));
-    const next = rows.map((r, i) => (i === idx ? { ...r, rotation } : r));
     setRows(next);
     emitTags(next);
   };
@@ -214,6 +211,23 @@ export default function SiteTagsEditor({
     onDisplayChange({ ...display, limit });
   };
 
+  // ── Global style handlers ──────────────────────────────────────────────────
+
+  const handleGlobalShapeChange = (shape: TagShape) => {
+    setGlobalShape(shape);
+    emitAll(rows, shape);
+  };
+
+  const handleGlobalStickerFormChange = (form: StickerForm) => {
+    setGlobalStickerForm(form);
+    emitAll(rows, undefined, form);
+  };
+
+  const handleGlobalTextureChange = (texture: StickerTexture) => {
+    setGlobalTexture(texture);
+    emitAll(rows, undefined, undefined, texture);
+  };
+
   // ── Promote writing tag to site tag ────────────────────────────────────────
 
   const handlePromote = (label: string) => {
@@ -238,7 +252,7 @@ export default function SiteTagsEditor({
   const validTagCount = rows.filter((r) => r.label.trim()).length;
 
   const inputClass =
-    "flex-1 px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow";
+    "flex-1 px-3 py-2 border-3 border-ink bg-bg-card font-mono text-[0.82rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow min-w-0";
 
   const radioClass = (active: boolean) =>
     `flex items-center gap-2 px-3 py-2 border-3 cursor-pointer transition-colors font-mono text-[0.72rem] select-none ${
@@ -247,8 +261,63 @@ export default function SiteTagsEditor({
         : "border-ink/30 bg-bg-card hover:border-ink/60"
     }`;
 
+  const selectClass =
+    "px-2 py-2 border-3 border-ink bg-bg-card font-mono text-[0.75rem] focus:outline-none cursor-pointer";
+
   return (
     <div className="space-y-8">
+
+      {/* ── Tag Style (global) ────────────────────────────────── */}
+      <div>
+        <div className="font-mono text-[0.65rem] uppercase tracking-wider opacity-50 mb-3">
+          Tag style
+        </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {TAG_SHAPES.map((shape) => (
+            <button
+              key={shape}
+              type="button"
+              onClick={() => handleGlobalShapeChange(shape)}
+              className={radioClass(globalShape === shape)}
+            >
+              {globalShape === shape && <span className="text-[0.65rem]">✓</span>}
+              {TAG_SHAPE_LABELS[shape]}
+            </button>
+          ))}
+        </div>
+
+        {/* Sticker-specific global options */}
+        {globalShape === "sticker" && (
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[0.62rem] uppercase opacity-40">Shape</span>
+              <select
+                value={globalStickerForm}
+                onChange={(e) => handleGlobalStickerFormChange(e.target.value as StickerForm)}
+                className={selectClass}
+                style={{ minWidth: 100 }}
+              >
+                {STICKER_FORMS.map((f) => (
+                  <option key={f} value={f}>{STICKER_FORM_LABELS[f]}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[0.62rem] uppercase opacity-40">Texture</span>
+              <select
+                value={globalTexture}
+                onChange={(e) => handleGlobalTextureChange(e.target.value as StickerTexture)}
+                className={selectClass}
+                style={{ minWidth: 85 }}
+              >
+                {STICKER_TEXTURES.map((t) => (
+                  <option key={t} value={t}>{STICKER_TEXTURE_LABELS[t]}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── Display settings ─────────────────────────────────── */}
       <div>
@@ -315,163 +384,82 @@ export default function SiteTagsEditor({
           </span>
         </div>
 
-        <div className="space-y-2 mb-4">
-          {rows.map((row, idx) => {
-            const isExpanded = expandedIdx === idx;
-            return (
-              <div
-                key={idx}
-                className={`transition-opacity ${
-                  dragOver === idx && dragIdx.current !== idx ? "opacity-40" : ""
-                }`}
-              >
-                {/* Main row: drag handle, label, preview, remove */}
-                <div
-                  draggable={isPref}
-                  onDragStart={isPref ? () => handleDragStart(idx) : undefined}
-                  onDragOver={isPref ? (e) => handleDragOver(e, idx) : undefined}
-                  onDragEnd={isPref ? handleDragEnd : undefined}
-                  className="flex items-center gap-2"
+        {/* Column headers */}
+        <div className="flex items-center gap-2 mb-2 px-0.5">
+          {isPref && <span className="w-5 flex-shrink-0" />}
+          <span className="w-[130px] flex-shrink-0 font-mono text-[0.55rem] uppercase tracking-wider opacity-30">Preview</span>
+          <span className="w-10 flex-shrink-0 font-mono text-[0.55rem] uppercase tracking-wider opacity-30 text-center">Icon</span>
+          <span className="flex-1 font-mono text-[0.55rem] uppercase tracking-wider opacity-30">Name</span>
+          <span className="font-mono text-[0.55rem] uppercase tracking-wider opacity-30" style={{ minWidth: 90 }}>Colour</span>
+          <span className="w-8 flex-shrink-0" />
+        </div>
+
+        <div className="space-y-1.5 mb-4">
+          {rows.map((row, idx) => (
+            <div
+              key={idx}
+              draggable={isPref}
+              onDragStart={isPref ? () => handleDragStart(idx) : undefined}
+              onDragOver={isPref ? (e) => handleDragOver(e, idx) : undefined}
+              onDragEnd={isPref ? handleDragEnd : undefined}
+              className={`flex items-center gap-2 transition-opacity ${
+                dragOver === idx && dragIdx.current !== idx ? "opacity-40" : ""
+              }`}
+            >
+              {/* Drag handle */}
+              {isPref && (
+                <span
+                  className="flex-shrink-0 font-mono text-[0.75rem] select-none w-5 text-center opacity-40 cursor-grab active:cursor-grabbing"
+                  title="Drag to reorder"
                 >
-                  {/* Drag handle */}
-                  <span
-                    className={`flex-shrink-0 font-mono text-[0.75rem] select-none w-5 text-center transition-opacity ${
-                      isPref ? "opacity-40 cursor-grab active:cursor-grabbing" : "opacity-10 cursor-default"
-                    }`}
-                    title={isPref ? "Drag to reorder" : undefined}
-                  >
-                    ⠿
-                  </span>
+                  ⠿
+                </span>
+              )}
 
-                  {/* Label input */}
-                  <input
-                    type="text"
-                    value={row.label}
-                    onChange={(e) => handleLabelChange(idx, e.target.value)}
-                    placeholder={`Tag ${idx + 1} label`}
-                    maxLength={40}
-                    className={inputClass}
-                  />
-
-                  {/* Preview — click to expand style options */}
-                  <button
-                    type="button"
-                    onClick={() => setExpandedIdx(isExpanded ? null : idx)}
-                    title="Click to edit style"
-                    className={`flex-shrink-0 cursor-pointer transition-all ${isExpanded ? "ring-2 ring-orange/50 rounded" : "hover:scale-105"}`}
-                  >
-                    <TagPreview tag={row} />
-                  </button>
-
-                  {/* Remove */}
-                  <button
-                    type="button"
-                    title="Remove"
-                    onClick={() => { handleRemove(idx); if (isExpanded) setExpandedIdx(null); }}
-                    className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Expanded style options */}
-                {isExpanded && (
-                  <div className="ml-7 mt-2 mb-3 pl-4 border-l-2 border-ink/10">
-                    {/* Row 1: Icon, Colour, Shape */}
-                    <div className="flex flex-wrap items-end gap-3 mb-3">
-                      <div>
-                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Icon</div>
-                        <EmojiPicker
-                          value={row.icon ?? ""}
-                          onChange={(emoji) => handleIconChange(idx, emoji)}
-                        />
-                      </div>
-
-                      <div>
-                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Colour</div>
-                        <select
-                          value={row.color}
-                          onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
-                          className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                          style={{ minWidth: 85 }}
-                        >
-                          {STICKER_COLORS.map((c) => (
-                            <option key={c} value={c}>{STICKER_COLOR_LABELS[c]}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Style</div>
-                        <select
-                          value={row.shape ?? "sticker"}
-                          onChange={(e) => handleShapeChange(idx, e.target.value as TagShape)}
-                          className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                          style={{ minWidth: 90 }}
-                        >
-                          {TAG_SHAPES.map((s) => (
-                            <option key={s} value={s}>{TAG_SHAPE_LABELS[s]}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Tilt</div>
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="range"
-                            min={-10}
-                            max={10}
-                            step={0.5}
-                            value={row.rotation ?? 0}
-                            onChange={(e) => handleRotationChange(idx, e.target.value)}
-                            className="w-20 h-6 accent-orange cursor-pointer"
-                            title={`${row.rotation ?? 0}°`}
-                          />
-                          <span className="font-mono text-[0.6rem] opacity-50 w-8 text-right">
-                            {row.rotation ?? 0}°
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Row 2: Sticker-specific options (only when shape=sticker) */}
-                    {(row.shape ?? "sticker") === "sticker" && (
-                      <div className="flex flex-wrap items-end gap-3">
-                        <div>
-                          <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Sticker shape</div>
-                          <select
-                            value={row.stickerForm ?? "rounded"}
-                            onChange={(e) => handleStickerFormChange(idx, e.target.value as StickerForm)}
-                            className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                            style={{ minWidth: 100 }}
-                          >
-                            {STICKER_FORMS.map((f) => (
-                              <option key={f} value={f}>{STICKER_FORM_LABELS[f]}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <div className="font-mono text-[0.55rem] uppercase tracking-wider opacity-40 mb-1">Texture</div>
-                          <select
-                            value={row.stickerTexture ?? "flat"}
-                            onChange={(e) => handleTextureChange(idx, e.target.value as StickerTexture)}
-                            className="px-2 py-1.5 border-3 border-ink bg-bg-card font-mono text-[0.72rem] focus:outline-none cursor-pointer"
-                            style={{ minWidth: 85 }}
-                          >
-                            {STICKER_TEXTURES.map((t) => (
-                              <option key={t} value={t}>{STICKER_TEXTURE_LABELS[t]}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* Preview */}
+              <div className="w-[130px] flex-shrink-0 flex items-center">
+                <TagPreview tag={row} globalShape={globalShape} />
               </div>
-            );
-          })}
+
+              {/* Emoji icon */}
+              <EmojiPicker
+                value={row.icon ?? ""}
+                onChange={(emoji) => handleIconChange(idx, emoji)}
+              />
+
+              {/* Name */}
+              <input
+                type="text"
+                value={row.label}
+                onChange={(e) => handleLabelChange(idx, e.target.value)}
+                placeholder={`Tag ${idx + 1}`}
+                maxLength={40}
+                className={inputClass}
+              />
+
+              {/* Colour */}
+              <select
+                value={row.color}
+                onChange={(e) => handleColorChange(idx, e.target.value as StickerColor)}
+                className={selectClass}
+                style={{ minWidth: 90 }}
+              >
+                {STICKER_COLORS.map((c) => (
+                  <option key={c} value={c}>{STICKER_COLOR_LABELS[c]}</option>
+                ))}
+              </select>
+
+              {/* Remove */}
+              <button
+                type="button"
+                title="Remove"
+                onClick={() => handleRemove(idx)}
+                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
         </div>
 
         {rows.length < MAX_SITE_TAGS && (
