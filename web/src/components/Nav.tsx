@@ -51,6 +51,7 @@ export default function Nav({
     { href: `${profileBase}/photowall`, label: "Photowall" },
     { href: `${profileBase}/ideas`, label: "Ideas" },
     { href: `${profileBase}/projects`, label: "Projects" },
+    { href: `${profileBase}/adventures`, label: "Adventures" },
   ];
 
   // Close dropdown when clicking outside
