@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Adventure, AdventurePost, Chapter, LayoutTheme, Waypoint } from '@/lib/adventures'
 import { THEME_META, STATUS_META } from '@/lib/adventures'
+import { excerptFromHtml } from '@/lib/writings'
 import AdventureMapWrapper from '@/components/adventures/AdventureMapWrapper'
 import IndianaJonesMapWrapper from '@/components/adventures/IndianaJonesMapWrapper'
 import MapModeToggle from '@/components/adventures/MapModeToggle'
@@ -51,6 +52,23 @@ export default async function AdventurePage({ params }: Props) {
   const theme = adventure.layout_theme as LayoutTheme
   const themeMeta = THEME_META[theme]
   const statusMeta = STATUS_META[adventure.status as keyof typeof STATUS_META]
+
+  // Fetch linked writings for article_link posts
+  const articlePostIds = allPosts
+    .filter((p) => p.post_type === 'article_link' && p.linked_writing_id)
+    .map((p) => p.linked_writing_id!)
+
+  let linkedWritings: Map<string, { title: string; slug: string; image_url: string | null; body_html: string | null }> = new Map()
+  if (articlePostIds.length > 0) {
+    const { data: writings } = await (supabase as any)
+      .from('writings')
+      .select('id, title, slug, image_url, body_html')
+      .in('id', articlePostIds) as { data: Array<{ id: string; title: string; slug: string; image_url: string | null; body_html: string | null }> | null }
+
+    for (const w of writings ?? []) {
+      linkedWritings.set(w.id, w)
+    }
+  }
 
   const formatDate = (d: string) => {
     const date = new Date(d)
@@ -184,16 +202,41 @@ export default async function AdventurePage({ params }: Props) {
                       {formatDateTime(post.posted_at)}
                       {post.location_name && <span className="text-orange ml-2">📍 {post.location_name}</span>}
                     </div>
-                    {post.body && <p className="text-[0.92rem] leading-relaxed mb-2">{post.body}</p>}
-                    {post.photos && (post.photos as { url: string }[]).length > 0 && (
-                      <div className="flex gap-2 flex-wrap mt-2">
-                        {(post.photos as { url: string; caption?: string }[]).map((photo, i) => (
-                          <div key={i} className="border-2 border-ink/10 overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={photo.url} alt={photo.caption ?? ''} className="max-w-[300px] h-auto" />
+                    {/* Article link: writing preview card */}
+                    {post.post_type === 'article_link' && post.linked_writing_id && linkedWritings.has(post.linked_writing_id) ? (() => {
+                      const w = linkedWritings.get(post.linked_writing_id!)!
+                      const excerpt = w.body_html ? excerptFromHtml(w.body_html, 180) : null
+                      return (
+                        <Link href={`/${username}/writings/${w.slug}`} className="block no-underline group/card">
+                          <div className="border-3 border-ink/15 bg-bg-card overflow-hidden hover:border-ink/30 transition-colors">
+                            {w.image_url && (
+                              <div className="w-full h-40 overflow-hidden">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={w.image_url} alt={w.title} className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300" />
+                              </div>
+                            )}
+                            <div className="p-4">
+                              <h4 className="font-head font-bold text-[0.95rem] uppercase leading-tight mb-1 group-hover/card:text-orange transition-colors">{w.title}</h4>
+                              {excerpt && <p className="text-[0.78rem] opacity-50 leading-relaxed line-clamp-2">{excerpt}</p>}
+                              <span className="font-mono text-[0.6rem] text-orange uppercase mt-2 inline-block">Read story →</span>
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </Link>
+                      )
+                    })() : (
+                      <>
+                        {post.body && <p className="text-[0.92rem] leading-relaxed mb-2">{post.body}</p>}
+                        {post.photos && (post.photos as { url: string }[]).length > 0 && (
+                          <div className="flex gap-2 flex-wrap mt-2">
+                            {(post.photos as { url: string; caption?: string }[]).map((photo, i) => (
+                              <div key={i} className="border-2 border-ink/10 overflow-hidden">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={photo.url} alt={photo.caption ?? ''} className="max-w-[300px] h-auto" />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
