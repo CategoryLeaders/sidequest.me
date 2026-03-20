@@ -505,14 +505,19 @@ function PostCard({
       ) : (
         <>
           {post.body && <p className="text-[0.88rem] leading-relaxed mb-2">{post.body}</p>}
-          {post.photos && (post.photos as { url: string }[]).length > 0 && (
+          {post.photos && post.photos.length > 0 && (
             <div className="flex gap-2 flex-wrap mt-2">
-              {(post.photos as { url: string; caption?: string }[]).map((photo, i) => (
-                <div key={i} className="w-24 h-24 border-2 border-ink/10 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
-                </div>
-              ))}
+              {post.photos.map((photo, i) => {
+                // Handle both {url, caption} objects and plain URL strings (legacy data)
+                const url = typeof photo === 'string' ? photo : (photo as { url: string }).url
+                const caption = typeof photo === 'string' ? '' : (photo as { url: string; caption?: string }).caption ?? ''
+                return (
+                  <div key={i} className="w-24 h-24 border-2 border-ink/10 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={caption} className="w-full h-full object-cover" />
+                  </div>
+                )
+              })}
             </div>
           )}
         </>
