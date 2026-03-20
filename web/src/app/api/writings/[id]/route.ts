@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { slugifyTitle, uniqueSlug } from '@/lib/writings'
 import type { Writing } from '@/lib/writings'
+import { publishWritingToFeed, deleteFeedEvent } from '@/lib/feed-events'
 
 // PATCH /api/writings/[id] — update an existing writing
 export async function PATCH(
@@ -79,6 +80,33 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Feed events: publish / unpublish [SQ.S-W-2603-0063]
+  const becomingPublished = body.status === 'published' && existing.status !== 'published'
+  const becomingUnpublished = body.status !== 'published' && existing.status === 'published' && body.status !== undefined
+
+  if (becomingPublished && data?.id) {
+    try {
+      await publishWritingToFeed(user.id, data.id, 'public', published_at ?? undefined)
+    } catch { /* non-blocking */ }
+  } else if (becomingUnpublished) {
+    try {
+      await deleteFeedEvent(id, 'writings')
+    } catch { /* non-blocking */ }
+  }
+
+  // Slug redirect: if slug changed on a published writing, store the redirect [SQ.S-W-2603-0063]
+  if (slug !== existing.slug && existing.status === 'published') {
+    try {
+      await (supabase as any)
+        .from('slug_redirects')
+        .upsert({
+          profile_id: user.id,
+          old_slug: existing.slug,
+          new_slug: slug,
+        }, { onConflict: 'profile_id,old_slug' })
+    } catch { /* non-blocking */ }
+  }
+
   return NextResponse.json(data)
 }
 
@@ -108,6 +136,11 @@ export async function DELETE(
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Clean up feed event [SQ.S-W-2603-0063]
+  try {
+    await deleteFeedEvent(id, 'writings')
+  } catch { /* non-blocking */ }
 
   return NextResponse.json({ deleted: true })
 }

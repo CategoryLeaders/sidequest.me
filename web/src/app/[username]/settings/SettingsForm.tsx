@@ -22,6 +22,8 @@ import ApiKeysEditor from "@/components/settings/ApiKeysEditor";
 import CrowdfundingEditor from "@/components/settings/CrowdfundingEditor";
 import WritingsManager from "@/components/settings/WritingsManager";
 import AdventuresManager from "@/components/settings/AdventuresManager";
+import MicroblogsManager from "@/components/settings/MicroblogsManager";
+import ProjectsManager from "@/components/settings/ProjectsManager";
 import type { Factoid, LikeDislike } from "@/types/profile-extras";
 import type { SiteTag, SiteTagsDisplay } from "@/lib/tags";
 import { DEFAULT_SITE_TAGS_DISPLAY } from "@/lib/tags";
@@ -116,6 +118,7 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
   const isSelfManaged = (activeTab === "site" && currentSubTab === "API Keys")
     || (activeTab === "sidequests" && currentSubTab === "Adventures")
     || (activeTab === "sidequests" && currentSubTab === "My Projects")
+    || (activeTab === "sidequests" && currentSubTab === "Projects I Backed")
     || (activeTab === "content" && currentSubTab === "Writings");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -304,41 +307,32 @@ export default function SettingsForm({ profile, writingTags = [] }: SettingsForm
         )}
 
         {activeTab === "sidequests" && currentSubTab === "My Projects" && (
-          <div className="space-y-4">
-            <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-              Your projects are managed on the Projects page.
-            </p>
-            <a
-              href={`/${profile.username}/projects`}
-              className="inline-block px-5 py-2.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.78rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
-            >
-              Open Projects →
-            </a>
-          </div>
+          <ProjectsManager userId={profile.id} username={profile.username} />
         )}
 
         {activeTab === "sidequests" && currentSubTab === "Projects I Backed" && (
-          <div className="space-y-8">
-            <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed">
-              Show crowdfunding projects you&apos;ve backed on your profile.
-            </p>
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" checked={crowdfundingEnabled} onChange={(e) => setCrowdfundingEnabled(e.target.checked)} className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer" />
-              <span className="font-head font-bold text-[0.78rem] uppercase">Show on About page</span>
-            </label>
-            {crowdfundingEnabled && (
-              <>
-                <div>
-                  <label htmlFor="crowdfundingTitle" className={labelClass}>About Card Title</label>
-                  <input id="crowdfundingTitle" type="text" value={crowdfundingTitle} onChange={(e) => setCrowdfundingTitle(e.target.value)} placeholder="Weird Projects I Backed" maxLength={80} className={inputClass} />
-                </div>
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input type="checkbox" checked={crowdfundingCarouselAuto} onChange={(e) => setCrowdfundingCarouselAuto(e.target.checked)} className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer" />
-                  <span className="font-head font-bold text-[0.78rem] uppercase">Auto-scroll About page carousel</span>
-                </label>
-                <CrowdfundingEditor userId={profile.id} username={profile.username} />
-              </>
-            )}
+          <div className="space-y-6">
+            {/* Display settings — compact row */}
+            <div className="flex items-center gap-4 flex-wrap border-b border-ink/10 pb-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" checked={crowdfundingEnabled} onChange={(e) => setCrowdfundingEnabled(e.target.checked)} className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer" />
+                <span className="font-mono text-[0.68rem] opacity-70">Show on About page</span>
+              </label>
+              {crowdfundingEnabled && (
+                <>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={crowdfundingCarouselAuto} onChange={(e) => setCrowdfundingCarouselAuto(e.target.checked)} className="w-4 h-4 border-3 border-ink accent-ink cursor-pointer" />
+                    <span className="font-mono text-[0.68rem] opacity-70">Auto-scroll carousel</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[0.6rem] opacity-40">Title:</span>
+                    <input type="text" value={crowdfundingTitle} onChange={(e) => setCrowdfundingTitle(e.target.value)} placeholder="Weird Projects I Backed" maxLength={80} className="px-2 py-1 border-2 border-ink/20 bg-bg-card font-mono text-[0.68rem] w-48 focus:outline-none focus:border-ink/50" />
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Project list — always shown */}
+            <CrowdfundingEditor userId={profile.id} username={profile.username} />
           </div>
         )}
 

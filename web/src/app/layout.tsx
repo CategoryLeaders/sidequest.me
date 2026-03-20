@@ -3,6 +3,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ThemeProvider from "@/components/ThemeProvider";
+import CookieConsent from "@/components/CookieConsent";
 import { getCurrentUserProfile } from "@/lib/profiles";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default async function RootLayout({
           />
           {children}
           <Footer />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>

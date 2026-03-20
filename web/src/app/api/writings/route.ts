@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { slugifyTitle, uniqueSlug } from '@/lib/writings'
+import { publishWritingToFeed } from '@/lib/feed-events'
 
 // GET /api/writings — list current user's writings
 export async function GET() {
@@ -69,6 +70,15 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Write to feed_events on publish [SQ.S-W-2603-0063]
+  if (body.status === 'published' && data?.id) {
+    try {
+      await publishWritingToFeed(user.id, data.id, 'public', data.published_at ?? undefined)
+    } catch {
+      // Non-blocking — feed event failure shouldn't block the save
+    }
+  }
 
   return NextResponse.json(data, { status: 201 })
 }

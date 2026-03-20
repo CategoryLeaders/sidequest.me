@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/database";
-import { statusLabel, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import { statusLabel, CROWDFUNDING_STATUSES, platformLabel } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import ProjectImageUpload from "./ProjectImageUpload";
 
@@ -276,6 +276,12 @@ export default function CrowdfundingEditor({ userId, username }: CrowdfundingEdi
                         </span>
                       )}
                     </div>
+                    {/* Platform badge */}
+                    {project.platform && (
+                      <span className="inline-block font-mono text-[0.5rem] px-1.5 py-0.5 border border-ink/20 bg-ink/[0.04] opacity-60 mt-0.5">
+                        {platformLabel(project.platform)}
+                      </span>
+                    )}
                     {project.pledge_amount && (
                       <p className="font-mono text-[0.68rem] opacity-50">
                         {project.pledge_currency} {project.pledge_amount}

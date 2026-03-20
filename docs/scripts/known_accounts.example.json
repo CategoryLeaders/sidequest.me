@@ -1,0 +1,15 @@
+{
+  "profile_id": "your-supabase-profile-uuid-here",
+  "known_accounts": [
+    {
+      "name": "Sophie Collins",
+      "facebook_id": "123456789"
+    },
+    {
+      "name": "Amy Collins"
+    },
+    {
+      "name": "So-Moto"
+    }
+  ]
+}

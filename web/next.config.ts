@@ -42,8 +42,24 @@ const nextConfig: NextConfig = {
       permanent: true,
     },
     {
+      source: "/thoughts",
+      destination: "/sophie/thoughts",
+      permanent: true,
+    },
+    // Legacy /ideas → /thoughts 301 redirects [SQ.S-W-2603-0058]
+    {
       source: "/ideas",
-      destination: "/sophie/ideas",
+      destination: "/sophie/thoughts",
+      permanent: true,
+    },
+    {
+      source: "/:username/ideas/:path*",
+      destination: "/:username/thoughts/:path*",
+      permanent: true,
+    },
+    {
+      source: "/ideas/:path*",
+      destination: "/sophie/thoughts/:path*",
       permanent: true,
     },
     {

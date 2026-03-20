@@ -1,0 +1,79 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+
+// PATCH /api/microblogs/[id]
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: existing } = await (supabase as any)
+    .from('microblogs')
+    .select('user_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const body = await request.json()
+  const update: Record<string, unknown> = {}
+
+  if (body.body !== undefined) update.body = body.body
+  if (body.body_html !== undefined) update.body_html = body.body_html
+  if (body.media !== undefined) update.media = body.media
+  if (body.location_name !== undefined) update.location_name = body.location_name
+  if (body.tags !== undefined) update.tags = body.tags
+  if (body.status !== undefined) update.status = body.status
+
+  const { data, error } = await (supabase as any)
+    .from('microblogs')
+    .update(update)
+    .eq('id', id)
+    .select('id')
+    .single()
+
+  // Update links if provided
+  if (body.links !== undefined) {
+    await (supabase as any).from('microblog_links').delete().eq('microblog_id', id)
+    if (body.links.length > 0) {
+      const linkRows = body.links.map((l: { entity_type: string; entity_id: string }) => ({
+        microblog_id: id,
+        entity_type: l.entity_type,
+        entity_id: l.entity_id,
+      }))
+      await (supabase as any).from('microblog_links').insert(linkRows)
+    }
+  }
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+// DELETE /api/microblogs/[id]
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: existing } = await (supabase as any)
+    .from('microblogs')
+    .select('user_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { error } = await (supabase as any).from('microblogs').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ deleted: true })
+}

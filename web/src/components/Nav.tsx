@@ -49,7 +49,7 @@ export default function Nav({
     { href: `${profileBase}/about`, label: "About" },
     { href: `${profileBase}/professional`, label: "Professional" },
     { href: `${profileBase}/photowall`, label: "Photowall" },
-    { href: `${profileBase}/ideas`, label: "Ideas" },
+    { href: `${profileBase}/thoughts`, label: "Thoughts" },
     { href: `${profileBase}/projects`, label: "Projects" },
     { href: `${profileBase}/adventures`, label: "Adventures" },
   ];

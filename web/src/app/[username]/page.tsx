@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { posts } from "@/lib/photowall-data";
 import { photowallUrl } from "@/lib/cdn";
 import { buildFeed } from "@/lib/feed-data";
+import { getWhatsNewFeed, type WhatsNewItem } from "@/lib/whats-new";
 import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
 import {
   type SiteTag,
@@ -61,7 +62,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   if (!profile) notFound();
 
-  const feed = await buildFeed(profile.id);
+  // Try feed_events first; fall back to legacy buildFeed if empty
+  const whatsNew = await getWhatsNewFeed(profile.id, username, { limit: 6 });
+  const legacyFeed = whatsNew.length === 0 ? await buildFeed(profile.id) : null;
 
   const isOwner = user?.id === profile.id;
 
@@ -169,57 +172,109 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
       </section>
 
-      {/* ── AGGREGATED FEED ── */}
+      {/* ── WHAT'S NEW FEED ── */}
       <section className="mb-14">
         <div className="section-title">What&apos;s New</div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {feed.map((item, i) => (
-            <Link
-              key={item.id}
-              href={item.link}
-              className="block border-3 border-ink bg-bg-card card-hover no-underline text-ink overflow-visible relative"
-              style={{ transform: `rotate(${feedRotations[i % feedRotations.length]})` }}
-            >
-              <span
-                className="absolute -top-3.5 -left-3.5 z-10 inline-flex items-center justify-center w-[32px] h-[32px] rounded-full border-3 border-ink text-white font-head font-[900] text-[0.75rem] leading-none"
-                style={{
-                  backgroundColor: badgeCircleColor[item.badge] || "var(--orange)",
-                  boxShadow: "1px 1px 0 var(--ink)",
-                }}
+          {whatsNew.length > 0 ? (
+            /* New feed_events-powered cards */
+            whatsNew.map((item, i) => (
+              <Link
+                key={item.id}
+                href={item.link}
+                className="block border-3 border-ink bg-bg-card card-hover no-underline text-ink overflow-visible relative"
+                style={{ transform: `rotate(${feedRotations[i % feedRotations.length]})` }}
               >
-                {i + 1}
-              </span>
-              {item.image ? (
-                <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-white/90 leading-none whitespace-nowrap z-10" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
-                  {item.date}
+                <span
+                  className="absolute -top-3.5 -left-3.5 z-10 inline-flex items-center justify-center w-[32px] h-[32px] rounded-full border-3 border-ink text-white font-head font-[900] text-[0.75rem] leading-none"
+                  style={{
+                    backgroundColor: badgeCircleColor[item.badge] || "var(--orange)",
+                    boxShadow: "1px 1px 0 var(--ink)",
+                  }}
+                >
+                  {i + 1}
                 </span>
-              ) : (
                 <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-ink-muted leading-none whitespace-nowrap z-10">
-                  {item.date}
+                  {new Date(item.publishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                 </span>
-              )}
 
-              {item.image && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-28 object-cover border-b-3 border-ink"
-                />
-              )}
-              <div className="p-5 pt-4 relative">
-                <span className={`badge ${item.badge} absolute top-3 right-3`}>
-                  {typeIcons[item.type]} {item.badgeLabel}
+                {item.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-28 object-cover border-b-3 border-ink"
+                  />
+                )}
+                <div className="p-5 pt-4 relative">
+                  <span className={`badge ${item.badge} absolute top-3 right-3`}>
+                    {item.icon} {item.badgeLabel}
+                  </span>
+                  <h3 className="font-head font-bold text-[0.95rem] uppercase mt-1 mb-1.5 leading-tight line-clamp-2">
+                    {item.title}
+                  </h3>
+                  {item.description && (
+                    <p className="text-[0.82rem] opacity-70 leading-snug line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))
+          ) : legacyFeed ? (
+            /* Fallback: legacy buildFeed cards */
+            legacyFeed.map((item, i) => (
+              <Link
+                key={item.id}
+                href={item.link}
+                className="block border-3 border-ink bg-bg-card card-hover no-underline text-ink overflow-visible relative"
+                style={{ transform: `rotate(${feedRotations[i % feedRotations.length]})` }}
+              >
+                <span
+                  className="absolute -top-3.5 -left-3.5 z-10 inline-flex items-center justify-center w-[32px] h-[32px] rounded-full border-3 border-ink text-white font-head font-[900] text-[0.75rem] leading-none"
+                  style={{
+                    backgroundColor: badgeCircleColor[item.badge] || "var(--orange)",
+                    boxShadow: "1px 1px 0 var(--ink)",
+                  }}
+                >
+                  {i + 1}
                 </span>
-                <h3 className="font-head font-bold text-[0.95rem] uppercase mt-1 mb-1.5 leading-tight">
-                  {item.title}
-                </h3>
-                <p className="text-[0.82rem] opacity-70 leading-snug">
-                  {item.desc}
-                </p>
-              </div>
-            </Link>
-          ))}
+                {item.image ? (
+                  <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-white/90 leading-none whitespace-nowrap z-10" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                    {item.date}
+                  </span>
+                ) : (
+                  <span className="absolute top-1.5 left-7 font-mono text-[0.58rem] text-ink-muted leading-none whitespace-nowrap z-10">
+                    {item.date}
+                  </span>
+                )}
+
+                {item.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-28 object-cover border-b-3 border-ink"
+                  />
+                )}
+                <div className="p-5 pt-4 relative">
+                  <span className={`badge ${item.badge} absolute top-3 right-3`}>
+                    {typeIcons[item.type]} {item.badgeLabel}
+                  </span>
+                  <h3 className="font-head font-bold text-[0.95rem] uppercase mt-1 mb-1.5 leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-[0.82rem] opacity-70 leading-snug">
+                    {item.desc}
+                  </p>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="text-ink/40 py-8 text-center font-mono text-[0.85rem] col-span-3">
+              Nothing new yet — check back soon.
+            </p>
+          )}
         </div>
       </section>
 
