@@ -34,6 +34,12 @@ export interface WhatsNewItem {
   badgeLabel: string;
   icon: string;
   imageUrl?: string;
+  // Type-specific optional fields
+  domain?: string;        // bookmarks
+  faviconUrl?: string;    // bookmarks
+  readingTime?: string;   // writings ("4 min read")
+  projectStatus?: string; // projects
+  resolved?: boolean;     // questions
 }
 
 /**
@@ -194,6 +200,8 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
     case "writing_published": {
       const title = content?.title ?? "Untitled";
       const slug = content?.slug ?? event.object_id;
+      const wordCount: number = content?.word_count ?? 0;
+      const readingTime = wordCount > 0 ? `${Math.ceil(wordCount / 200)} min read` : undefined;
       return {
         ...base,
         title,
@@ -202,6 +210,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-blue",
         badgeLabel: "Writing",
         icon: "📝",
+        readingTime,
       };
     }
 
@@ -214,6 +223,8 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-green",
         badgeLabel: "Bookmark",
         icon: "🔖",
+        domain: content?.og_domain,
+        faviconUrl: content?.og_favicon_url,
       };
     }
 
@@ -241,6 +252,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: resolved ? "badge-green" : "badge-yellow",
         badgeLabel: resolved ? "Resolved" : "Question",
         icon: "❓",
+        resolved: !!resolved,
       };
     }
 
@@ -254,6 +266,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-orange",
         badgeLabel: event.event_type === "project_created" ? "New Project" : "Project Update",
         icon: "🚀",
+        projectStatus: content?.status,
       };
     }
 
