@@ -9,14 +9,14 @@ import type { SiteTag } from '@/lib/tags'
 
 interface Props {
   params: Promise<{ username: string }>
-  searchParams: Promise<{ tag?: string; q?: string; page?: string }>
+  searchParams: Promise<{ tag?: string; q?: string; page?: string; company?: string }>
 }
 
 const PER_PAGE = 20
 
 export default async function WritingsIndexPage({ params, searchParams }: Props) {
   const { username } = await params
-  const { tag: tagSlug, q, page: pageStr } = await searchParams
+  const { tag: tagSlug, q, page: pageStr, company: companySlug } = await searchParams
   const page = Math.max(1, parseInt(pageStr ?? '1', 10))
 
   const supabase = await createClient()
@@ -39,6 +39,33 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
   if (tagSlug && !matchedTag) notFound()
   const filterLabel = matchedTag?.label ?? null
 
+  // Resolve company filter
+  type CompanyInfo = { id: string; name: string; logo: string | null; brand_colour: string | null }
+  let activeCompany: CompanyInfo | null = null
+  let companyWritingIds: string[] | null = null
+
+  if (companySlug) {
+    const { data: co } = await (supabase as any)
+      .from('companies')
+      .select('id, name, logo, brand_colour')
+      .eq('user_id', profile.id)
+      .eq('slug', companySlug)
+      .single() as { data: CompanyInfo | null }
+
+    if (co) {
+      activeCompany = co
+      const { data: links } = await (supabase as any)
+        .from('writing_links')
+        .select('writing_id')
+        .eq('entity_type', 'company')
+        .eq('entity_id', co.id) as { data: { writing_id: string }[] | null }
+      companyWritingIds = (links ?? []).map((l) => l.writing_id)
+    } else {
+      // Unknown company slug — show empty list rather than all writings
+      companyWritingIds = []
+    }
+  }
+
   // Build query
   let query = (supabase as any)
     .from('writings')
@@ -50,6 +77,13 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
   if (filterLabel) {
     query = query.contains('tags', [filterLabel])
+  }
+
+  if (companyWritingIds !== null) {
+    // Filter to only writings linked to the active company
+    // If the array is empty, force no results with a guaranteed non-match
+    const ids = companyWritingIds.length > 0 ? companyWritingIds : ['00000000-0000-0000-0000-000000000000']
+    query = query.in('id', ids)
   }
 
   if (q) {
@@ -101,13 +135,37 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
     <div className="max-w-2xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight mb-1">
-          {filterLabel ? `#${filterLabel}` : 'Writings'}
-        </h1>
-        {filterLabel && (
-          <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
-            ← All writings
-          </Link>
+        {activeCompany ? (
+          <>
+            <div className="flex items-center gap-3 mb-2">
+              {activeCompany.logo && (
+                <Image
+                  src={activeCompany.logo}
+                  alt={activeCompany.name}
+                  width={32}
+                  height={32}
+                  className="rounded-sm border border-gray-100"
+                />
+              )}
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {activeCompany.name}
+              </h1>
+            </div>
+            <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
+              ← All writings
+            </Link>
+          </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-semibold tracking-tight mb-1">
+              {filterLabel ? `#${filterLabel}` : 'Writings'}
+            </h1>
+            {filterLabel && (
+              <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
+                ← All writings
+              </Link>
+            )}
+          </>
         )}
       </div>
 
@@ -176,7 +234,8 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                   ) : null}
                 </div>
                 <div className="flex items-start gap-3">
-                  {linkedCos.length > 0 && (
+                  {/* Show per-row logos only in mixed/unfiltered view; in company view the header already shows the logo */}
+                  {linkedCos.length > 0 && !activeCompany && (
                     <div className="flex -space-x-1 mt-1 shrink-0">
                       {linkedCos.map((co) =>
                         co.logo ? (
