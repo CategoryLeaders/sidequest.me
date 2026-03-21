@@ -1,12 +1,11 @@
 /* ── MicroblogCard — BD-2 mashup redesign ── [SQ.S-W-2603-0062] */
-'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { MicroblogPostWithCounts, MicroblogImage } from '@/lib/microblogs'
 import { relativeTime, getPostDate } from '@/lib/microblogs'
 import { ReactionBar } from './ReactionBar'
+import { ExpandableBody } from './ExpandableBody'
 
 interface Props {
   post: MicroblogPostWithCounts
@@ -22,9 +21,7 @@ const CTX = {
     bannerText: '#a8d5a2',
     barBorder: '#2a7a4a',
     barBg: 'rgba(42,122,74,0.05)',
-    chipBorder: '#2a7a4a',
     chipText: '#2a7a4a',
-    chipBg: 'rgba(42,122,74,0.06)',
     leftBorder: '#2a7a4a',
   },
   project: {
@@ -34,9 +31,7 @@ const CTX = {
     bannerText: '#a8c4e0',
     barBorder: '#2a4a7a',
     barBg: 'rgba(42,74,122,0.05)',
-    chipBorder: '#2a4a7a',
     chipText: '#2a4a7a',
-    chipBg: 'rgba(42,74,122,0.06)',
     leftBorder: '#2a4a7a',
   },
   writing: {
@@ -46,9 +41,7 @@ const CTX = {
     bannerText: '#c4a8e0',
     barBorder: '#6a2a8a',
     barBg: 'rgba(106,42,138,0.05)',
-    chipBorder: '#6a2a8a',
     chipText: '#6a2a8a',
-    chipBg: 'rgba(106,42,138,0.06)',
     leftBorder: '#6a2a8a',
   },
   job_role: {
@@ -58,20 +51,14 @@ const CTX = {
     bannerText: '#e0c4a8',
     barBorder: '#8a4a2a',
     barBg: 'rgba(138,74,42,0.05)',
-    chipBorder: '#8a4a2a',
     chipText: '#8a4a2a',
-    chipBg: 'rgba(138,74,42,0.06)',
     leftBorder: '#8a4a2a',
   },
 } as const
 
 type CtxType = keyof typeof CTX
 
-function ctxHref(
-  username: string,
-  type: string,
-  id: string | null
-): string | null {
+function ctxHref(username: string, type: string, id: string | null): string | null {
   if (!id) return null
   if (type === 'adventure') return `/${username}/adventures/${id}`
   if (type === 'project') return `/${username}/projects/${id}`
@@ -79,15 +66,13 @@ function ctxHref(
   return null
 }
 
-// ── Source label ──────────────────────────────────────────────────────────────
 function sourceLabel(source: string): string | null {
   if (source === 'facebook_import') return 'Facebook'
-  if (source === 'telegram_channel_import' || source === 'telegram_group_import')
-    return 'Telegram'
+  if (source === 'telegram_channel_import' || source === 'telegram_group_import') return 'Telegram'
   return null
 }
 
-// ── Date strip (under images) ─────────────────────────────────────────────────
+// ── Dark date strip under images ──────────────────────────────────────────────
 function DateStrip({
   postDate,
   locationName,
@@ -103,8 +88,10 @@ function DateStrip({
 }) {
   const src = sourceLabel(source)
   return (
-    <div className="flex items-center gap-2 flex-wrap px-4 py-2 font-mono text-[0.68rem]"
-      style={{ background: '#1a1a1a', color: '#d0ccc4' }}>
+    <div
+      className="flex items-center gap-2 flex-wrap px-4 py-2 font-mono text-[0.68rem]"
+      style={{ background: '#1a1a1a', color: '#bbb' }}
+    >
       <Link
         href={permalink}
         className="hover:text-white transition-colors no-underline"
@@ -122,7 +109,7 @@ function DateStrip({
       {locationName && (
         <>
           <span style={{ color: '#444' }}>·</span>
-          <span style={{ color: '#aaa' }}>📍 {locationName}</span>
+          <span style={{ color: '#999' }}>📍 {locationName}</span>
         </>
       )}
       {editedAt && (
@@ -184,7 +171,7 @@ function ImageMosaic({ images }: { images: MicroblogImage[] }) {
     )
   }
 
-  // ── 3 images: 2-wide left + 2 stacked right ──
+  // ── 3 images: large left + 2 stacked right ──
   if (count === 3) {
     return (
       <div
@@ -219,12 +206,12 @@ function ImageMosaic({ images }: { images: MicroblogImage[] }) {
   }
 
   // ── 4+ images: adventure-style mosaic ──
-  // First image = hero (4 of 6 cols × 2 rows), rest = small (2 of 6 cols × 1 row)
-  // Show max 5 cells; if more images, overlay "+N more" on last visible cell
-  const MAX_SMALL = 4 // max small cells alongside the hero (6-col grid × 2 rows ÷ 2-col each = 4 fits exactly)
+  // 6-col grid, first = hero (4 cols × 2 rows), rest = small (2 cols × 1 row)
+  // Show hero + up to 4 small cells; if more images, overlay "+N more" on last visible
+  const MAX_SMALL = 4
   const heroImage = images[0]
   const smallImages = images.slice(1, 1 + MAX_SMALL)
-  const remaining = images.length - 1 - MAX_SMALL // images beyond what fits
+  const remaining = images.length - 1 - MAX_SMALL // count beyond what fits
 
   return (
     <div
@@ -235,11 +222,8 @@ function ImageMosaic({ images }: { images: MicroblogImage[] }) {
         gridAutoRows: '130px',
       }}
     >
-      {/* Hero image — spans 4 cols × 2 rows */}
-      <div
-        className="relative overflow-hidden"
-        style={{ gridColumn: 'span 4', gridRow: 'span 2' }}
-      >
+      {/* Hero — 4 cols × 2 rows */}
+      <div className="relative overflow-hidden" style={{ gridColumn: 'span 4', gridRow: 'span 2' }}>
         <Image
           src={heroImage.url}
           alt={heroImage.alt_text ?? ''}
@@ -279,292 +263,55 @@ function ImageMosaic({ images }: { images: MicroblogImage[] }) {
   )
 }
 
-// ── Main card ─────────────────────────────────────────────────────────────────
-export function MicroblogCard({ post, username }: Props) {
-  const [expanded, setExpanded] = useState(false)
-
-  const postDate = getPostDate(post)
-  const permalink = `/${username}/thoughts/${post.short_id}`
-  const hasImages = post.images.length > 0
-
-  const ctxType = post.context_type as CtxType | null
-  const ctxCfg = ctxType && CTX[ctxType] ? CTX[ctxType] : null
-  const ctxLink = ctxType ? ctxHref(username, ctxType, post.context_id) : null
-
-  // ── IMAGE POSTS ─────────────────────────────────────────────────────────────
-  if (hasImages) {
-    return (
-      <article
-        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
-        style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
-      >
-        {/* Context banner — full-width dark strip at the very top */}
-        {ctxCfg && ctxLink && (
-          <Link
-            href={ctxLink}
-            className="flex items-center gap-2 px-4 py-2 no-underline transition-opacity hover:opacity-85 border-b-2 border-ink/20"
-            style={{
-              background: ctxCfg.bannerBg,
-              color: ctxCfg.bannerText,
-              display: 'flex',
-            }}
-          >
-            <span className="text-[12px]">{ctxCfg.icon}</span>
-            <span
-              className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-60"
-            >
-              {ctxCfg.label}
-            </span>
-            <span className="font-head font-[800] text-[13px] ml-0.5">
-              {/* context_id used as href — display name not available in type,
-                  so fall back to the label until we have a name field */}
-              {ctxType === 'adventure' ? 'Adventure' : ctxType === 'project' ? 'Project' : ctxType}
-            </span>
-            <span className="ml-auto text-[12px] opacity-50">→</span>
-          </Link>
-        )}
-
-        {/* Pinned indicator */}
-        {post.pinned && (
-          <div className="absolute top-0 right-0 z-20 font-mono text-[0.48rem] uppercase tracking-wider px-2 py-0.5 bg-[var(--orange)] text-white">
-            📌 Pinned
-          </div>
-        )}
-
-        {/* Full-bleed image mosaic */}
-        <ImageMosaic images={post.images} />
-
-        {/* Dark date + location strip under images */}
-        <DateStrip
-          postDate={postDate}
-          locationName={post.location_name}
-          source={post.source}
-          permalink={permalink}
-          editedAt={post.edited_at ?? null}
-        />
-
-        {/* Body text */}
-        {(post.body_html || post.body) && (
-          <div className="px-4 pt-4 pb-1">
-            {post.body_html ? (
-              <div
-                className={`text-[0.92rem] leading-relaxed prose-sm prose-a:text-[var(--orange)] prose-a:underline ${!expanded ? 'line-clamp-4' : ''}`}
-                dangerouslySetInnerHTML={{ __html: post.body_html }}
-              />
-            ) : (
-              <p
-                className={`text-[0.92rem] leading-relaxed whitespace-pre-wrap ${!expanded ? 'line-clamp-4' : ''}`}
-              >
-                {post.body}
-              </p>
-            )}
-            {/* Read more / collapse toggle — shown only for long posts */}
-            {!expanded && post.body && post.body.length > 280 && (
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                className="text-[0.78rem] text-[var(--orange)] font-mono mt-1 hover:underline cursor-pointer block"
-              >
-                Read more →
-              </button>
-            )}
-            {expanded && post.body && post.body.length > 280 && (
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="text-[0.78rem] font-mono mt-1 text-ink/40 hover:text-ink/60 cursor-pointer block"
-              >
-                ↑ Collapse
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Link preview */}
-        {post.link_url && post.link_preview && (
-          <div className="px-4 pt-3">
-            <a
-              href={post.link_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block border-2 border-ink/20 p-3 bg-ink/[0.03] hover:bg-ink/[0.06] transition-colors no-underline"
-            >
-              <span className="text-[0.6rem] font-mono opacity-40 block mb-0.5">
-                {post.link_preview.domain}
-              </span>
-              <span className="text-[0.82rem] font-bold block mb-0.5">
-                {post.link_preview.title}
-              </span>
-              {post.link_preview.description && (
-                <span className="text-[0.75rem] opacity-55 block line-clamp-2">
-                  {post.link_preview.description}
-                </span>
-              )}
-            </a>
-          </div>
-        )}
-
-        {/* Paired writing */}
-        {post.paired_writing_id && (
-          <div className="px-4 pt-3">
-            <Link
-              href={`/${username}/writings/${post.paired_writing_id}`}
-              className="text-[0.78rem] text-[var(--orange)] font-mono hover:underline block"
-            >
-              Read more →
-            </Link>
-          </div>
-        )}
-
-        {/* Tags */}
-        {post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 px-4 pt-3">
-            {post.tags.map((tag) => (
-              <Link
-                key={tag}
-                href={`/${username}/thoughts/tags/${encodeURIComponent(tag.toLowerCase())}`}
-                className="text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors no-underline"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Footer: engagement */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-4 mt-1 border-t border-ink/8">
-          <div className="flex items-center gap-3">
-            {post.reactions_enabled && post.reaction_counts.length > 0 && (
-              <ReactionBar counts={post.reaction_counts} />
-            )}
-            {post.comments_enabled && post.comment_count > 0 && (
-              <Link
-                href={`${permalink}#comments`}
-                className="text-[0.65rem] font-mono opacity-40 hover:opacity-70 transition-opacity no-underline"
-              >
-                💬 {post.comment_count}
-              </Link>
-            )}
-          </div>
-          <button
-            className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
-            title="Copy link"
-          >
-            🔗
-          </button>
-        </div>
-      </article>
-    )
-  }
-
-  // ── TEXT-ONLY POSTS ──────────────────────────────────────────────────────────
-  // Left border colour = context type colour, or orange for uncontextualised posts
-  const leftBorderColor = ctxCfg ? ctxCfg.leftBorder : '#ff6b35'
-
+// ── Shared footer ─────────────────────────────────────────────────────────────
+function CardFooter({
+  post,
+  permalink,
+  padX = 'px-4',
+}: {
+  post: MicroblogPostWithCounts
+  permalink: string
+  padX?: string
+}) {
   return (
-    <article
-      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
-      style={{
-        boxShadow: '4px 4px 0 #1a1a1a',
-        borderLeftWidth: '6px',
-        borderLeftColor: leftBorderColor,
-      }}
-    >
-      {/* Thin accent bar with inline context link (BD-3 style) */}
-      {ctxCfg && ctxLink && (
-        <div
-          className="flex items-center gap-2 px-4 py-2 font-mono text-[0.68rem] border-b border-ink/8"
-          style={{ background: ctxCfg.barBg }}
-        >
-          <span>{ctxCfg.icon}</span>
-          <span className="uppercase tracking-[0.08em] text-[9px] opacity-50">{ctxCfg.label}</span>
+    <div className={`flex items-center justify-between ${padX} pt-3 pb-4 mt-1 border-t border-ink/10`}>
+      <div className="flex items-center gap-3">
+        {post.reactions_enabled && post.reaction_counts.length > 0 && (
+          <ReactionBar counts={post.reaction_counts} />
+        )}
+        {post.comments_enabled && post.comment_count > 0 && (
           <Link
-            href={ctxLink}
-            className="font-bold hover:underline no-underline"
-            style={{ color: ctxCfg.chipText }}
+            href={`${permalink}#comments`}
+            className="text-[0.65rem] font-mono opacity-40 hover:opacity-70 transition-opacity no-underline"
           >
-            {ctxType === 'adventure' ? 'Adventure' : ctxType === 'project' ? 'Project' : ctxCfg.label}
-            <span className="ml-1 text-[var(--orange)]">→</span>
+            💬 {post.comment_count}
           </Link>
-        </div>
-      )}
-
-      {/* Date header row */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-ink/8">
-        <Link
-          href={permalink}
-          className="font-mono text-[0.68rem] text-ink/45 hover:text-ink/70 transition-colors no-underline"
-        >
-          <time dateTime={postDate} title={new Date(postDate).toLocaleString('en-GB')}>
-            {new Date(postDate).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </time>
-          <span className="ml-1.5 opacity-60">{relativeTime(postDate)}</span>
-        </Link>
-        {post.location_name && (
-          <>
-            <span className="text-ink/20 font-mono text-[0.65rem]">·</span>
-            <span className="font-mono text-[0.65rem] text-ink/40">📍 {post.location_name}</span>
-          </>
-        )}
-        {post.edited_at && (
-          <span
-            className="font-mono text-[0.55rem] text-ink/25 ml-auto"
-            title={`Edited ${new Date(post.edited_at).toLocaleString('en-GB')}`}
-          >
-            edited
-          </span>
-        )}
-        {sourceLabel(post.source) && (
-          <span className="font-mono text-[0.55rem] text-ink/25 ml-auto">
-            via {sourceLabel(post.source)}
-          </span>
-        )}
-        {post.pinned && (
-          <span className="font-mono text-[0.55rem] text-ink/35 ml-auto">📌</span>
         )}
       </div>
+      <button
+        className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
+        title="Copy link"
+      >
+        🔗
+      </button>
+    </div>
+  )
+}
 
-      {/* Body — slightly larger for text-only posts */}
-      <div className="px-5 pt-4 pb-1">
-        {post.body_html ? (
-          <div
-            className={`text-[1rem] leading-relaxed prose-sm prose-a:text-[var(--orange)] prose-a:underline ${!expanded ? 'line-clamp-4' : ''}`}
-            dangerouslySetInnerHTML={{ __html: post.body_html }}
-          />
-        ) : (
-          <p
-            className={`text-[1rem] leading-relaxed whitespace-pre-wrap ${!expanded ? 'line-clamp-4' : ''}`}
-          >
-            {post.body}
-          </p>
-        )}
-        {!expanded && post.body && post.body.length > 280 && (
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="text-[0.78rem] text-[var(--orange)] font-mono mt-2 hover:underline cursor-pointer block"
-          >
-            Read more →
-          </button>
-        )}
-        {expanded && post.body && post.body.length > 280 && (
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            className="text-[0.78rem] font-mono mt-2 text-ink/40 hover:text-ink/60 cursor-pointer block"
-          >
-            ↑ Collapse
-          </button>
-        )}
-      </div>
-
-      {/* Link preview */}
+// ── Shared extras (link preview, writing link, tags) ─────────────────────────
+function CardExtras({
+  post,
+  username,
+  padX = 'px-4',
+}: {
+  post: MicroblogPostWithCounts
+  username: string
+  padX?: string
+}) {
+  return (
+    <>
       {post.link_url && post.link_preview && (
-        <div className="px-5 pt-3">
+        <div className={`${padX} pt-3`}>
           <a
             href={post.link_url}
             target="_blank"
@@ -586,21 +333,19 @@ export function MicroblogCard({ post, username }: Props) {
         </div>
       )}
 
-      {/* Paired writing */}
       {post.paired_writing_id && (
-        <div className="px-5 pt-3">
+        <div className={`${padX} pt-3`}>
           <Link
             href={`/${username}/writings/${post.paired_writing_id}`}
-            className="text-[0.78rem] text-[var(--orange)] font-mono hover:underline block"
+            className="text-[0.78rem] text-[var(--orange)] font-mono hover:underline block no-underline"
           >
             Read more →
           </Link>
         </div>
       )}
 
-      {/* Tags */}
       {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-5 pt-3">
+        <div className={`flex flex-wrap gap-1.5 ${padX} pt-3`}>
           {post.tags.map((tag) => (
             <Link
               key={tag}
@@ -612,29 +357,163 @@ export function MicroblogCard({ post, username }: Props) {
           ))}
         </div>
       )}
+    </>
+  )
+}
 
-      {/* Footer: engagement */}
-      <div className="flex items-center justify-between px-5 pt-3 pb-4 mt-1 border-t border-ink/8">
-        <div className="flex items-center gap-3">
-          {post.reactions_enabled && post.reaction_counts.length > 0 && (
-            <ReactionBar counts={post.reaction_counts} />
-          )}
-          {post.comments_enabled && post.comment_count > 0 && (
-            <Link
-              href={`${permalink}#comments`}
-              className="text-[0.65rem] font-mono opacity-40 hover:opacity-70 transition-opacity no-underline"
-            >
-              💬 {post.comment_count}
-            </Link>
-          )}
-        </div>
-        <button
-          className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
-          title="Copy link"
+// ── Main component ────────────────────────────────────────────────────────────
+export function MicroblogCard({ post, username }: Props) {
+  const postDate = getPostDate(post)
+  const permalink = `/${username}/thoughts/${post.short_id}`
+  const hasImages = post.images.length > 0
+
+  const ctxType = post.context_type as CtxType | null
+  const ctxCfg = ctxType && CTX[ctxType] ? CTX[ctxType] : null
+  const ctxLink = ctxType ? ctxHref(username, ctxType, post.context_id) : null
+  const ctxDisplayName =
+    ctxType === 'adventure' ? 'Adventure'
+    : ctxType === 'project' ? 'Project'
+    : ctxType === 'writing' ? 'Writing'
+    : ctxCfg?.label ?? ''
+
+  // ── IMAGE POSTS ─────────────────────────────────────────────────────────────
+  if (hasImages) {
+    return (
+      <article
+        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
+        style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
+      >
+        {/* Full-width dark context banner at top */}
+        {ctxCfg && ctxLink && (
+          <Link
+            href={ctxLink}
+            className="flex items-center gap-2 px-4 py-2 no-underline border-b border-black/20 transition-opacity hover:opacity-85"
+            style={{ background: ctxCfg.bannerBg, color: ctxCfg.bannerText, display: 'flex' }}
+          >
+            <span className="text-[12px]">{ctxCfg.icon}</span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-60">
+              {ctxCfg.label}
+            </span>
+            <span className="font-head font-[800] text-[13px] ml-0.5">{ctxDisplayName}</span>
+            <span className="ml-auto text-[12px] opacity-50">→</span>
+          </Link>
+        )}
+
+        {/* Pinned flag */}
+        {post.pinned && (
+          <div className="absolute top-0 right-0 z-20 font-mono text-[0.48rem] uppercase tracking-wider px-2 py-0.5 bg-[var(--orange)] text-white">
+            📌 Pinned
+          </div>
+        )}
+
+        {/* Full-bleed image mosaic */}
+        <ImageMosaic images={post.images} />
+
+        {/* Dark date + location strip */}
+        <DateStrip
+          postDate={postDate}
+          locationName={post.location_name}
+          source={post.source}
+          permalink={permalink}
+          editedAt={post.edited_at ?? null}
+        />
+
+        {/* Body */}
+        {(post.body_html || post.body) && (
+          <div className="px-4 pt-4 pb-1">
+            <ExpandableBody
+              bodyHtml={post.body_html}
+              bodyText={post.body}
+              textSize="text-[0.92rem]"
+            />
+          </div>
+        )}
+
+        <CardExtras post={post} username={username} padX="px-4" />
+        <CardFooter post={post} permalink={permalink} padX="px-4" />
+      </article>
+    )
+  }
+
+  // ── TEXT-ONLY POSTS ──────────────────────────────────────────────────────────
+  const leftBorderColor = ctxCfg ? ctxCfg.leftBorder : '#ff6b35'
+
+  return (
+    <article
+      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
+      style={{
+        boxShadow: '4px 4px 0 #1a1a1a',
+        borderLeftWidth: '6px',
+        borderLeftColor: leftBorderColor,
+      }}
+    >
+      {/* Thin accent bar with inline context link (BD-3 style) */}
+      {ctxCfg && ctxLink && (
+        <div
+          className="flex items-center gap-2 px-4 py-2 font-mono text-[0.68rem] border-b border-ink/10"
+          style={{ background: ctxCfg.barBg }}
         >
-          🔗
-        </button>
+          <span>{ctxCfg.icon}</span>
+          <span className="uppercase tracking-[0.08em] text-[9px] text-ink/40">{ctxCfg.label}</span>
+          <Link
+            href={ctxLink}
+            className="font-bold hover:underline no-underline"
+            style={{ color: ctxCfg.chipText }}
+          >
+            {ctxDisplayName}
+            <span className="ml-1 text-[var(--orange)]">→</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Date header row */}
+      <div className="flex items-center flex-wrap gap-2 px-5 py-2.5 border-b border-ink/8">
+        <Link
+          href={permalink}
+          className="font-mono text-[0.68rem] text-ink/45 hover:text-ink/70 transition-colors no-underline"
+        >
+          <time dateTime={postDate} title={new Date(postDate).toLocaleString('en-GB')}>
+            {new Date(postDate).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </time>
+          <span className="ml-1.5 opacity-60">{relativeTime(postDate)}</span>
+        </Link>
+        {post.location_name && (
+          <>
+            <span className="font-mono text-[0.65rem] text-ink/20">·</span>
+            <span className="font-mono text-[0.65rem] text-ink/40">📍 {post.location_name}</span>
+          </>
+        )}
+        {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35 ml-auto">📌</span>}
+        {post.edited_at && (
+          <span
+            className="font-mono text-[0.55rem] text-ink/25 ml-auto"
+            title={`Edited ${new Date(post.edited_at).toLocaleString('en-GB')}`}
+          >
+            edited
+          </span>
+        )}
+        {sourceLabel(post.source) && (
+          <span className="font-mono text-[0.55rem] text-ink/25 ml-auto">
+            via {sourceLabel(post.source)}
+          </span>
+        )}
       </div>
+
+      {/* Body — larger text for text-only posts */}
+      <div className="px-5 pt-4 pb-1">
+        <ExpandableBody
+          bodyHtml={post.body_html}
+          bodyText={post.body}
+          textSize="text-[1rem]"
+        />
+      </div>
+
+      <CardExtras post={post} username={username} padX="px-5" />
+      <CardFooter post={post} permalink={permalink} padX="px-5" />
     </article>
   )
 }
