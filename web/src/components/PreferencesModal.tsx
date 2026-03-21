@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useTheme, type Theme, type Mode } from "./ThemeProvider";
+import { useTheme, type Theme, type Mode, type FontSize } from "./ThemeProvider";
 
 interface PreferencesModalProps {
   open: boolean;
@@ -25,11 +25,17 @@ const MODES: { value: Mode; label: string; icon: string }[] = [
   { value: "system", label: "System", icon: "⚙️" },
 ];
 
+const FONT_SIZES: { value: FontSize; label: string; icon: string }[] = [
+  { value: "small", label: "Small", icon: "A" },
+  { value: "medium", label: "Medium", icon: "A" },
+  { value: "large", label: "Large", icon: "A" },
+];
+
 export default function PreferencesModal({
   open,
   onClose,
 }: PreferencesModalProps) {
-  const { theme, mode, setTheme, setMode } = useTheme();
+  const { theme, mode, fontSize, setTheme, setMode, setFontSize } = useTheme();
   const overlayRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape
@@ -149,6 +155,43 @@ export default function PreferencesModal({
               {mode === "light" && "Always light background"}
               {mode === "dark" && "Always dark background"}
               {mode === "system" && "Follows your device settings"}
+            </p>
+          </div>
+
+          {/* Font size selector */}
+          <div>
+            <label className="font-head font-bold text-[0.7rem] uppercase tracking-wider block mb-3">
+              Text Size
+            </label>
+            <div className="flex border-3 border-[var(--border-color,#1a1a1a)] overflow-hidden">
+              {FONT_SIZES.map((s, idx) => (
+                <button
+                  key={s.value}
+                  onClick={() => setFontSize(s.value)}
+                  className={`
+                    flex-1 py-2.5 px-3 font-head font-bold uppercase
+                    border-0 cursor-pointer transition-all duration-150
+                    ${
+                      fontSize === s.value
+                        ? "bg-[var(--ink,#1a1a1a)] text-[var(--bg,#fffbe6)]"
+                        : "bg-transparent text-[var(--ink,#1a1a1a)] hover:bg-[var(--divider,#ccc)]"
+                    }
+                  `}
+                  style={{
+                    fontSize: s.value === "small" ? "0.62rem" : s.value === "medium" ? "0.68rem" : "0.76rem",
+                    borderRight: idx < FONT_SIZES.length - 1
+                      ? "3px solid var(--border-color, #1a1a1a)"
+                      : "none",
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <p className="font-mono text-[0.62rem] mt-2 opacity-50">
+              {fontSize === "small" && "Compact — fits more on screen"}
+              {fontSize === "medium" && "Default text size"}
+              {fontSize === "large" && "Easier to read"}
             </p>
           </div>
         </div>
