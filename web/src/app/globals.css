@@ -174,7 +174,14 @@ body {
   padding: 0;
 }
 
-/* ── Font size preference ─────────────────────────────────────────────── */
+/* ── Font size preference ─────────────────────────────────────────────────
+   Set on html so rem units (used by all Tailwind text-* classes) scale too.
+   Also override body so inherited sizes track the root.
+   Medium has no html override — browser default (16px) applies, body=15px.
+   ─────────────────────────────────────────────────────────────────────── */
+html[data-font-size="small"]  { font-size: 13px; }
+html[data-font-size="large"]  { font-size: 17px; }
+
 html[data-font-size="small"]  body { font-size: 13px; }
 html[data-font-size="medium"] body { font-size: 15px; }
 html[data-font-size="large"]  body { font-size: 17px; }
