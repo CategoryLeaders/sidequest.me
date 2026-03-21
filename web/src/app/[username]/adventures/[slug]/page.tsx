@@ -46,16 +46,33 @@ function renderPublicPhotos(rawPhotos: unknown[]) {
     )
   }
 
-  // 2–3 photos: equal grid, 3:2 aspect, no cropping
-  if (count <= 3) {
+  // 2 photos: equal grid, 3:2, object-cover
+  if (count === 2) {
     return (
       <div className="mt-2">
         <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${count}, 1fr)`, gap: '3px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '3px' }}>
           {photos.map((p, i) => (
-            <div key={i} className="overflow-hidden border-2 border-ink bg-[var(--bg-card)]" style={{ aspectRatio: '3/2' }}>
+            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '3/2' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-contain" />
+              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // 3 photos: equal grid, square (1:1), object-cover
+  if (count === 3) {
+    return (
+      <div className="mt-2">
+        <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px' }}>
+          {photos.map((p, i) => (
+            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '1' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
             </div>
           ))}
         </div>
@@ -81,7 +98,7 @@ function renderPublicPhotos(rawPhotos: unknown[]) {
               style={isFeatured ? { gridColumn: 'span 4', gridRow: 'span 2' } : { gridColumn: 'span 2', gridRow: 'span 1' }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-contain" />
+              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
               {isFeatured && (
                 <div className="absolute bottom-2 left-2 font-mono text-[0.45rem] bg-black/60 text-white px-1.5 py-0.5 uppercase tracking-wider">
                   Featured
@@ -342,13 +359,13 @@ export default async function AdventurePage({ params, searchParams }: Props) {
                     <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', gap: 0 }}>
                       {/* Sidebar */}
                       <div className="pr-4 pt-0.5">
-                        <div className="font-head font-[900] text-[2rem] leading-none text-ink">{postDay}</div>
-                        <div className="font-mono text-[0.72rem] uppercase text-ink/75 leading-snug mt-0.5 tracking-wide">
+                        <div className="font-head font-[900] text-[1.5rem] leading-none text-ink">{postDay}</div>
+                        <div className="font-mono text-[0.68rem] uppercase text-ink/80 leading-snug mt-1 tracking-wide font-bold">
                           {postMonthYear}
                         </div>
-                        <div className="font-mono text-[0.65rem] text-ink/65 mt-0.5">{postTime}</div>
+                        <div className="font-mono text-[0.62rem] text-ink/70 mt-0.5 font-medium">{postTime}</div>
                         {post.location_name && (
-                          <div className="font-head font-bold text-[0.7rem] uppercase text-orange mt-3 leading-tight break-words">
+                          <div className="font-head font-bold text-[0.68rem] uppercase text-orange mt-2.5 leading-tight break-words">
                             📍 {post.location_name}
                           </div>
                         )}

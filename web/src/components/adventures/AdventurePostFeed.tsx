@@ -62,19 +62,39 @@ function PhotoDisplay({
     )
   }
 
-  // ── 2–3 photos: equal grid, 3:2 aspect, no cropping ──
-  if (count <= 3) {
+  // ── 2 photos: equal grid, natural aspect, object-cover ──
+  if (count === 2) {
     return (
       <div>
         <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
         <div
           className="gap-[3px]"
-          style={{ display: 'grid', gridTemplateColumns: `repeat(${count}, 1fr)` }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}
         >
           {photos.map((p, i) => (
-            <div key={i} className="overflow-hidden border-2 border-ink bg-[var(--bg-card)]" style={{ aspectRatio: '3/2' }}>
+            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '3/2' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-contain" />
+              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── 3 photos: equal 3-column grid, square (1:1), object-cover ──
+  if (count === 3) {
+    return (
+      <div>
+        <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
+        <div
+          className="gap-[3px]"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
+        >
+          {photos.map((p, i) => (
+            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '1' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
             </div>
           ))}
         </div>
@@ -108,7 +128,7 @@ function PhotoDisplay({
               }
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-contain" />
+              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
               {isFeatured && (
                 <div className="absolute bottom-2 left-2 font-mono text-[0.45rem] bg-black/60 text-white px-1.5 py-0.5 uppercase tracking-wider">
                   Featured
@@ -651,21 +671,21 @@ function PostCard({
         {/* ── Sidebar ── */}
         <div className="pr-4 pt-0.5 flex-shrink-0">
           {/* Day number — large and bold */}
-          <div className="font-head font-[900] text-[2rem] leading-none text-ink">{day}</div>
-          {/* Month + year — visible but not competing */}
-          <div className="font-mono text-[0.72rem] uppercase text-ink/75 leading-snug mt-0.5 tracking-wide">
+          <div className="font-head font-[900] text-[1.5rem] leading-none text-ink">{day}</div>
+          {/* Month + year — readable, not muted */}
+          <div className="font-mono text-[0.68rem] uppercase text-ink/80 leading-snug mt-1 tracking-wide font-bold">
             {monthYear}
           </div>
           {/* Time */}
-          <div className="font-mono text-[0.65rem] text-ink/65 mt-0.5">{time}</div>
+          <div className="font-mono text-[0.62rem] text-ink/70 mt-0.5 font-medium">{time}</div>
           {/* Location — prominent orange */}
           {post.location_name && (
-            <div className="font-head font-bold text-[0.7rem] uppercase text-orange mt-3 leading-tight break-words">
+            <div className="font-head font-bold text-[0.68rem] uppercase text-orange mt-2.5 leading-tight break-words">
               📍 {post.location_name}
             </div>
           )}
           {/* Post type — tiny muted */}
-          <div className="font-mono text-[0.5rem] text-ink-muted uppercase mt-3 tracking-wide">
+          <div className="font-mono text-[0.48rem] text-ink-muted uppercase mt-3 tracking-wide">
             {meta.icon} {meta.label}
           </div>
         </div>
