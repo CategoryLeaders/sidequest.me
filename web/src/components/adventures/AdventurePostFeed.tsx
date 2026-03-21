@@ -42,18 +42,17 @@ function PhotoDisplay({
     : count === 3 ? '3 Photos — equal grid'
     : `${count} Photos — mosaic (★ to feature)`
 
-  // ── 1 photo: full width ──
+  // ── 1 photo: full width, natural aspect ratio ──
   if (count === 1) {
     return (
       <div>
         <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-        <div className="w-full overflow-hidden border-2 border-ink" style={{ maxHeight: 280 }}>
+        <div className="w-full border-2 border-ink overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photos[0].url}
             alt={photos[0].caption ?? ''}
-            className="w-full object-cover"
-            style={{ maxHeight: 280 }}
+            className="w-full h-auto block"
           />
         </div>
         {photos[0].caption && (
@@ -63,7 +62,7 @@ function PhotoDisplay({
     )
   }
 
-  // ── 2–3 photos: equal grid ──
+  // ── 2–3 photos: equal grid, 3:2 aspect, no cropping ──
   if (count <= 3) {
     return (
       <div>
@@ -73,9 +72,9 @@ function PhotoDisplay({
           style={{ display: 'grid', gridTemplateColumns: `repeat(${count}, 1fr)` }}
         >
           {photos.map((p, i) => (
-            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '1' }}>
+            <div key={i} className="overflow-hidden border-2 border-ink bg-[var(--bg-card)]" style={{ aspectRatio: '3/2' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
+              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-contain" />
             </div>
           ))}
         </div>
@@ -94,14 +93,14 @@ function PhotoDisplay({
       <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
       <div
         className="gap-[3px]"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gridAutoRows: '80px' }}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gridAutoRows: '140px' }}
       >
         {sortedForMosaic.map(({ photo, originalIndex }) => {
           const isFeatured = originalIndex === featIdx
           return (
             <div
               key={originalIndex}
-              className="relative overflow-hidden border-2 border-ink group/photo"
+              className="relative overflow-hidden border-2 border-ink bg-[var(--bg-card)] group/photo"
               style={
                 isFeatured
                   ? { gridColumn: 'span 4', gridRow: 'span 2' }
@@ -109,7 +108,7 @@ function PhotoDisplay({
               }
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
+              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-contain" />
               {isFeatured && (
                 <div className="absolute bottom-2 left-2 font-mono text-[0.45rem] bg-black/60 text-white px-1.5 py-0.5 uppercase tracking-wider">
                   Featured
