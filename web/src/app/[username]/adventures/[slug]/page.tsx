@@ -10,6 +10,7 @@ import MapModeToggle from '@/components/adventures/MapModeToggle'
 
 interface Props {
   params: Promise<{ username: string; slug: string }>
+  searchParams: Promise<{ sort?: string }>
 }
 
 // ── Normalize legacy plain-string photos ────────────────────────────────────
@@ -94,8 +95,10 @@ function renderPublicPhotos(rawPhotos: unknown[]) {
   )
 }
 
-export default async function AdventurePage({ params }: Props) {
+export default async function AdventurePage({ params, searchParams }: Props) {
   const { username, slug } = await params
+  const { sort } = await searchParams
+  const sortNewest = sort === 'new'
   const supabase = await createClient()
 
   const { data: profile } = await (supabase as any)
@@ -122,12 +125,12 @@ export default async function AdventurePage({ params }: Props) {
   // Draft adventures: only visible to owner
   if (adventure.status === 'draft' && !isOwner) notFound()
 
-  // Fetch posts
+  // Fetch posts — default ascending (start at beginning), ?sort=new for newest first
   const { data: posts } = await (supabase as any)
     .from('adventure_posts')
     .select('*')
     .eq('adventure_id', adventure.id)
-    .order('posted_at', { ascending: true }) as { data: AdventurePost[] | null }
+    .order('posted_at', { ascending: !sortNewest }) as { data: AdventurePost[] | null }
 
   const allPosts = posts ?? []
   const chapters = (adventure.chapters ?? []) as Chapter[]
@@ -276,6 +279,28 @@ export default async function AdventurePage({ params }: Props) {
       {theme !== 'map' && routeNames.length > 1 && (
         <div className="mb-8 border-3 border-ink overflow-hidden">
           <IndianaJonesMapWrapper waypoints={(adventure.route ?? []) as Waypoint[]} className="h-[250px]" />
+        </div>
+      )}
+
+      {/* ── Sort toggle ── */}
+      {allPosts.length > 1 && (
+        <div className="flex items-center gap-2 mb-6">
+          <a
+            href={`/${username}/adventures/${slug}`}
+            className={`font-mono text-[0.6rem] font-bold uppercase px-3 py-1 border-2 transition-all no-underline ${
+              !sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+            }`}
+          >
+            Start at beginning
+          </a>
+          <a
+            href={`/${username}/adventures/${slug}?sort=new`}
+            className={`font-mono text-[0.6rem] font-bold uppercase px-3 py-1 border-2 transition-all no-underline ${
+              sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+            }`}
+          >
+            What&apos;s new
+          </a>
         </div>
       )}
 

@@ -47,14 +47,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Try feed_events first; fall back to legacy buildFeed
   const whatsNew = await getWhatsNewFeed(profile.id, username, { limit: 6 });
-  const legacyFeed = whatsNew.length === 0 ? await buildFeed(profile.id) : null;
+  const legacyFeed = whatsNew.length === 0 ? await buildFeed(profile.id, username) : null;
 
   // Convert legacy FeedItems → WhatsNewItems so the new layout always renders
   const legacyTypeIcon: Record<string, string> = { photo: "📸", project: "🚀", career: "💼", idea: "💡", article: "✍️" };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legacyAsWhatsNew: WhatsNewItem[] = (legacyFeed ?? []).map((item: FeedItem, i: number) => ({
     id: item.id,
-    eventType: (item.type === "project" ? "project_created" : item.type === "career" ? "career_updated" : "microblog_published") as WhatsNewItem["eventType"],
+    eventType: (
+      item.type === "project" ? "project_created"
+      : item.type === "career" ? "career_updated"
+      : item.type === "article" ? "writing_published"
+      : "microblog_published"
+    ) as WhatsNewItem["eventType"],
     objectId: item.id,
     objectType: item.type,
     publishedAt: item.sortDate || new Date(Date.now() - i * 86_400_000).toISOString(),
@@ -65,6 +70,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     badgeLabel: item.badgeLabel,
     icon: legacyTypeIcon[item.type] ?? "📌",
     imageUrl: item.image,
+    readingTime: item.type === "article" && item.desc ? item.desc : undefined,
   }));
 
   // Combined feed: prefer feed_events, fall back to legacy

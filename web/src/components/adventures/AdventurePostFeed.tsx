@@ -142,6 +142,7 @@ export default function AdventurePostFeed({ adventureId, chapters = [] }: Advent
   const [posts, setPosts] = useState<AdventurePost[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'timeline' | 'chapters'>('timeline')
+  const [sortNewest, setSortNewest] = useState(false)
 
   // Composer state
   const [composerType, setComposerType] = useState<PostType>('micro')
@@ -266,9 +267,33 @@ export default function AdventurePostFeed({ adventureId, chapters = [] }: Advent
   return (
     <div className="mt-10 border-t-3 border-ink pt-8">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-head font-[900] text-[1rem] uppercase">
-          Posts ({posts.length})
-        </h3>
+        <div className="flex items-center gap-3">
+          <h3 className="font-head font-[900] text-[1rem] uppercase">
+            Posts ({posts.length})
+          </h3>
+          {posts.length > 1 && (
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSortNewest(false)}
+                className={`font-mono text-[0.55rem] font-bold uppercase px-2 py-0.5 border-2 transition-all cursor-pointer ${
+                  !sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+                }`}
+              >
+                Start
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortNewest(true)}
+                className={`font-mono text-[0.55rem] font-bold uppercase px-2 py-0.5 border-2 transition-all cursor-pointer ${
+                  sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+                }`}
+              >
+                Latest
+              </button>
+            </div>
+          )}
+        </div>
         {!composerOpen && (
           <button
             type="button"
@@ -488,7 +513,7 @@ export default function AdventurePostFeed({ adventureId, chapters = [] }: Advent
       ) : (
         /* ── Timeline view ── */
         <div>
-          {posts.map((post, index) => renderPost(post, index === 0))}
+          {(sortNewest ? [...posts].reverse() : posts).map((post, index) => renderPost(post, index === 0))}
         </div>
       )}
     </div>
