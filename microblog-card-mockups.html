@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thoughtstream Card — Design Mockups</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0ede3; color: #1a1a1a; padding: 40px 20px 100px; }
+
+  h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 8px; line-height: 1.6; max-width: 640px; }
+  .problems { background: #fff8e7; border: 1.5px solid #e8c840; border-radius: 6px; padding: 12px 16px; margin-bottom: 28px; font-size: 12px; color: #6b5200; line-height: 1.7; max-width: 640px; }
+  .problems strong { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #b88000; margin-bottom: 6px; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 3px solid #1a1a1a; flex-wrap: wrap; margin-bottom: 0; }
+  .tab { padding: 10px 18px; font-size: 12px; font-weight: 600; cursor: pointer; border: 2px solid transparent; border-bottom: none; margin-bottom: -3px; background: transparent; color: #888; transition: all 0.15s; letter-spacing: 0.04em; text-transform: uppercase; font-family: inherit; }
+  .tab.active { background: #1a1a1a; color: #f0ede3; border-color: #1a1a1a; }
+  .tab:hover:not(.active) { color: #1a1a1a; }
+
+  .panel { display: none; padding-top: 32px; }
+  .panel.active { display: block; }
+
+  .desc { background: white; border: 1.5px solid #e0ddd5; border-radius: 6px; padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.7; color: #555; max-width: 640px; }
+  .desc strong { color: #1a1a1a; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+  .pro { color: #16a34a; font-size: 12px; }
+  .con { color: #dc2626; font-size: 12px; }
+
+  .feed { max-width: 640px; display: flex; flex-direction: column; gap: 20px; }
+  .feed-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #999; margin-bottom: 24px; font-weight: 600; }
+
+  /* ── Image placeholders ── */
+  .img-ph { width: 100%; position: relative; overflow: hidden; }
+  .img-ph.landscape { aspect-ratio: 4/3; }
+  .img-ph.wide { aspect-ratio: 16/9; }
+  .img-ph.portrait { aspect-ratio: 3/4; }
+  .img-ph.square { aspect-ratio: 1/1; }
+  .img-ph.hove { background: linear-gradient(160deg, #ff9a3c 0%, #ffd066 45%, #ffb347 70%, #c0392b 100%); }
+  .img-ph.iceland1 { background: linear-gradient(180deg, #6bb5d6 0%, #a8d5e2 35%, #c5e8d0 60%, #4a9e7a 100%); }
+  .img-ph.iceland2 { background: linear-gradient(160deg, #4a7fcb 0%, #7ec8e3 40%, #d6eaf8 70%, #b8d4e8 100%); }
+  .img-ph.iceland3 { background: linear-gradient(200deg, #2c3e50 0%, #3d7a8a 40%, #85c1e9 70%, #d6eaf8 100%); }
+  .img-ph.brighton { background: linear-gradient(180deg, #85c1e9 0%, #aed6f1 40%, #d6eaf8 60%, #e8f4fd 80%, #c8e6c9 100%); }
+  .img-ph.pub { background: linear-gradient(160deg, #5d4037 0%, #8d6e63 40%, #a1887f 70%, #d7ccc8 100%); }
+  .img-ph::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.06); }
+
+  /* ── Shared card base ── */
+  .card { background: #fff; position: relative; }
+  .card-shadow { box-shadow: 4px 4px 0 #1a1a1a; }
+
+  /* ── OPTION A — Minimal / Reading-first ── */
+  .opt-a .card {
+    border: 3px solid #1a1a1a;
+    padding: 18px 20px;
+    box-shadow: 4px 4px 0 #1a1a1a;
+  }
+  .opt-a .card-dateline {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: 11px; font-family: 'SF Mono', 'Menlo', monospace; color: #aaa;
+    margin-bottom: 10px;
+  }
+  .opt-a .card-dateline .sep { color: #d5d2ca; }
+  .opt-a .card-dateline .loc { color: #bbb; display: flex; align-items: center; gap: 3px; }
+  .opt-a .card-dateline .src { color: #ccc; }
+  .opt-a .card-body {
+    font-size: 15px; line-height: 1.65; color: #1a1a1a;
+    margin-bottom: 14px;
+  }
+  .opt-a .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-a .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 14px; cursor: pointer; display: block; text-decoration: none; }
+  .opt-a .card-images { display: grid; gap: 3px; margin-bottom: 14px; border: 2.5px solid #1a1a1a; overflow: hidden; }
+  .opt-a .card-images.n1 { grid-template-columns: 1fr; }
+  .opt-a .card-images.n2 { grid-template-columns: 1fr 1fr; }
+  .opt-a .card-images.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .opt-a .card-images.n3 .img-ph:first-child { grid-row: 1 / 3; }
+  .opt-a .card-images.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .opt-a .card-images .img-ph { height: 180px; }
+  .opt-a .card-images.n1 .img-ph { height: 240px; }
+  .opt-a .card-images.n3 .img-ph:first-child { height: 100%; }
+  .opt-a .card-images.n3 .img-ph:not(:first-child) { height: 88px; }
+  .opt-a .card-context-strip {
+    display: flex; align-items: center; gap: 8px;
+    border-top: 1.5px dashed #e0ddd5; padding-top: 10px;
+    margin-bottom: 10px; text-decoration: none;
+    cursor: pointer;
+  }
+  .opt-a .card-context-strip:hover .ctx-name { text-decoration: underline; }
+  .opt-a .ctx-icon { font-size: 12px; }
+  .opt-a .ctx-label { font-size: 10px; font-family: monospace; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; }
+  .opt-a .ctx-name { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-left: 2px; }
+  .opt-a .ctx-arrow { font-size: 12px; color: #ff6b35; margin-left: auto; }
+  .opt-a .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08);
+  }
+  .opt-a .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .opt-a .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .opt-a .card-actions { display: flex; align-items: center; gap: 10px; }
+  .opt-a .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .opt-a .card-actions .action:hover { color: #888; }
+  .opt-a .card-permalink { font-size: 10px; font-family: monospace; color: #ccc; text-decoration: none; }
+  .opt-a .card-permalink:hover { color: #888; }
+
+  /* ── OPTION B — Context-Anchored ── */
+  .opt-b .card {
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0 #1a1a1a;
+    overflow: hidden;
+  }
+  .opt-b .ctx-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; cursor: pointer; text-decoration: none;
+    border-bottom: 2px solid #1a1a1a;
+    transition: opacity 0.15s;
+  }
+  .opt-b .ctx-banner:hover { opacity: 0.85; }
+  .opt-b .ctx-banner.adventure { background: #1a3d2e; color: #a8d5a2; }
+  .opt-b .ctx-banner.project { background: #1a2840; color: #a8c4e0; }
+  .opt-b .ctx-banner.none { display: none; }
+  .opt-b .ctx-banner-icon { font-size: 13px; }
+  .opt-b .ctx-banner-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; font-family: monospace; opacity: 0.65; }
+  .opt-b .ctx-banner-name { font-size: 13px; font-weight: 700; margin-left: 2px; }
+  .opt-b .ctx-banner-arr { margin-left: auto; font-size: 13px; opacity: 0.7; }
+  .opt-b .card-inner { padding: 16px 18px; }
+  .opt-b .card-dateline {
+    font-size: 11px; font-family: monospace; color: #bbb;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .opt-b .card-dateline .loc { color: #b5a888; }
+  .opt-b .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 14px; }
+  .opt-b .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-b .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 14px; cursor: pointer; display: block; }
+  .opt-b .card-images { display: grid; gap: 3px; margin-bottom: 14px; border: 2px solid rgba(26,26,26,0.12); overflow: hidden; }
+  .opt-b .card-images.n1 { grid-template-columns: 1fr; }
+  .opt-b .card-images.n2 { grid-template-columns: 1fr 1fr; }
+  .opt-b .card-images.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .opt-b .card-images.n3 .img-ph:first-child { grid-row: 1 / 3; }
+  .opt-b .card-images .img-ph { height: 180px; }
+  .opt-b .card-images.n1 .img-ph { height: 220px; }
+  .opt-b .card-images.n3 .img-ph:first-child { height: 100%; }
+  .opt-b .card-images.n3 .img-ph:not(:first-child) { height: 88px; }
+  .opt-b .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08);
+  }
+  .opt-b .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .opt-b .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .opt-b .card-actions { display: flex; gap: 10px; }
+  .opt-b .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .opt-b .card-actions .action:hover { color: #888; }
+
+  /* ── OPTION C — Social Header ── */
+  .opt-c .card {
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0 #1a1a1a;
+    padding: 16px 18px;
+  }
+  .opt-c .card-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .opt-c .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b35 0%, #c0392b 100%);
+    border: 2.5px solid #1a1a1a; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: white; font-family: monospace;
+  }
+  .opt-c .card-header-meta { flex: 1; min-width: 0; }
+  .opt-c .card-header-name { font-size: 13px; font-weight: 700; margin-bottom: 1px; }
+  .opt-c .card-header-sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .opt-c .card-header-sub .date { font-size: 11px; font-family: monospace; color: #aaa; }
+  .opt-c .card-header-sub .src-badge { font-size: 9px; background: #e0ddd5; color: #999; padding: 1px 5px; font-family: monospace; border-radius: 2px; }
+  .opt-c .ctx-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border: 2px solid; cursor: pointer; text-decoration: none;
+    border-radius: 2px; transition: background 0.15s;
+  }
+  .opt-c .ctx-chip.adventure { border-color: #1a3d2e; color: #1a3d2e; background: #e8f5ed; }
+  .opt-c .ctx-chip.adventure:hover { background: #d0edd8; }
+  .opt-c .ctx-chip.project { border-color: #1a2840; color: #1a2840; background: #e8f0f8; }
+  .opt-c .ctx-chip.project:hover { background: #d0e0f0; }
+  .opt-c .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 12px; }
+  .opt-c .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-c .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 12px; cursor: pointer; display: block; }
+  .opt-c .loc-line { font-size: 11px; font-family: monospace; color: #aaa; margin-bottom: 12px; display: flex; align-items: center; gap: 4px; }
+  .opt-c .card-images { display: grid; gap: 3px; margin-bottom: 12px; border: 2.5px solid #1a1a1a; overflow: hidden; }
+  .opt-c .card-images.n1 { grid-template-columns: 1fr; }
+  .opt-c .card-images.n2 { grid-template-columns: 1fr 1fr; }
+  .opt-c .card-images.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .opt-c .card-images.n3 .img-ph:first-child { grid-row: 1 / 3; }
+  .opt-c .card-images .img-ph { height: 180px; }
+  .opt-c .card-images.n1 .img-ph { height: 220px; }
+  .opt-c .card-images.n3 .img-ph:first-child { height: 100%; }
+  .opt-c .card-images.n3 .img-ph:not(:first-child) { height: 88px; }
+  .opt-c .card-engage {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08);
+  }
+  .opt-c .reactions { display: flex; gap: 6px; align-items: center; }
+  .opt-c .reaction { font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 2px; }
+  .opt-c .reaction span { font-size: 10px; color: #aaa; font-family: monospace; }
+  .opt-c .engage-right { display: flex; gap: 10px; align-items: center; }
+  .opt-c .engage-right .action { font-size: 11px; font-family: monospace; color: #ccc; cursor: pointer; }
+  .opt-c .engage-right .action:hover { color: #888; }
+  .opt-c .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .opt-c .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+
+  /* ── OPTION D — Image-first / Magazine ── */
+  .opt-d .card {
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0 #1a1a1a;
+    overflow: hidden;
+  }
+  .opt-d .card-hero { position: relative; }
+  .opt-d .card-hero .img-ph { height: 260px; }
+  .opt-d .card-hero-grid { display: grid; gap: 3px; }
+  .opt-d .card-hero-grid.n2 { grid-template-columns: 1fr 1fr; }
+  .opt-d .card-hero-grid.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .opt-d .card-hero-grid.n3 .img-ph:first-child { grid-row: 1/3; }
+  .opt-d .card-hero-grid .img-ph { height: 160px; }
+  .opt-d .card-hero-grid.n3 .img-ph:not(:first-child) { height: 78px; }
+  .opt-d .hero-date-strip {
+    background: #1a1a1a; color: #f0ede3;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 7px 16px; font-size: 11px; font-family: monospace;
+  }
+  .opt-d .hero-date-strip .loc { color: #aaa; display: flex; align-items: center; gap: 3px; }
+  .opt-d .hero-date-strip .src { color: #666; margin-left: auto; }
+  .opt-d .hero-date-strip .sep { color: #444; }
+  .opt-d .card-body-area { padding: 16px 18px; }
+  .opt-d .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 14px; }
+  .opt-d .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-d .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 14px; cursor: pointer; display: block; }
+  .opt-d .ctx-callout {
+    display: flex; align-items: center; gap: 10px;
+    border: 2.5px solid #1a3d2e; padding: 10px 14px;
+    background: #f0f9f3; margin-bottom: 14px; cursor: pointer;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .opt-d .ctx-callout:hover { background: #e0f2e6; }
+  .opt-d .ctx-callout.project { border-color: #1a2840; background: #f0f4f9; }
+  .opt-d .ctx-callout.project:hover { background: #e0eaf5; }
+  .opt-d .ctx-callout-icon { font-size: 18px; }
+  .opt-d .ctx-callout-text { flex: 1; min-width: 0; }
+  .opt-d .ctx-callout-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; font-family: monospace; color: #aaa; margin-bottom: 1px; }
+  .opt-d .ctx-callout-name { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+  .opt-d .ctx-callout-arr { font-size: 18px; color: #aaa; }
+  .opt-d .no-image .card-body-area { padding-top: 20px; }
+  .opt-d .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08);
+  }
+  .opt-d .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .opt-d .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .opt-d .card-actions { display: flex; gap: 10px; }
+  .opt-d .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .opt-d .card-actions .action:hover { color: #888; }
+  .opt-d .noimg-dateline { padding: 12px 18px 0; font-size: 11px; font-family: monospace; color: #bbb; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-bottom: 1.5px solid rgba(26,26,26,0.06); padding-bottom: 12px; }
+  .opt-d .noimg-dateline .loc { color: #b5a888; }
+
+  /* ── Feedback panel ── */
+  .feedback-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a1a1a; color: #f0ede3;
+    border-top: 3px solid #f0ede3;
+    z-index: 100; height: 48px; overflow: hidden; transition: height 0.2s ease;
+  }
+  .feedback-panel.open { height: auto; max-height: 85vh; overflow-y: auto; }
+  .feedback-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; cursor: pointer; user-select: none; }
+  .feedback-toggle-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .feedback-toggle-hint { font-size: 11px; color: #888; }
+  .feedback-body { padding: 20px 24px; max-width: 780px; }
+  .feedback-section { margin-bottom: 20px; }
+  .feedback-section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  .feedback-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .feedback-check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .feedback-check input { accent-color: #f0ede3; width: 13px; height: 13px; cursor: pointer; }
+  .feedback-check span { font-size: 12px; }
+  .feedback-text { width: 100%; background: #2a2a2a; border: 1px solid #444; color: #f0ede3; font-family: inherit; font-size: 13px; padding: 10px 12px; border-radius: 3px; resize: vertical; min-height: 60px; outline: none; line-height: 1.5; }
+  .feedback-text::placeholder { color: #555; }
+  .feedback-text:focus { border-color: #888; }
+  .feedback-actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .copy-btn { background: #f0ede3; color: #1a1a1a; border: none; font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: 2px; transition: background 0.15s; }
+  .copy-btn:hover { background: #e0ddd5; }
+  .copy-btn.copied { background: #4ade80; }
+  .clear-btn { background: none; color: #666; border: none; font-family: inherit; font-size: 11px; cursor: pointer; }
+  .clear-btn:hover { color: #f0ede3; }
+  .prompt-preview { background: #111; border: 1px solid #2a2a2a; padding: 14px; font-size: 12px; color: #aaa; line-height: 1.6; font-family: 'SF Mono', 'Menlo', monospace; white-space: pre-wrap; margin-top: 16px; display: none; border-radius: 3px; }
+  .prompt-preview.visible { display: block; }
+
+  /* selected option highlight */
+  .option-vote { display: flex; gap: 8px; flex-wrap: wrap; }
+  .vote-btn { background: #2a2a2a; border: 1.5px solid #444; color: #888; font-family: inherit; font-size: 11px; font-weight: 600; padding: 6px 12px; cursor: pointer; border-radius: 2px; letter-spacing: 0.04em; transition: all 0.15s; }
+  .vote-btn:hover { border-color: #888; color: #f0ede3; }
+  .vote-btn.selected { background: #f0ede3; color: #1a1a1a; border-color: #f0ede3; }
+</style>
+</head>
+<body>
+
+<h1>Thoughtstream Card — Design Mockups</h1>
+<p class="subtitle">Four layout approaches for the microblog feed card. Key problems to resolve, then use the generator panel to send feedback.</p>
+
+<div class="problems">
+  <strong>Current card problems</strong>
+  "Microblog" sticker is redundant on the thoughts feed · No clickable link to the adventure/project context · Meta (type indicator, context label) appears <em>before</em> the body, burying the content · Fixed 2-column image grid regardless of count or aspect ratio · Timestamp buried in footer at 0.6rem mono · Long posts overflow without truncation
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-panel="a">A — Minimal</button>
+  <button class="tab" data-panel="b">B — Context Banner</button>
+  <button class="tab" data-panel="c">C — Social Header</button>
+  <button class="tab" data-panel="d">D — Image-first</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PANEL A ═══ -->
+<div id="panel-a" class="panel active">
+  <div class="desc">
+    <strong>A — Minimal / Reading-first</strong>
+    Strip everything non-essential. Date + location as a single subtle line at top. Body immediately below — no interruptions. Adventure link revealed as a dashed bottom strip only when a context is present. Images use a smart layout: 1 image fills the full width; 2 split 50/50; 3 use a 2+1 asymmetric grid. Long posts truncate at 4 lines with a "read more" link.
+    <br><br>
+    <span class="pro">✓ Body is the first thing you read. Clean. Fast.</span><br>
+    <span class="pro">✓ Adventure link is clear but doesn't dominate posts that don't have one.</span><br>
+    <span class="con">✗ Context is easy to miss on posts where it's important.</span>
+  </div>
+
+  <div class="feed opt-a">
+
+    <!-- Post 1: Text only short -->
+    <article class="card">
+      <div class="card-dateline">
+        <span>14 Feb 2018</span>
+        <span class="sep">·</span>
+        <span>5 years ago</span>
+        <span class="sep">·</span>
+        <span class="src">via Facebook</span>
+      </div>
+      <p class="card-body">Just a Nobody.</p>
+      <div class="card-footer">
+        <div class="card-tags"></div>
+        <div class="card-actions">
+          <span class="action">🔗</span>
+          <a href="#" class="card-permalink">permalink</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 2: 1 image + location -->
+    <article class="card">
+      <div class="card-dateline">
+        <span>22 Jul 2023</span>
+        <span class="sep">·</span>
+        <span>2 years ago</span>
+        <span class="sep">·</span>
+        <span class="loc">📍 Hove Seafront, Hove</span>
+        <span class="sep">·</span>
+        <span class="src">via Facebook</span>
+      </div>
+      <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything. Couldn't not stop.</p>
+      <div class="card-images n1">
+        <div class="img-ph landscape hove"></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-tags">
+          <span>#photography</span>
+          <span>#golden-hour</span>
+        </div>
+        <div class="card-actions">
+          <span class="action">🔗</span>
+          <a href="#" class="card-permalink">permalink</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 3: Adventure-linked + 3 images -->
+    <article class="card">
+      <div class="card-dateline">
+        <span>15 Jun 2022</span>
+        <span class="sep">·</span>
+        <span>3 years ago</span>
+        <span class="sep">·</span>
+        <span class="loc">📍 Jökulsárlón, Iceland</span>
+      </div>
+      <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand. Still processing this place.</p>
+      <div class="card-images n3">
+        <div class="img-ph landscape iceland1"></div>
+        <div class="img-ph landscape iceland2"></div>
+        <div class="img-ph landscape iceland3"></div>
+      </div>
+      <a href="#" class="card-context-strip">
+        <span class="ctx-icon">🗺</span>
+        <span class="ctx-label">Adventure</span>
+        <span class="ctx-name">Iceland Ring Road 2022</span>
+        <span class="ctx-arrow">→</span>
+      </a>
+      <div class="card-footer">
+        <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+        <div class="card-actions">
+          <span class="action">🔗</span>
+          <a href="#" class="card-permalink">permalink</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 4: Long text, truncated -->
+    <article class="card">
+      <div class="card-dateline">
+        <span>3 Nov 2021</span>
+        <span class="sep">·</span>
+        <span>4 years ago</span>
+        <span class="sep">·</span>
+        <span class="src">via Facebook</span>
+      </div>
+      <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. It's usually applied to teenagers, but I think it happens to adults all the time. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs, you attract a tribe that mirrors them back at you, and now the cost of changing your mind includes the social cost of admitting you were wrong publicly. So people stop changing their minds. Not because the evidence stopped being compelling, but because the identity became load-bearing.</p>
+      <a href="#" class="read-more">Read more →</a>
+      <div class="card-footer">
+        <div class="card-tags"><span>#psychology</span><span>#identity</span></div>
+        <div class="card-actions">
+          <span class="action">🔗</span>
+          <a href="#" class="card-permalink">permalink</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 5: 2 images, pub location -->
+    <article class="card">
+      <div class="card-dateline">
+        <span>12 Dec 2022</span>
+        <span class="sep">·</span>
+        <span>3 years ago</span>
+        <span class="sep">·</span>
+        <span class="loc">📍 The Black Boy, Winchester</span>
+        <span class="sep">·</span>
+        <span class="src">via Facebook</span>
+      </div>
+      <p class="card-body">Pre-Christmas catch-up at one of the best pubs in Hampshire. Some traditions survive everything.</p>
+      <div class="card-images n2">
+        <div class="img-ph landscape pub"></div>
+        <div class="img-ph landscape brighton"></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-tags"></div>
+        <div class="card-actions">
+          <span class="action">🔗</span>
+          <a href="#" class="card-permalink">permalink</a>
+        </div>
+      </div>
+    </article>
+
+  </div><!-- /feed -->
+</div><!-- /panel-a -->
+
+<!-- ═══════════════════════════════════════════════════ PANEL B ═══ -->
+<div id="panel-b" class="panel">
+  <div class="desc">
+    <strong>B — Context Banner</strong>
+    When a post belongs to an adventure or project, a full-width coloured banner anchors the top of the card — dark green for adventures, dark navy for projects. The banner is clickable. Posts without context get no banner, staying lightweight. Date and location sit just below it. Body is still the first text you read.
+    <br><br>
+    <span class="pro">✓ Adventure link is unmissable and prominent.</span><br>
+    <span class="pro">✓ Colour-coding creates visual grouping when browsing a mixed feed.</span><br>
+    <span class="con">✗ Dark banner is visually heavy — may dominate cards unnecessarily.</span><br>
+    <span class="con">✗ Non-contextual posts look incomplete by comparison.</span>
+  </div>
+
+  <div class="feed opt-b">
+
+    <!-- Post 1: Text only short -->
+    <article class="card">
+      <div class="card-inner">
+        <div class="card-dateline">
+          <span>14 Feb 2018</span>
+          <span>· 5 years ago</span>
+          <span>· via Facebook</span>
+        </div>
+        <p class="card-body">Just a Nobody.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span><span class="action">permalink</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 2: 1 image + location, no context -->
+    <article class="card">
+      <div class="card-inner">
+        <div class="card-dateline">
+          <span>22 Jul 2023</span>
+          <span>· 2 years ago</span>
+          <span>·</span>
+          <span class="loc">📍 Hove Seafront, Hove</span>
+          <span>· via Facebook</span>
+        </div>
+        <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything. Couldn't not stop.</p>
+        <div class="card-images n1">
+          <div class="img-ph landscape hove"></div>
+        </div>
+        <div class="card-footer">
+          <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 3: Adventure banner + 3 images -->
+    <article class="card">
+      <a href="#" class="ctx-banner adventure">
+        <span class="ctx-banner-icon">🗺</span>
+        <span class="ctx-banner-label">Adventure</span>
+        <span class="ctx-banner-name">Iceland Ring Road 2022</span>
+        <span class="ctx-banner-arr">→</span>
+      </a>
+      <div class="card-inner">
+        <div class="card-dateline">
+          <span>15 Jun 2022</span>
+          <span>· 3 years ago</span>
+          <span>·</span>
+          <span class="loc">📍 Jökulsárlón, Iceland</span>
+        </div>
+        <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand. Still processing this place.</p>
+        <div class="card-images n3">
+          <div class="img-ph landscape iceland1"></div>
+          <div class="img-ph landscape iceland2"></div>
+          <div class="img-ph landscape iceland3"></div>
+        </div>
+        <div class="card-footer">
+          <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 4: Long, truncated -->
+    <article class="card">
+      <div class="card-inner">
+        <div class="card-dateline">
+          <span>3 Nov 2021</span>
+          <span>· 4 years ago</span>
+          <span>· via Facebook</span>
+        </div>
+        <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. It's usually applied to teenagers, but I think it happens to adults all the time. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs, you attract a tribe that mirrors them back at you, and now the cost of changing your mind includes the social cost of admitting you were wrong publicly.</p>
+        <a href="#" class="read-more">Read more →</a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#psychology</span><span>#identity</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 5: Project banner -->
+    <article class="card">
+      <a href="#" class="ctx-banner project">
+        <span class="ctx-banner-icon">⚙️</span>
+        <span class="ctx-banner-label">Project</span>
+        <span class="ctx-banner-name">SideQuest.me Rebuild</span>
+        <span class="ctx-banner-arr">→</span>
+      </a>
+      <div class="card-inner">
+        <div class="card-dateline">
+          <span>5 Mar 2026</span>
+          <span>· 2 weeks ago</span>
+        </div>
+        <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#build-in-public</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div><!-- /panel-b -->
+
+<!-- ═══════════════════════════════════════════════════ PANEL C ═══ -->
+<div id="panel-c" class="panel">
+  <div class="desc">
+    <strong>C — Social Header</strong>
+    A compact header row: circular avatar + username + relative date. Source badge (FB / Telegram) sits inline. Context appears as a coloured chip right in the header — it's clickable, and it's the first thing after the byline. Body text follows immediately. Location shows as a small line above images if present. More familiar/social-network feel.
+    <br><br>
+    <span class="pro">✓ Familiar pattern — easier to scan quickly.</span><br>
+    <span class="pro">✓ Context chip in the header feels natural and clickable without being intrusive.</span><br>
+    <span class="con">✗ Avatar/username redundant — this is always Sophie's profile.</span><br>
+    <span class="con">✗ More elements competing for attention in the top row.</span>
+  </div>
+
+  <div class="feed opt-c">
+
+    <!-- Post 1: Text only short -->
+    <article class="card">
+      <div class="card-header">
+        <div class="avatar">S</div>
+        <div class="card-header-meta">
+          <div class="card-header-name">sophie</div>
+          <div class="card-header-sub">
+            <span class="date">14 Feb 2018</span>
+            <span class="src-badge">FB</span>
+          </div>
+        </div>
+      </div>
+      <p class="card-body">Just a Nobody.</p>
+      <div class="card-engage">
+        <div class="reactions"></div>
+        <div class="engage-right">
+          <span class="action">🔗</span>
+          <span class="action">permalink</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 2: 1 image + location -->
+    <article class="card">
+      <div class="card-header">
+        <div class="avatar">S</div>
+        <div class="card-header-meta">
+          <div class="card-header-name">sophie</div>
+          <div class="card-header-sub">
+            <span class="date">22 Jul 2023</span>
+            <span class="src-badge">FB</span>
+          </div>
+        </div>
+      </div>
+      <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything. Couldn't not stop.</p>
+      <div class="loc-line">📍 Hove Seafront, Hove</div>
+      <div class="card-images n1">
+        <div class="img-ph landscape hove"></div>
+      </div>
+      <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+      <div class="card-engage">
+        <div class="reactions">
+          <span class="reaction">❤️ <span>12</span></span>
+          <span class="reaction">🔥 <span>4</span></span>
+        </div>
+        <div class="engage-right">
+          <span class="action">🔗</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 3: Adventure context chip + 3 images -->
+    <article class="card">
+      <div class="card-header">
+        <div class="avatar">S</div>
+        <div class="card-header-meta">
+          <div class="card-header-name">sophie</div>
+          <div class="card-header-sub">
+            <span class="date">15 Jun 2022</span>
+            <a href="#" class="ctx-chip adventure">🗺 Iceland Ring Road 2022</a>
+          </div>
+        </div>
+      </div>
+      <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand. Still processing this place.</p>
+      <div class="loc-line">📍 Jökulsárlón, Iceland</div>
+      <div class="card-images n3">
+        <div class="img-ph landscape iceland1"></div>
+        <div class="img-ph landscape iceland2"></div>
+        <div class="img-ph landscape iceland3"></div>
+      </div>
+      <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+      <div class="card-engage">
+        <div class="reactions">
+          <span class="reaction">😍 <span>24</span></span>
+          <span class="reaction">❤️ <span>18</span></span>
+        </div>
+        <div class="engage-right">
+          <span class="action">💬 3</span>
+          <span class="action">🔗</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 4: Long, truncated -->
+    <article class="card">
+      <div class="card-header">
+        <div class="avatar">S</div>
+        <div class="card-header-meta">
+          <div class="card-header-name">sophie</div>
+          <div class="card-header-sub">
+            <span class="date">3 Nov 2021</span>
+            <span class="src-badge">FB</span>
+          </div>
+        </div>
+      </div>
+      <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. It's usually applied to teenagers, but I think it happens to adults all the time. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs, you attract a tribe that mirrors them back at you, and now the cost of changing your mind includes the social cost of admitting you were wrong publicly.</p>
+      <a href="#" class="read-more">Read more →</a>
+      <div class="card-tags"><span>#psychology</span><span>#identity</span></div>
+      <div class="card-engage">
+        <div class="reactions"></div>
+        <div class="engage-right">
+          <span class="action">🔗</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 5: Project chip -->
+    <article class="card">
+      <div class="card-header">
+        <div class="avatar">S</div>
+        <div class="card-header-meta">
+          <div class="card-header-name">sophie</div>
+          <div class="card-header-sub">
+            <span class="date">5 Mar 2026</span>
+            <a href="#" class="ctx-chip project">⚙️ SideQuest.me Rebuild</a>
+          </div>
+        </div>
+      </div>
+      <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+      <div class="card-engage">
+        <div class="reactions"><span class="reaction">🎉 <span>8</span></span></div>
+        <div class="engage-right"><span class="action">🔗</span></div>
+      </div>
+    </article>
+
+  </div>
+</div><!-- /panel-c -->
+
+<!-- ═══════════════════════════════════════════════════ PANEL D ═══ -->
+<div id="panel-d" class="panel">
+  <div class="desc">
+    <strong>D — Image-first / Magazine</strong>
+    If a post has images, lead with them. A dark date+location strip sits directly below the image(s) — no separate header row needed. Body text follows. When a context is present, it appears as a boxed callout card below the body — harder to miss than a strip, and feels like an invitation to go deeper. Text-only posts get a compact date header line instead.
+    <br><br>
+    <span class="pro">✓ Images feel editorial and intentional, not incidental.</span><br>
+    <span class="pro">✓ Adventure callout is generous and hard to miss.</span><br>
+    <span class="con">✗ Text-only posts feel like a different component entirely.</span><br>
+    <span class="con">✗ Callout box adds height — may feel heavy on short posts.</span>
+  </div>
+
+  <div class="feed opt-d">
+
+    <!-- Post 1: Text only short -->
+    <article class="card no-image">
+      <div class="noimg-dateline">
+        <span>14 Feb 2018</span>
+        <span>·</span>
+        <span>5 years ago</span>
+        <span>·</span>
+        <span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Just a Nobody.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span><span class="action">permalink</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 2: 1 image + location -->
+    <article class="card">
+      <div class="card-hero">
+        <div class="img-ph wide hove"></div>
+        <div class="hero-date-strip">
+          <span>22 Jul 2023</span>
+          <span class="sep">·</span>
+          <span>2 years ago</span>
+          <span class="sep">·</span>
+          <span class="loc">📍 Hove Seafront, Hove</span>
+          <span class="src">via Facebook</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything. Couldn't not stop.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 3: Adventure callout + 3 images -->
+    <article class="card">
+      <div class="card-hero">
+        <div class="card-hero-grid n3">
+          <div class="img-ph iceland1"></div>
+          <div class="img-ph iceland2"></div>
+          <div class="img-ph iceland3"></div>
+        </div>
+        <div class="hero-date-strip">
+          <span>15 Jun 2022</span>
+          <span class="sep">·</span>
+          <span>3 years ago</span>
+          <span class="sep">·</span>
+          <span class="loc">📍 Jökulsárlón, Iceland</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand. Still processing this place.</p>
+        <a href="#" class="ctx-callout">
+          <span class="ctx-callout-icon">🗺</span>
+          <div class="ctx-callout-text">
+            <div class="ctx-callout-label">Part of Adventure</div>
+            <div class="ctx-callout-name">Iceland Ring Road 2022</div>
+          </div>
+          <span class="ctx-callout-arr">→</span>
+        </a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 4: Long text, truncated -->
+    <article class="card no-image">
+      <div class="noimg-dateline">
+        <span>3 Nov 2021</span>
+        <span>·</span>
+        <span>4 years ago</span>
+        <span>·</span>
+        <span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. It's usually applied to teenagers, but I think it happens to adults all the time. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs, you attract a tribe that mirrors them back at you, and now the cost of changing your mind includes the social cost of admitting you were wrong publicly.</p>
+        <a href="#" class="read-more">Read more →</a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#psychology</span><span>#identity</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 5: Project context callout -->
+    <article class="card no-image">
+      <div class="noimg-dateline">
+        <span>5 Mar 2026</span>
+        <span>·</span>
+        <span>2 weeks ago</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+        <a href="#" class="ctx-callout project">
+          <span class="ctx-callout-icon">⚙️</span>
+          <div class="ctx-callout-text">
+            <div class="ctx-callout-label">Part of Project</div>
+            <div class="ctx-callout-name">SideQuest.me Rebuild</div>
+          </div>
+          <span class="ctx-callout-arr">→</span>
+        </a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#build-in-public</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div><!-- /panel-d -->
+
+
+<!-- ═══════════════════════════════════════ FEEDBACK PANEL ═══ -->
+<div class="feedback-panel" id="feedbackPanel">
+  <div class="feedback-toggle" id="feedbackToggle">
+    <span class="feedback-toggle-label">✦ Generate Feedback Prompt</span>
+    <span class="feedback-toggle-hint" id="toggleHint">Click to open ↑</span>
+  </div>
+  <div class="feedback-body">
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Preferred option(s)</div>
+      <div class="option-vote" id="optionVotes">
+        <button class="vote-btn" data-opt="A">A — Minimal</button>
+        <button class="vote-btn" data-opt="B">B — Context Banner</button>
+        <button class="vote-btn" data-opt="C">C — Social Header</button>
+        <button class="vote-btn" data-opt="D">D — Image-first</button>
+        <button class="vote-btn" data-opt="hybrid">Mix / Hybrid</button>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">What's working</div>
+      <div class="feedback-checks" id="prosChecks">
+        <label class="feedback-check"><input type="checkbox" value="body-first"> <span>Body text is the first thing I read</span></label>
+        <label class="feedback-check"><input type="checkbox" value="adventure-link"> <span>Adventure/context link is clear and clickable</span></label>
+        <label class="feedback-check"><input type="checkbox" value="image-grid"> <span>Smarter image grid (1/2/3 layout)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="date-prominent"> <span>Date is easier to read</span></label>
+        <label class="feedback-check"><input type="checkbox" value="truncation"> <span>Long post truncation with read more</span></label>
+        <label class="feedback-check"><input type="checkbox" value="location-display"> <span>Location display is natural</span></label>
+        <label class="feedback-check"><input type="checkbox" value="no-microblog-badge"> <span>Removing the "Microblog" sticker</span></label>
+        <label class="feedback-check"><input type="checkbox" value="source-subtle"> <span>"via Facebook" is subtle / not distracting</span></label>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">What needs changing</div>
+      <div class="feedback-checks" id="consChecks">
+        <label class="feedback-check"><input type="checkbox" value="ctx-too-heavy"> <span>Context treatment feels too heavy/dominant</span></label>
+        <label class="feedback-check"><input type="checkbox" value="ctx-too-subtle"> <span>Context treatment feels too subtle / easy to miss</span></label>
+        <label class="feedback-check"><input type="checkbox" value="image-grid-wrong"> <span>Image grid layout isn't right</span></label>
+        <label class="feedback-check"><input type="checkbox" value="date-placement"> <span>Date placement isn't ideal</span></label>
+        <label class="feedback-check"><input type="checkbox" value="avatar-remove"> <span>Remove avatar (it's always me)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="source-hide"> <span>Hide "via Facebook" entirely</span></label>
+        <label class="feedback-check"><input type="checkbox" value="truncation-longer"> <span>Truncation should be longer (more than 4 lines)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="no-reactions"> <span>Don't show reactions inline — link to permalink instead</span></label>
+        <label class="feedback-check"><input type="checkbox" value="brutalist-border"> <span>Keep the bold 3px border / brutalist aesthetic</span></label>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Free-form notes</div>
+      <textarea class="feedback-text" id="freeformNotes" placeholder="e.g. 'I like A's hierarchy but B's adventure banner — can we combine those? Also the image grid in C where the first photo is larger feels right for 3+ images…'"></textarea>
+    </div>
+
+    <div class="feedback-actions">
+      <button class="copy-btn" id="copyBtn">Copy Prompt</button>
+      <button class="clear-btn" id="clearBtn">Clear all</button>
+    </div>
+    <pre class="prompt-preview" id="promptPreview"></pre>
+
+  </div>
+</div>
+
+<script>
+  // ── Tab switching ──
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  // ── Feedback panel toggle ──
+  const panel = document.getElementById('feedbackPanel');
+  const toggle = document.getElementById('feedbackToggle');
+  const hint = document.getElementById('toggleHint');
+  toggle.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    hint.textContent = panel.classList.contains('open') ? 'Click to close ↓' : 'Click to open ↑';
+  });
+
+  // ── Option vote buttons ──
+  document.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => btn.classList.toggle('selected'));
+  });
+
+  // ── Generate prompt ──
+  function buildPrompt() {
+    const selectedOpts = [...document.querySelectorAll('.vote-btn.selected')].map(b => b.dataset.opt);
+    const pros = [...document.querySelectorAll('#prosChecks input:checked')].map(i => i.value);
+    const cons = [...document.querySelectorAll('#consChecks input:checked')].map(i => i.value);
+    const notes = document.getElementById('freeformNotes').value.trim();
+
+    const prosLabels = {
+      'body-first': 'body text being the first thing I read (no meta before content)',
+      'adventure-link': 'the adventure/context link being clear and clickable',
+      'image-grid': 'the smarter image grid (1 full-width, 2 side-by-side, 3 asymmetric)',
+      'date-prominent': 'the date being more readable',
+      'truncation': 'long post truncation with a "read more" link',
+      'location-display': 'the natural location display',
+      'no-microblog-badge': 'removing the redundant "Microblog" sticker',
+      'source-subtle': '"via Facebook" being small and subtle',
+    };
+    const consLabels = {
+      'ctx-too-heavy': 'the context/adventure treatment feels too heavy or dominant',
+      'ctx-too-subtle': 'the context/adventure treatment is too subtle and easy to miss',
+      'image-grid-wrong': 'the image grid layout needs further adjustment',
+      'date-placement': 'the date placement isn\'t right yet',
+      'avatar-remove': 'the avatar should be removed (this is always my profile)',
+      'source-hide': '"via Facebook" should be hidden entirely',
+      'truncation-longer': 'the truncation threshold should be longer (more than 4 lines)',
+      'no-reactions': 'reactions should not show inline — just link to the permalink',
+      'brutalist-border': 'the bold 3px brutalist border must be kept',
+    };
+
+    let prompt = 'We are redesigning the microblog feed card for SideQuest.me\'s thoughtstream.\n\n';
+
+    if (selectedOpts.length > 0) {
+      prompt += `Preferred option(s): ${selectedOpts.join(', ')}\n\n`;
+    }
+
+    if (pros.length > 0) {
+      prompt += 'Keep the following:\n';
+      pros.forEach(p => prompt += `- ${prosLabels[p] || p}\n`);
+      prompt += '\n';
+    }
+
+    if (cons.length > 0) {
+      prompt += 'Change the following:\n';
+      cons.forEach(c => prompt += `- ${consLabels[c] || c}\n`);
+      prompt += '\n';
+    }
+
+    if (notes) {
+      prompt += `Additional notes:\n${notes}\n\n`;
+    }
+
+    prompt += 'Please implement the revised MicroblogCard component in React/TypeScript using Tailwind CSS v4, matching SideQuest.me\'s brutalist design system (3px borders, offset shadows, #ff6b35 orange accent, #1a1a1a ink, #fffbe6 warm background). The card lives in web/src/components/microblog/MicroblogCard.tsx.';
+
+    return prompt;
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function() {
+    const prompt = buildPrompt();
+    document.getElementById('promptPreview').textContent = prompt;
+    document.getElementById('promptPreview').classList.add('visible');
+    navigator.clipboard.writeText(prompt).then(() => {
+      this.textContent = 'Copied!';
+      this.classList.add('copied');
+      setTimeout(() => {
+        this.textContent = 'Copy Prompt';
+        this.classList.remove('copied');
+      }, 2000);
+    });
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('#prosChecks input, #consChecks input').forEach(i => i.checked = false);
+    document.getElementById('freeformNotes').value = '';
+    document.getElementById('promptPreview').textContent = '';
+    document.getElementById('promptPreview').classList.remove('visible');
+  });
+</script>
+</body>
+</html>
