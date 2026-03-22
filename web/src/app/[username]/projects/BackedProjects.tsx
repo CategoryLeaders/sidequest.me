@@ -14,8 +14,11 @@ import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
 import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
 import ProjectLightbox from "@/components/crowdfunding/ProjectLightbox";
+import CalendarView from "@/components/crowdfunding/CalendarView";
 import StarRating from "@/components/crowdfunding/StarRating";
 import type { Tables } from "@/types/database";
+
+type ViewMode = "grid" | "calendar";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
@@ -33,6 +36,7 @@ interface BackedProjectsProps {
 
 export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {} }: BackedProjectsProps) {
   const [filter, setFilter] = useState<FilterValue>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [lightboxProject, setLightboxProject] = useState<CrowdfundingProject | null>(null);
 
   const filtered = filter === "all"
@@ -41,15 +45,42 @@ export default function BackedProjects({ projects, username, writingCounts, revi
 
   return (
     <>
-      {/* Tube Map Filter */}
-      <TubeMapFilter
-        projects={projects}
-        activeFilter={filter}
-        onFilterChange={setFilter}
-      />
+      {/* Tube Map Filter + View Toggle */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <TubeMapFilter
+            projects={projects}
+            activeFilter={filter}
+            onFilterChange={setFilter}
+          />
+        </div>
+        <div className="flex gap-1 flex-shrink-0 mt-1">
+          {(["grid", "calendar"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`font-mono text-[0.55rem] uppercase px-2.5 py-1 border-2 cursor-pointer transition-all ${
+                viewMode === mode
+                  ? "border-ink bg-ink text-bg font-bold"
+                  : "border-ink/20 hover:border-ink/40 bg-transparent"
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Calendar View */}
+      {viewMode === "calendar" && (
+        <CalendarView
+          projects={filtered}
+          onProjectClick={setLightboxProject}
+        />
+      )}
+
+      {/* Grid View */}
+      {viewMode === "grid" && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((project, i) => {
           const wCount = writingCounts[project.id] ?? 0;
 
@@ -164,7 +195,7 @@ export default function BackedProjects({ projects, username, writingCounts, revi
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {filtered.length === 0 && (
         <p className="text-center opacity-40 font-mono text-[0.8rem] py-12">
