@@ -1,33 +1,63 @@
 "use client";
 
 /**
- * Tube Map Status Filter — London Underground style.
+ * Tube Map Status Filter — London Underground style, SVG-based.
  * [SQ.S-W-2603-0073] [SQ.S-W-2603-0084] [SQ.S-W-2603-0085]
  *
- * Main line: Pre-launch → Crowdfunding → Funded → In Production → Shipped → Delivered
- * Branch:    Failed / Cancelled / Suspended — shown as an "off-track" secondary row.
+ * Main line: Pre-Launch → Crowdfunding → Funded → In Production → Shipped → Delivered
+ * Branch:    Bezier curve diverging from the Crowdfunding station down to
+ *            Failed / Cancelled / Suspended circles.
  *
- * Layout note: the track line is absolutely positioned at top:10px (= half of 20px
- * circle diameter) so it runs through the circle centers. The stations use a CSS grid
- * (not items-center flex) so the circles sit at the top of the container and the track
- * aligns correctly. Track left/right are set to 50/N% so the line starts and ends at
- * the center of the first/last circle, not at the container edge.
+ * Desktop: SVG viewBox scales with container.
+ * Mobile:  Scrollable dot strip.
  */
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   MAIN_PIPELINE_STATUSES,
   BRANCH_STATUSES,
-  statusStep,
   statusHex,
   normalizeStatus,
   type CrowdfundingStatus,
 } from "@/lib/crowdfunding-utils";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 
-const N = MAIN_PIPELINE_STATUSES.length; // 6 — used for track positioning
-const CIRCLE_D = 20; // default circle diameter px
-const TRACK_TOP = CIRCLE_D / 2; // track y = circle center
+// Local display labels — avoids the duplicate "Fund" in shared STEP_MAP
+const TUBE_LABELS: Record<string, string[]> = {
+  pre_launch:    ["Pre-Launch"],
+  crowdfunding:  ["Crowd", "Funding"],
+  funded:        ["Funded"],
+  in_production: ["In Prod"],
+  shipped:       ["Shipped"],
+  delivered:     ["Here!"],
+  failed:        ["Failed"],
+  cancelled:     ["Cancelled"],
+  suspended:     ["Suspended"],
+};
+
+// ─── SVG geometry ─────────────────────────────────────────────────────────
+const VW = 880;
+const MAIN_Y = 52;
+const BRANCH_Y = 158;
+const PAD = 60;
+const N = MAIN_PIPELINE_STATUSES.length; // 6
+const SPACING = (VW - 2 * PAD) / (N - 1); // 152
+const MAIN_XS = Array.from({ length: N }, (_, i) => Math.round(PAD + i * SPACING));
+// ≈ [60, 212, 364, 516, 668, 820]
+
+// Branch diverges from the Crowdfunding station (index 1)
+const BRANCH_JOIN_X = MAIN_XS[1]; // 212
+const BRANCH_STATION_START_X = 330;
+const BRANCH_STATION_SPACING = 145;
+const BRANCH_XS = BRANCH_STATUSES.map((_, i) => BRANCH_STATION_START_X + i * BRANCH_STATION_SPACING);
+// ≈ [330, 475, 620]
+
+const MAIN_R = 12;
+const ACTIVE_R = 15;
+const BRANCH_R = 10;
+const BRANCH_ACTIVE_R = 13;
+const TRACK_W = 5;
+const BRANCH_TRACK_W = 4;
 
 type FilterValue = "all" | CrowdfundingStatus;
 
@@ -37,7 +67,6 @@ interface TubeMapFilterProps {
   onFilterChange: (filter: FilterValue) => void;
 }
 
-/** Count projects per canonical status */
 function countByStatus(projects: CrowdfundingProject[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const p of projects) {
@@ -47,20 +76,16 @@ function countByStatus(projects: CrowdfundingProject[]): Record<string, number> 
   return counts;
 }
 
-/** First 3 project images for a status */
-function thumbnailsForStatus(projects: CrowdfundingProject[], status: string): string[] {
-  return projects
-    .filter((p) => normalizeStatus(p.status) === status && p.image_url)
-    .slice(0, 3)
-    .map((p) => p.image_url!);
-}
-
 export default function TubeMapFilter({ projects, activeFilter, onFilterChange }: TubeMapFilterProps) {
   const counts = countByStatus(projects);
-  const [hoveredStation, setHoveredStation] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
-  // Rightmost active station on main line
+  const hasBranch = BRANCH_STATUSES.some((s) => (counts[s] ?? 0) > 0);
+
+  // Height: with branch ~210, without ~110
+  const VH = hasBranch ? 210 : 110;
+
+  // Rightmost active station index on the main line (for progress track)
   const activeMainIndex = (() => {
     let maxIdx = -1;
     for (const p of projects) {
@@ -71,29 +96,240 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
     return maxIdx;
   })();
 
-  const activeBranches = BRANCH_STATUSES.filter((s) => (counts[s] ?? 0) > 0);
+  const handleStation = (status: string) => {
+    if (activeFilter === status) {
+      onFilterChange("all");
+    } else {
+      onFilterChange(status as CrowdfundingStatus);
+    }
+  };
 
   return (
     <div className="mb-8">
+      {/* ── Desktop SVG tube map ──────────────────────────────────── */}
       <div className="hidden md:block">
-        <DesktopTubeMap
-          counts={counts}
-          activeFilter={activeFilter}
-          onFilterChange={onFilterChange}
-          activeMainIndex={activeMainIndex}
-          activeBranches={activeBranches}
-          hoveredStation={hoveredStation}
-          setHoveredStation={setHoveredStation}
-          projects={projects}
-          totalCount={projects.length}
-        />
+        {/* "All" pill */}
+        <button
+          onClick={() => onFilterChange("all")}
+          className={`font-mono text-[0.6rem] px-3 py-1 mb-4 border-2 border-ink cursor-pointer transition-all ${
+            activeFilter === "all" ? "bg-ink text-bg font-bold" : "bg-bg-card hover:bg-ink/5"
+          }`}
+          style={{ transform: "rotate(-0.3deg)" }}
+        >
+          All ({projects.length})
+        </button>
+
+        <svg
+          viewBox={`0 0 ${VW} ${VH}`}
+          width="100%"
+          style={{ overflow: "visible", userSelect: "none", display: "block" }}
+        >
+          {/* ── Main track (background) ────────────────────────── */}
+          <line
+            x1={MAIN_XS[0]} y1={MAIN_Y}
+            x2={MAIN_XS[N - 1]} y2={MAIN_Y}
+            stroke="currentColor"
+            strokeOpacity={0.12}
+            strokeWidth={TRACK_W}
+            strokeLinecap="round"
+          />
+
+          {/* ── Main track (progress fill) ─────────────────────── */}
+          {activeMainIndex > 0 && (
+            <line
+              x1={MAIN_XS[0]} y1={MAIN_Y}
+              x2={MAIN_XS[activeMainIndex]} y2={MAIN_Y}
+              stroke="currentColor"
+              strokeOpacity={0.28}
+              strokeWidth={TRACK_W}
+              strokeLinecap="round"
+            />
+          )}
+
+          {/* ── Branch track: bezier curve + horizontal run ─────── */}
+          {hasBranch && (
+            <>
+              {/* Bezier: from crowdfunding station straight down then sweeping right */}
+              <path
+                d={`M ${BRANCH_JOIN_X} ${MAIN_Y} Q ${BRANCH_JOIN_X} ${BRANCH_Y} ${BRANCH_STATION_START_X} ${BRANCH_Y}`}
+                fill="none"
+                stroke="currentColor"
+                strokeOpacity={0.18}
+                strokeWidth={BRANCH_TRACK_W}
+                strokeLinecap="round"
+              />
+              {/* Horizontal extension to last branch station */}
+              {BRANCH_XS.length > 1 && (
+                <line
+                  x1={BRANCH_STATION_START_X} y1={BRANCH_Y}
+                  x2={BRANCH_XS[BRANCH_XS.length - 1]} y2={BRANCH_Y}
+                  stroke="currentColor"
+                  strokeOpacity={0.18}
+                  strokeWidth={BRANCH_TRACK_W}
+                  strokeLinecap="round"
+                />
+              )}
+            </>
+          )}
+
+          {/* ── Main stations ──────────────────────────────────────── */}
+          {MAIN_PIPELINE_STATUSES.map((status, i) => {
+            const count = counts[status] ?? 0;
+            const isActive = activeFilter === status;
+            const isHov = hovered === status;
+            const hex = statusHex(status);
+            const r = isActive ? ACTIVE_R : MAIN_R;
+            const hasProjects = count > 0;
+            const cx = MAIN_XS[i];
+            const labels = TUBE_LABELS[status] ?? [status];
+
+            return (
+              <g
+                key={status}
+                onClick={() => hasProjects && handleStation(status)}
+                onMouseEnter={() => setHovered(status)}
+                onMouseLeave={() => setHovered(null)}
+                style={{ cursor: hasProjects ? "pointer" : "default" }}
+              >
+                {/* Glow halo for active */}
+                {isActive && (
+                  <circle cx={cx} cy={MAIN_Y} r={r + 6}
+                    fill={hex} fillOpacity={0.15} />
+                )}
+
+                {/* Station circle */}
+                <circle
+                  cx={cx} cy={MAIN_Y} r={r}
+                  fill={hasProjects ? hex : "var(--bg)"}
+                  stroke={hasProjects ? hex : "currentColor"}
+                  strokeOpacity={hasProjects ? 1 : 0.2}
+                  strokeWidth={2.5}
+                  style={{ transition: "r 0.15s, opacity 0.15s" }}
+                  opacity={isHov && hasProjects ? 0.82 : 1}
+                />
+
+                {/* White interchange ring for active station */}
+                {isActive && (
+                  <circle cx={cx} cy={MAIN_Y} r={r - 4}
+                    fill="var(--bg)" fillOpacity={0.65} />
+                )}
+
+                {/* Station labels */}
+                {labels.map((line, li) => (
+                  <text
+                    key={li}
+                    x={cx}
+                    y={MAIN_Y + ACTIVE_R + 12 + li * 11}
+                    textAnchor="middle"
+                    fontSize="9"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    fill="currentColor"
+                    fillOpacity={hasProjects ? (isActive ? 1 : 0.65) : 0.2}
+                    style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}
+                  >
+                    {line}
+                  </text>
+                ))}
+
+                {/* Count on its own line */}
+                {hasProjects && (
+                  <text
+                    x={cx}
+                    y={MAIN_Y + ACTIVE_R + 12 + labels.length * 11 + 3}
+                    textAnchor="middle"
+                    fontSize="9.5"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    fill={isActive ? hex : "currentColor"}
+                    fillOpacity={isActive ? 1 : 0.45}
+                  >
+                    {count}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* ── Branch stations ────────────────────────────────────── */}
+          {hasBranch && BRANCH_STATUSES.map((status, i) => {
+            const count = counts[status] ?? 0;
+            if (count === 0) return null;
+
+            const isActive = activeFilter === status;
+            const isHov = hovered === status;
+            const hex = statusHex(status);
+            const r = isActive ? BRANCH_ACTIVE_R : BRANCH_R;
+            const cx = BRANCH_XS[i];
+            const labels = TUBE_LABELS[status] ?? [status];
+
+            return (
+              <g
+                key={status}
+                onClick={() => handleStation(status)}
+                onMouseEnter={() => setHovered(status)}
+                onMouseLeave={() => setHovered(null)}
+                style={{ cursor: "pointer" }}
+              >
+                {isActive && (
+                  <circle cx={cx} cy={BRANCH_Y} r={r + 5}
+                    fill={hex} fillOpacity={0.15} />
+                )}
+
+                <circle
+                  cx={cx} cy={BRANCH_Y} r={r}
+                  fill={hex}
+                  stroke={hex}
+                  strokeWidth={2.5}
+                  opacity={isHov ? 0.82 : 1}
+                />
+
+                {isActive && (
+                  <circle cx={cx} cy={BRANCH_Y} r={r - 3}
+                    fill="var(--bg)" fillOpacity={0.65} />
+                )}
+
+                {labels.map((line, li) => (
+                  <text
+                    key={li}
+                    x={cx}
+                    y={BRANCH_Y + BRANCH_ACTIVE_R + 12 + li * 11}
+                    textAnchor="middle"
+                    fontSize="9"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    fill="currentColor"
+                    fillOpacity={isActive ? 1 : 0.65}
+                    style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}
+                  >
+                    {line}
+                  </text>
+                ))}
+
+                <text
+                  x={cx}
+                  y={BRANCH_Y + BRANCH_ACTIVE_R + 12 + labels.length * 11 + 3}
+                  textAnchor="middle"
+                  fontSize="9.5"
+                  fontFamily="monospace"
+                  fontWeight="bold"
+                  fill={isActive ? hex : "currentColor"}
+                  fillOpacity={isActive ? 1 : 0.45}
+                >
+                  {count}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
+
+      {/* ── Mobile scrollable dot strip ──────────────────────────── */}
       <div className="md:hidden">
         <MobileDotStrip
           counts={counts}
           activeFilter={activeFilter}
           onFilterChange={onFilterChange}
-          scrollRef={scrollRef}
           totalCount={projects.length}
         />
       </div>
@@ -101,246 +337,18 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   );
 }
 
-/* ════════════════════════════════════════════════════
-   Desktop Tube Map
-   ════════════════════════════════════════════════════ */
-
-interface DesktopProps {
-  counts: Record<string, number>;
-  activeFilter: FilterValue;
-  onFilterChange: (f: FilterValue) => void;
-  activeMainIndex: number;
-  activeBranches: string[];
-  hoveredStation: string | null;
-  setHoveredStation: (s: string | null) => void;
-  projects: CrowdfundingProject[];
-  totalCount: number;
-}
-
-function DesktopTubeMap({
-  counts, activeFilter, onFilterChange, activeMainIndex, activeBranches,
-  hoveredStation, setHoveredStation, projects, totalCount,
-}: DesktopProps) {
-  // Track spans from center of first circle to center of last circle.
-  // Each grid cell = 100/N %, so circle center = (i + 0.5) * (100/N) %.
-  // First center = 50/N %, last center = (N - 0.5) * 100/N % → right offset = 50/N %.
-  const trackInset = `${50 / N}%`;
-
-  // Filled track width: from center of station 0 to center of station activeMainIndex.
-  // Width = (activeMainIndex * 100/N) %.
-  const filledWidth = activeMainIndex > 0
-    ? `${activeMainIndex * (100 / N)}%`
-    : "0%";
-
-  return (
-    <div>
-      {/* "All" pill */}
-      <button
-        onClick={() => onFilterChange("all")}
-        className={`font-mono text-[0.6rem] px-3 py-1 mb-4 border-2 border-ink cursor-pointer transition-all ${
-          activeFilter === "all" ? "bg-ink text-bg font-bold" : "bg-bg-card hover:bg-ink/5"
-        }`}
-        style={{ transform: "rotate(-0.3deg)" }}
-      >
-        All ({totalCount})
-      </button>
-
-      {/* ── Main line ─────────────────────────────────────────────────── */}
-      <div className="relative" style={{ paddingBottom: "6px" }}>
-
-        {/* Track background — z-index 0, circles z-index 1 sit on top */}
-        <div
-          className="absolute h-[3px] rounded-full"
-          style={{
-            top: TRACK_TOP,
-            left: trackInset,
-            right: trackInset,
-            background: "color-mix(in srgb, var(--ink) 12%, transparent)",
-            zIndex: 0,
-          }}
-        />
-
-        {/* Filled portion (progress indicator) */}
-        {activeMainIndex > 0 && (
-          <div
-            className="absolute h-[3px] rounded-full transition-all duration-500"
-            style={{
-              top: TRACK_TOP,
-              left: trackInset,
-              width: filledWidth,
-              background: "var(--ink)",
-              opacity: 0.25,
-              zIndex: 0,
-            }}
-          />
-        )}
-
-        {/* Stations — CSS grid so each cell is equal width, circles at top */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${N}, 1fr)`,
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          {MAIN_PIPELINE_STATUSES.map((status) => {
-            const step = statusStep(status);
-            const count = counts[status] ?? 0;
-            const isActive = activeFilter === status;
-            const isHovered = hoveredStation === status;
-            const hasProjects = count > 0;
-            const hex = statusHex(status);
-            const thumbs = thumbnailsForStatus(projects, status);
-            const circleSize = isActive ? CIRCLE_D + 2 : CIRCLE_D;
-
-            return (
-              <div
-                key={status}
-                className="flex flex-col items-center cursor-pointer"
-                onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
-                onMouseEnter={() => setHoveredStation(status)}
-                onMouseLeave={() => setHoveredStation(null)}
-              >
-                {/* Circle — sits directly at top of grid cell, track passes through its center */}
-                <div
-                  className="rounded-full border-2 transition-all duration-150 flex-shrink-0"
-                  style={{
-                    width: circleSize,
-                    height: circleSize,
-                    background: hasProjects
-                      ? hex
-                      : "color-mix(in srgb, var(--ink) 8%, var(--bg))",
-                    borderColor: hasProjects
-                      ? hex
-                      : "color-mix(in srgb, var(--ink) 20%, transparent)",
-                    boxShadow: isActive ? `0 0 0 3px ${hex}33` : "none",
-                    transform: isActive ? "scale(1.15)" : "scale(1)",
-                    // White center ring for active (interchange style)
-                    outline: isActive ? `2px solid var(--bg)` : "none",
-                    outlineOffset: "-4px",
-                  }}
-                />
-
-                {/* Label + count */}
-                <span
-                  className="font-mono text-[0.48rem] font-bold uppercase mt-1.5 text-center leading-tight"
-                  style={{
-                    opacity: hasProjects ? (isActive ? 1 : 0.65) : 0.2,
-                    color: isActive ? hex : "var(--ink)",
-                  }}
-                >
-                  {step.shortLabel}
-                  {hasProjects ? ` (${count})` : ""}
-                </span>
-
-                {/* Hover tooltip */}
-                {isHovered && hasProjects && (
-                  <div
-                    className="absolute z-50 bg-bg-card border-2 border-ink p-2 shadow-lg"
-                    style={{
-                      top: "-4px",
-                      transform: "translateY(-100%)",
-                      minWidth: "130px",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <div className="font-mono text-[0.6rem] font-bold mb-1.5">
-                      {step.label} · {count}
-                    </div>
-                    {thumbs.length > 0 && (
-                      <div className="flex gap-1">
-                        {thumbs.map((url, ti) => (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            key={ti}
-                            src={url}
-                            alt=""
-                            className="w-9 h-9 object-cover border border-ink/20"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Branch / off-track row ───────────────────────────────────── */}
-      {activeBranches.length > 0 && (
-        <div
-          className="flex items-center gap-4 flex-wrap mt-3 pt-2"
-          style={{
-            borderTop: "1px dashed color-mix(in srgb, var(--ink) 15%, transparent)",
-            marginLeft: "2px",
-          }}
-        >
-          <span
-            className="font-mono text-[0.42rem] font-bold uppercase tracking-widest"
-            style={{ opacity: 0.3 }}
-          >
-            off-track
-          </span>
-
-          {activeBranches.map((status) => {
-            const step = statusStep(status);
-            const count = counts[status] ?? 0;
-            const isActive = activeFilter === status;
-            const hex = statusHex(status);
-
-            return (
-              <button
-                key={status}
-                onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
-                onMouseEnter={() => setHoveredStation(status)}
-                onMouseLeave={() => setHoveredStation(null)}
-                className="flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0"
-              >
-                <div
-                  className="rounded-full border-2 flex-shrink-0 transition-all"
-                  style={{
-                    width: "13px",
-                    height: "13px",
-                    background: isActive ? hex : "transparent",
-                    borderColor: hex,
-                    boxShadow: isActive ? `0 0 0 2px ${hex}33` : "none",
-                    transform: isActive ? "scale(1.15)" : "scale(1)",
-                  }}
-                />
-                <span
-                  className="font-mono text-[0.48rem] font-bold uppercase"
-                  style={{
-                    opacity: isActive ? 1 : 0.5,
-                    color: isActive ? hex : "var(--ink)",
-                  }}
-                >
-                  {step.shortLabel} ({count})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════
    Mobile Scrollable Dot Strip
-   ════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 interface MobileProps {
   counts: Record<string, number>;
   activeFilter: FilterValue;
   onFilterChange: (f: FilterValue) => void;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
   totalCount: number;
 }
 
-function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, totalCount }: MobileProps) {
+function MobileDotStrip({ counts, activeFilter, onFilterChange, totalCount }: MobileProps) {
   const allStatuses = [...MAIN_PIPELINE_STATUSES, ...BRANCH_STATUSES];
 
   return (
@@ -354,23 +362,21 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
         All ({totalCount})
       </button>
 
-      <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4"
-      >
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
         {allStatuses.map((status) => {
-          const step = statusStep(status);
           const count = counts[status] ?? 0;
+          if (count === 0) return null;
+
           const isActive = activeFilter === status;
           const hex = statusHex(status);
-          const hasProjects = count > 0;
-
-          if (!hasProjects) return null;
+          const labels = TUBE_LABELS[status] ?? [status];
 
           return (
             <button
               key={status}
-              onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
+              onClick={() =>
+                onFilterChange(isActive ? "all" : (status as CrowdfundingStatus))
+              }
               className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 p-1 flex-shrink-0"
             >
               <div
@@ -387,7 +393,7 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
                 className="font-mono text-[0.45rem] font-bold uppercase whitespace-nowrap"
                 style={{ color: isActive ? hex : "var(--ink)", opacity: isActive ? 1 : 0.65 }}
               >
-                {step.shortLabel} ({count})
+                {labels[0]} ({count})
               </span>
             </button>
           );

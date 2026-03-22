@@ -2,15 +2,17 @@
 
 /**
  * Calendar view for backed projects.
- * Fixed 12-month rolling grid starting from the current month.
+ * Navigable 12-month rolling grid with greyed past months.
  * [SQ.S-W-2603-0083]
  *
- * - Always shows 12 months from today (current + next 11).
- * - Projects with past delivery dates appear in the "Past" section.
- * - Projects with no parseable date appear in "Unscheduled".
+ * - Default window: 3 months back → 8 months forward (12 total).
+ * - Months before today shown greyed with dashed border.
+ * - Prev / Next navigation moves the window by 3 months.
+ * - Year label shown in each cell; year-change cells get a subtle year banner.
+ * - Projects outside the 12-month window appear in "Unscheduled".
  */
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 import { statusHex, parseDeliveryDeadline } from "@/lib/crowdfunding-utils";
 
@@ -19,23 +21,22 @@ interface CalendarViewProps {
   onProjectClick: (project: CrowdfundingProject) => void;
 }
 
-const now = new Date();
-const CURRENT_MONTH_KEY = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+const TODAY = new Date();
+const CURRENT_MONTH_KEY = `${TODAY.getFullYear()}-${String(TODAY.getMonth() + 1).padStart(2, "0")}`;
 
-/** Generate a fixed 12-month grid from the current month */
-function getFixedMonthGrid(): string[] {
+/** Generate 12-month window starting at (today + offsetMonths) */
+function getMonthGrid(offsetMonths: number): string[] {
   const result: string[] = [];
   for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth() + offsetMonths + i, 1);
     result.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
   }
   return result;
 }
 
-/** Group projects by YYYY-MM key, splitting into future/current, past, and unscheduled */
-function groupProjects(projects: CrowdfundingProject[], gridKeys: Set<string>) {
+/** Group projects into the grid window or unscheduled */
+function groupProjects(projects: CrowdfundingProject[], gridKeySet: Set<string>) {
   const scheduled = new Map<string, CrowdfundingProject[]>();
-  const past: CrowdfundingProject[] = [];
   const unscheduled: CrowdfundingProject[] = [];
 
   for (const p of projects) {
@@ -49,65 +50,114 @@ function groupProjects(projects: CrowdfundingProject[], gridKeys: Set<string>) {
 
     if (deadline && !isNaN(deadline.getTime())) {
       const key = `${deadline.getFullYear()}-${String(deadline.getMonth() + 1).padStart(2, "0")}`;
-      if (gridKeys.has(key)) {
-        // Fits in the 12-month grid
+      if (gridKeySet.has(key)) {
         if (!scheduled.has(key)) scheduled.set(key, []);
         scheduled.get(key)!.push(p);
       } else {
-        // Outside the grid window — put in past section
-        past.push(p);
+        unscheduled.push(p);
       }
     } else {
       unscheduled.push(p);
     }
   }
 
-  return { scheduled, past, unscheduled };
+  return { scheduled, unscheduled };
 }
 
-/** Get month label from YYYY-MM key */
-function monthLabel(key: string): string {
+/** "Mar 2026" style label */
+function monthLabel(key: string): { month: string; year: string } {
   const [year, month] = key.split("-").map(Number);
   const date = new Date(year, month - 1, 1);
-  return date.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+  return {
+    month: date.toLocaleDateString("en-GB", { month: "short" }).toUpperCase(),
+    year: String(year),
+  };
+}
+
+/** Is this month key before the current month? */
+function isPastMonth(key: string): boolean {
+  return key < CURRENT_MONTH_KEY;
 }
 
 export default function CalendarView({ projects, onProjectClick }: CalendarViewProps) {
-  const gridKeys = useMemo(() => getFixedMonthGrid(), []);
+  // Default: start 3 months back so past months are visible
+  const [offset, setOffset] = useState(-3);
+
+  const gridKeys = useMemo(() => getMonthGrid(offset), [offset]);
   const gridKeySet = useMemo(() => new Set(gridKeys), [gridKeys]);
-  const { scheduled, past, unscheduled } = useMemo(
+  const { scheduled, unscheduled } = useMemo(
     () => groupProjects(projects, gridKeySet),
     [projects, gridKeySet]
   );
 
   return (
     <div>
-      {/* Fixed 12-month grid */}
+      {/* Navigation */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => setOffset((o) => o - 3)}
+          className="font-mono text-[0.55rem] uppercase px-2.5 py-1 border-2 border-ink/30 hover:border-ink/60 cursor-pointer transition-all bg-transparent"
+        >
+          ← 3 months
+        </button>
+        <span className="font-mono text-[0.55rem] uppercase opacity-30">
+          {gridKeys[0] && monthLabel(gridKeys[0]).month} {gridKeys[0] && monthLabel(gridKeys[0]).year}
+          {" — "}
+          {gridKeys[11] && monthLabel(gridKeys[11]).month} {gridKeys[11] && monthLabel(gridKeys[11]).year}
+        </span>
+        <button
+          onClick={() => setOffset((o) => o + 3)}
+          className="font-mono text-[0.55rem] uppercase px-2.5 py-1 border-2 border-ink/30 hover:border-ink/60 cursor-pointer transition-all bg-transparent"
+        >
+          3 months →
+        </button>
+      </div>
+
+      {/* 12-month grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-        {gridKeys.map((key) => {
+        {gridKeys.map((key, idx) => {
           const monthProjects = scheduled.get(key) ?? [];
           const isCurrent = key === CURRENT_MONTH_KEY;
+          const isPast = isPastMonth(key);
+          const { month, year } = monthLabel(key);
+
+          // Show year when it changes from previous cell (or first cell)
+          const prevYear = idx > 0 ? monthLabel(gridKeys[idx - 1]).year : null;
+          const showYear = !prevYear || year !== prevYear;
 
           return (
             <div
               key={key}
-              className="border-2 p-3 min-h-[100px]"
+              className="p-3 min-h-[100px] transition-opacity"
               style={{
-                borderColor: isCurrent
-                  ? "var(--orange)"
-                  : "color-mix(in srgb, var(--ink) 15%, transparent)",
+                border: isCurrent
+                  ? "2px solid var(--orange)"
+                  : isPast
+                  ? "2px dashed color-mix(in srgb, var(--ink) 12%, transparent)"
+                  : "2px solid color-mix(in srgb, var(--ink) 15%, transparent)",
+                opacity: isPast ? 0.55 : 1,
               }}
             >
               {/* Month header */}
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className="font-head font-bold text-[0.7rem] uppercase"
-                  style={{ opacity: isCurrent ? 1 : 0.5 }}
-                >
-                  {monthLabel(key)}
-                </span>
+              <div className="flex items-start justify-between mb-2 gap-1">
+                <div>
+                  <span
+                    className="font-head font-bold text-[0.7rem] uppercase leading-tight block"
+                    style={{ opacity: isCurrent ? 1 : 0.7 }}
+                  >
+                    {month}
+                  </span>
+                  {showYear && (
+                    <span
+                      className="font-mono text-[0.5rem] uppercase leading-none block"
+                      style={{ opacity: isCurrent ? 0.6 : 0.35 }}
+                    >
+                      {year}
+                    </span>
+                  )}
+                </div>
                 {isCurrent && (
-                  <span className="font-mono text-[0.4rem] uppercase px-1 py-0.5 bg-orange text-bg font-bold">
+                  <span className="font-mono text-[0.4rem] uppercase px-1 py-0.5 bg-orange text-bg font-bold flex-shrink-0">
                     Now
                   </span>
                 )}
@@ -129,6 +179,7 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
                           style={{ background: hex }}
                         />
                         {p.image_url && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={p.image_url}
                             alt=""
@@ -150,33 +201,7 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
         })}
       </div>
 
-      {/* Past deliveries (before current month) */}
-      {past.length > 0 && (
-        <div className="border-t-2 border-ink/10 pt-4 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase opacity-40 block mb-3">
-            Past ({past.length})
-          </span>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {past.map((p) => {
-              const hex = statusHex(p.status);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => onProjectClick(p)}
-                  className="flex items-center gap-2 p-2 border border-ink/10 hover:border-ink/30 transition-colors cursor-pointer bg-transparent text-left"
-                >
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex }} />
-                  <span className="font-mono text-[0.5rem] font-bold uppercase truncate">
-                    {(p as any).short_name || p.title}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Unscheduled (no date) */}
+      {/* Unscheduled (no date or outside window) */}
       {unscheduled.length > 0 && (
         <div className="border-t-2 border-ink/10 pt-4">
           <span className="font-mono text-[0.6rem] uppercase opacity-40 block mb-3">
