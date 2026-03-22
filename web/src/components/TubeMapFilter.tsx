@@ -49,13 +49,15 @@ const MAIN_XS = Array.from({ length: N }, (_, i) => Math.round(PAD + i * SPACING
 
 // Branch diverge points — between crowdfunding (212) and funded (364)
 const BRANCH_A_X = 250; // just after crowdfunding
-const BRANCH_B_X = 295; // just right of A
+const BRANCH_B_X = 292; // just right of A
 
-// Branch station positions — same Y level, side by side
-const CANCELLED_X = 195;
-const FAILED_X = 330;
-// Suspended (rarely populated) — to the right of failed
-const SUSPENDED_X = 465;
+// Branch station positions — computed from 60° diagonal from horizontal
+// vertical drop = BRANCH_Y - MAIN_Y = 110; horizontal offset = 110 / tan(60°) ≈ 64
+const DIAGONAL_H = Math.round((BRANCH_Y - MAIN_Y) / Math.tan((60 * Math.PI) / 180)); // ≈ 64
+const CANCELLED_X = BRANCH_A_X - DIAGONAL_H; // goes down-left  ≈ 186
+const FAILED_X    = BRANCH_B_X + DIAGONAL_H; // goes down-right ≈ 356
+// Suspended (rarely populated) — to the right of failed, same diagonal
+const SUSPENDED_X = FAILED_X + 120;
 
 const MAIN_R = 12;
 const ACTIVE_R = 15;
@@ -166,40 +168,32 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
           {/* ── Branch tracks ────────────────────────────────── */}
           {hasBranch && (
             <>
-              {/* Branch A: just after crowdfunding → CANCELLED (curves left) */}
+              {/* Branch A: just after crowdfunding → CANCELLED (diagonal down-left at 60°) */}
               {hasCancelled && (
-                <path
-                  d={`M ${BRANCH_A_X} ${MAIN_Y} Q ${BRANCH_A_X} ${BRANCH_Y} ${CANCELLED_X} ${BRANCH_Y}`}
-                  fill="none"
-                  stroke="currentColor" strokeOpacity={0.18}
-                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
-                />
-              )}
-
-              {/* Branch B: just right of A → FAILED/NOT FUNDED (curves right) */}
-              {hasFailed && (
-                <path
-                  d={`M ${BRANCH_B_X} ${MAIN_Y} Q ${BRANCH_B_X} ${BRANCH_Y} ${FAILED_X} ${BRANCH_Y}`}
-                  fill="none"
-                  stroke="currentColor" strokeOpacity={0.18}
-                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
-                />
-              )}
-
-              {/* Suspended: horizontal extension from failed if populated */}
-              {hasSuspended && hasFailed && (
                 <line
-                  x1={FAILED_X} y1={BRANCH_Y}
-                  x2={SUSPENDED_X} y2={BRANCH_Y}
-                  stroke="currentColor" strokeOpacity={0.14}
+                  x1={BRANCH_A_X} y1={MAIN_Y}
+                  x2={CANCELLED_X} y2={BRANCH_Y}
+                  stroke="currentColor" strokeOpacity={0.22}
                   strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
                 />
               )}
-              {hasSuspended && !hasFailed && (
-                <path
-                  d={`M ${BRANCH_B_X} ${MAIN_Y} Q ${BRANCH_B_X} ${BRANCH_Y} ${SUSPENDED_X} ${BRANCH_Y}`}
-                  fill="none"
-                  stroke="currentColor" strokeOpacity={0.14}
+
+              {/* Branch B: just right of A → FAILED/NOT FUNDED (diagonal down-right at 60°) */}
+              {hasFailed && (
+                <line
+                  x1={BRANCH_B_X} y1={MAIN_Y}
+                  x2={FAILED_X} y2={BRANCH_Y}
+                  stroke="currentColor" strokeOpacity={0.22}
+                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
+                />
+              )}
+
+              {/* Suspended: diagonal from just right of B, then extends further right */}
+              {hasSuspended && (
+                <line
+                  x1={BRANCH_B_X + 15} y1={MAIN_Y}
+                  x2={SUSPENDED_X} y2={BRANCH_Y}
+                  stroke="currentColor" strokeOpacity={0.16}
                   strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
                 />
               )}
