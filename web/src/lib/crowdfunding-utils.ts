@@ -94,6 +94,18 @@ const STEP_MAP: Record<string, StatusStepData> = {
   received:       { step: 5, shortLabel: "Here!",  label: "Delivered",      highlightClass: "pipeline-hl-lilac" },
 };
 
+/** Normalise legacy/alias status values to their canonical V2 equivalents */
+export function normalizeStatus(status: string): string {
+  const legacyMap: Record<string, string> = {
+    live:     "crowdfunding",
+    active:   "crowdfunding",
+    dropped:  "cancelled",
+    shipping: "shipped",
+    received: "delivered",
+  };
+  return legacyMap[status] ?? status;
+}
+
 /** Get pipeline step data for a status string */
 export function statusStep(status: string): StatusStepData {
   return STEP_MAP[status] ?? { step: 0, shortLabel: "Fund", label: status, highlightClass: "pipeline-hl-green" };

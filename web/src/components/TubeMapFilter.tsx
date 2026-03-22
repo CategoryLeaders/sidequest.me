@@ -2,21 +2,22 @@
 
 /**
  * Tube Map Status Filter — London Underground style.
- * [SQ.S-W-2603-0073]
+ * [SQ.S-W-2603-0073] [SQ.S-W-2603-0084] [SQ.S-W-2603-0085]
  *
  * Main line: Pre-launch → Crowdfunding → Funded → In Production → Shipped → Delivered
- * Branch fork between Crowdfunding and Funded: Failed / Cancelled / Suspended
+ * Branch: Failed / Cancelled / Suspended shown as a flat legend row below.
  *
- * Desktop: full horizontal tube map with track, coloured station dots, counts, hover tooltips.
- * Mobile: scrollable dot strip (Option C from v3 mockup).
+ * Legacy statuses (live, active, dropped, etc.) are normalised to canonical before counting
+ * so "live" projects don't create a phantom duplicate station.
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   MAIN_PIPELINE_STATUSES,
   BRANCH_STATUSES,
   statusStep,
   statusHex,
+  normalizeStatus,
   type CrowdfundingStatus,
 } from "@/lib/crowdfunding-utils";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
@@ -29,19 +30,20 @@ interface TubeMapFilterProps {
   onFilterChange: (filter: FilterValue) => void;
 }
 
-/** Count projects per status */
+/** Count projects per canonical status (legacy statuses merged into their canonical equivalents) */
 function countByStatus(projects: CrowdfundingProject[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const p of projects) {
-    counts[p.status] = (counts[p.status] ?? 0) + 1;
+    const canonical = normalizeStatus(p.status);
+    counts[canonical] = (counts[canonical] ?? 0) + 1;
   }
   return counts;
 }
 
-/** Get first 3 project images for a status (tooltip thumbnails) */
+/** Get first 3 project images for a status (including legacy aliases) */
 function thumbnailsForStatus(projects: CrowdfundingProject[], status: string): string[] {
   return projects
-    .filter((p) => p.status === status && p.image_url)
+    .filter((p) => normalizeStatus(p.status) === status && p.image_url)
     .slice(0, 3)
     .map((p) => p.image_url!);
 }
@@ -51,11 +53,12 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   const [hoveredStation, setHoveredStation] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Find the rightmost "active" main station for the fill line
+  // Find the rightmost "active" main station for the fill line (normalise first)
   const activeMainIndex = (() => {
     let maxIdx = -1;
     for (const p of projects) {
-      const idx = (MAIN_PIPELINE_STATUSES as readonly string[]).indexOf(p.status);
+      const canonical = normalizeStatus(p.status);
+      const idx = (MAIN_PIPELINE_STATUSES as readonly string[]).indexOf(canonical);
       if (idx > maxIdx) maxIdx = idx;
     }
     return maxIdx;
@@ -155,7 +158,7 @@ function DesktopTubeMap({
 
         {/* Stations */}
         <div className="relative flex justify-between w-full">
-          {MAIN_PIPELINE_STATUSES.map((status, i) => {
+          {MAIN_PIPELINE_STATUSES.map((status) => {
             const step = statusStep(status);
             const count = counts[status] ?? 0;
             const isActive = activeFilter === status;
@@ -186,20 +189,12 @@ function DesktopTubeMap({
                   }}
                 />
 
-                {/* Station name */}
+                {/* Station name + count combined */}
                 <span
-                  className="font-mono text-[0.55rem] font-bold uppercase mt-1.5 text-center leading-tight transition-opacity"
+                  className="font-mono text-[0.5rem] font-bold uppercase mt-1.5 text-center leading-tight transition-opacity"
                   style={{ opacity: hasProjects ? 0.8 : 0.25 }}
                 >
-                  {step.shortLabel}
-                </span>
-
-                {/* Count */}
-                <span
-                  className="font-mono text-[0.5rem] mt-0.5 transition-opacity"
-                  style={{ opacity: hasProjects ? 0.5 : 0.15 }}
-                >
-                  {count}
+                  {step.shortLabel} ({count})
                 </span>
 
                 {/* Hover tooltip */}
@@ -236,56 +231,44 @@ function DesktopTubeMap({
         </div>
       </div>
 
-      {/* Branch line — fork off between Crowdfunding (index 1) and Funded (index 2) */}
+      {/* Branch statuses — flat row below the main line, no diagonal connector */}
       {activeBranches.length > 0 && (
-        <div className="relative ml-[16.6%] mt-1" style={{ width: "fit-content" }}>
-          {/* Diagonal connector */}
-          <div
-            className="absolute w-[2px] h-[16px] bg-ink/20"
-            style={{
-              top: "-16px",
-              left: "0px",
-              transform: "rotate(30deg)",
-              transformOrigin: "top left",
-            }}
-          />
+        <div className="flex items-center gap-4 mt-1 ml-2">
+          <span className="font-mono text-[0.55rem] opacity-20 select-none">/</span>
+          {activeBranches.map((status) => {
+            const step = statusStep(status);
+            const count = counts[status] ?? 0;
+            const isActive = activeFilter === status;
+            const hex = statusHex(status);
 
-          {/* Branch stations */}
-          <div className="flex gap-4 items-center ml-2">
-            {activeBranches.map((status) => {
-              const step = statusStep(status);
-              const count = counts[status] ?? 0;
-              const isActive = activeFilter === status;
-              const hex = statusHex(status);
-
-              return (
-                <button
-                  key={status}
-                  onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
-                  onMouseEnter={() => setHoveredStation(status)}
-                  onMouseLeave={() => setHoveredStation(null)}
-                  className="flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0"
+            return (
+              <button
+                key={status}
+                onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
+                onMouseEnter={() => setHoveredStation(status)}
+                onMouseLeave={() => setHoveredStation(null)}
+                className="flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0"
+              >
+                <div
+                  className="rounded-full border-2 flex-shrink-0 transition-all"
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    background: hex,
+                    borderColor: hex,
+                    boxShadow: isActive ? `0 0 0 2px ${hex}40` : "none",
+                    transform: isActive ? "scale(1.2)" : "scale(1)",
+                  }}
+                />
+                <span
+                  className="font-mono text-[0.5rem] font-bold uppercase transition-opacity"
+                  style={{ opacity: isActive ? 0.9 : 0.5 }}
                 >
-                  <div
-                    className="rounded-full border-2 flex-shrink-0"
-                    style={{
-                      width: "14px",
-                      height: "14px",
-                      background: hex,
-                      borderColor: hex,
-                      boxShadow: isActive ? `0 0 0 2px ${hex}40` : "none",
-                    }}
-                  />
-                  <span
-                    className="font-mono text-[0.5rem] uppercase"
-                    style={{ opacity: 0.5 }}
-                  >
-                    {step.shortLabel} ({count})
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                  {step.shortLabel} ({count})
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -349,11 +332,8 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
                   boxShadow: isActive ? `0 0 0 3px ${hex}40` : "none",
                 }}
               />
-              <span className="font-mono text-[0.5rem] font-bold uppercase whitespace-nowrap">
-                {step.shortLabel}
-              </span>
-              <span className="font-mono text-[0.45rem]" style={{ opacity: 0.4 }}>
-                {count}
+              <span className="font-mono text-[0.45rem] font-bold uppercase whitespace-nowrap">
+                {step.shortLabel} ({count})
               </span>
             </button>
           );

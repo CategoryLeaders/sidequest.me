@@ -9,7 +9,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
-import { formatPledge, parseDeliveryDeadline } from "@/lib/crowdfunding-utils";
+import { formatPledge, parseDeliveryDeadline, normalizeStatus } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
 import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
@@ -41,7 +41,7 @@ export default function BackedProjects({ projects, username, writingCounts, revi
 
   const filtered = filter === "all"
     ? projects
-    : projects.filter((p) => p.status === filter);
+    : projects.filter((p) => normalizeStatus(p.status) === filter);
 
   return (
     <>
@@ -84,8 +84,8 @@ export default function BackedProjects({ projects, username, writingCounts, revi
         {filtered.map((project, i) => {
           const wCount = writingCounts[project.id] ?? 0;
 
-          // Countdown logic
-          const showCampaignCountdown = project.status === "crowdfunding" && project.deadline;
+          // Countdown logic (normalise: "live" is a legacy alias for "crowdfunding")
+          const showCampaignCountdown = normalizeStatus(project.status) === "crowdfunding" && project.deadline;
           const deliveryDeadline = project.est_delivery
             ? parseDeliveryDeadline(project.est_delivery)
             : null;

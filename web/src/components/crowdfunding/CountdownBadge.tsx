@@ -3,9 +3,10 @@
 /**
  * Countdown badge for crowdfunding projects.
  * Shows time remaining until deadline or estimated delivery.
- * [SQ.S-W-2603-0074]
+ * [SQ.S-W-2603-0074] [SQ.S-W-2603-0078]
  *
- * Format: "14d 6h" | "6h 23m" | "47m" | hidden if expired.
+ * Format (>3d: days only; ≤3d: hours only; <1h: minutes only).
+ * Badge variant positioned bottom-right so it doesn't clash with close buttons.
  * Re-renders every 60 seconds.
  */
 
@@ -20,7 +21,12 @@ interface CountdownBadgeProps {
   variant?: "badge" | "inline";
 }
 
-function formatCountdown(targetDate: Date): string | null {
+interface CountdownParts {
+  value: number;
+  unit: string;
+}
+
+function formatCountdown(targetDate: Date): CountdownParts | null {
   const now = new Date();
   const diff = targetDate.getTime() - now.getTime();
 
@@ -30,19 +36,23 @@ function formatCountdown(targetDate: Date): string | null {
   const totalHours = Math.floor(totalMinutes / 60);
   const totalDays = Math.floor(totalHours / 24);
 
-  if (totalDays > 0) {
-    const remainingHours = totalHours % 24;
-    return `${totalDays}d ${remainingHours}h`;
-  }
-  if (totalHours > 0) {
-    const remainingMinutes = totalMinutes % 60;
-    return `${totalHours}h ${remainingMinutes}m`;
-  }
-  return `${totalMinutes}m`;
+  // > 3 days: show days only
+  if (totalDays > 3) return { value: totalDays, unit: "d" };
+  // ≤ 3 days but ≥ 1 hour: show hours only (urgent)
+  if (totalHours > 0) return { value: totalHours, unit: "h" };
+  // < 1 hour: show minutes
+  return { value: totalMinutes, unit: "m" };
+}
+
+/** Simple string for inline variant */
+function formatCountdownInline(targetDate: Date): string | null {
+  const parts = formatCountdown(targetDate);
+  if (!parts) return null;
+  return `${parts.value}${parts.unit}`;
 }
 
 export default function CountdownBadge({ deadline, label, variant = "badge" }: CountdownBadgeProps) {
-  const [countdown, setCountdown] = useState<string | null>(() => {
+  const [parts, setParts] = useState<CountdownParts | null>(() => {
     try {
       return formatCountdown(new Date(deadline));
     } catch {
@@ -53,9 +63,9 @@ export default function CountdownBadge({ deadline, label, variant = "badge" }: C
   useEffect(() => {
     const update = () => {
       try {
-        setCountdown(formatCountdown(new Date(deadline)));
+        setParts(formatCountdown(new Date(deadline)));
       } catch {
-        setCountdown(null);
+        setParts(null);
       }
     };
 
@@ -64,30 +74,37 @@ export default function CountdownBadge({ deadline, label, variant = "badge" }: C
     return () => clearInterval(interval);
   }, [deadline]);
 
-  if (!countdown) return null;
+  if (!parts) return null;
 
   if (variant === "inline") {
     return (
       <span className="font-mono text-[0.6rem] opacity-60">
         {label && <span className="mr-1">{label}</span>}
-        {countdown}
+        {parts.value}{parts.unit}
       </span>
     );
   }
 
-  // Badge variant — overlay on card image
+  // Badge variant — overlay on card/lightbox image, positioned bottom-right
   return (
     <div
-      className="absolute top-2 right-2 px-2 py-1 font-mono text-[0.55rem] font-bold uppercase z-10"
+      className="absolute bottom-2 right-2 px-2 py-1 font-mono z-10 text-center leading-none"
       style={{
         background: "var(--orange)",
         color: "var(--bg)",
         transform: "rotate(1.5deg)",
         boxShadow: "2px 2px 0 var(--ink)",
+        minWidth: "48px",
       }}
     >
-      {label && <span className="mr-1">{label}</span>}
-      {countdown}
+      {label && (
+        <div className="text-[0.45rem] font-bold uppercase tracking-wider opacity-80 mb-0.5">
+          {label}
+        </div>
+      )}
+      <div className="text-[0.9rem] font-black uppercase leading-none">
+        {parts.value}{parts.unit}
+      </div>
     </div>
   );
 }

@@ -153,7 +153,7 @@ export default function ProjectLightbox({
 
           {/* Pipeline */}
           <div className="mb-3">
-            <StatusPipeline status={project.status} />
+            <StatusPipeline status={project.status} compact />
           </div>
 
           {/* Description */}

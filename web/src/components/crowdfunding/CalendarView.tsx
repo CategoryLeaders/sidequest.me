@@ -2,11 +2,15 @@
 
 /**
  * Calendar view for backed projects.
- * Monthly grid showing projects placed by est_delivery_deadline.
- * [SQ.S-W-2603-0078]
+ * Fixed 12-month rolling grid starting from the current month.
+ * [SQ.S-W-2603-0083]
+ *
+ * - Always shows 12 months from today (current + next 11).
+ * - Projects with past delivery dates appear in the "Past" section.
+ * - Projects with no parseable date appear in "Unscheduled".
  */
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 import { statusHex, parseDeliveryDeadline } from "@/lib/crowdfunding-utils";
 
@@ -15,13 +19,26 @@ interface CalendarViewProps {
   onProjectClick: (project: CrowdfundingProject) => void;
 }
 
-/** Group projects by YYYY-MM key from est_delivery_deadline */
-function groupByMonth(projects: CrowdfundingProject[]) {
+const now = new Date();
+const CURRENT_MONTH_KEY = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+/** Generate a fixed 12-month grid from the current month */
+function getFixedMonthGrid(): string[] {
+  const result: string[] = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    result.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return result;
+}
+
+/** Group projects by YYYY-MM key, splitting into future/current, past, and unscheduled */
+function groupProjects(projects: CrowdfundingProject[], gridKeys: Set<string>) {
   const scheduled = new Map<string, CrowdfundingProject[]>();
+  const past: CrowdfundingProject[] = [];
   const unscheduled: CrowdfundingProject[] = [];
 
   for (const p of projects) {
-    // Use est_delivery_deadline if present, otherwise try parsing est_delivery
     let deadline: Date | null = null;
 
     if ((p as any).est_delivery_deadline) {
@@ -32,109 +49,65 @@ function groupByMonth(projects: CrowdfundingProject[]) {
 
     if (deadline && !isNaN(deadline.getTime())) {
       const key = `${deadline.getFullYear()}-${String(deadline.getMonth() + 1).padStart(2, "0")}`;
-      if (!scheduled.has(key)) scheduled.set(key, []);
-      scheduled.get(key)!.push(p);
+      if (gridKeys.has(key)) {
+        // Fits in the 12-month grid
+        if (!scheduled.has(key)) scheduled.set(key, []);
+        scheduled.get(key)!.push(p);
+      } else {
+        // Outside the grid window — put in past section
+        past.push(p);
+      }
     } else {
       unscheduled.push(p);
     }
   }
 
-  return { scheduled, unscheduled };
+  return { scheduled, past, unscheduled };
 }
 
 /** Get month label from YYYY-MM key */
 function monthLabel(key: string): string {
   const [year, month] = key.split("-").map(Number);
   const date = new Date(year, month - 1, 1);
-  return date.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-}
-
-/** Get sorted month keys spanning from earliest to latest, including empty months */
-function getMonthRange(keys: string[]): string[] {
-  if (keys.length === 0) return [];
-
-  const sorted = [...keys].sort();
-  const [startYear, startMonth] = sorted[0].split("-").map(Number);
-  const [endYear, endMonth] = sorted[sorted.length - 1].split("-").map(Number);
-
-  const result: string[] = [];
-  let y = startYear;
-  let m = startMonth;
-
-  while (y < endYear || (y === endYear && m <= endMonth)) {
-    result.push(`${y}-${String(m).padStart(2, "0")}`);
-    m++;
-    if (m > 12) {
-      m = 1;
-      y++;
-    }
-  }
-
-  return result;
+  return date.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
 }
 
 export default function CalendarView({ projects, onProjectClick }: CalendarViewProps) {
-  const { scheduled, unscheduled } = useMemo(() => groupByMonth(projects), [projects]);
-  const monthKeys = useMemo(() => getMonthRange(Array.from(scheduled.keys())), [scheduled]);
-
-  // Navigation: show 3 months at a time
-  const [startIdx, setStartIdx] = useState(0);
-  const visibleMonths = monthKeys.slice(startIdx, startIdx + 3);
-
-  const now = new Date();
-  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const gridKeys = useMemo(() => getFixedMonthGrid(), []);
+  const gridKeySet = useMemo(() => new Set(gridKeys), [gridKeys]);
+  const { scheduled, past, unscheduled } = useMemo(
+    () => groupProjects(projects, gridKeySet),
+    [projects, gridKeySet]
+  );
 
   return (
     <div>
-      {/* Month navigation */}
-      {monthKeys.length > 3 && (
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => setStartIdx(Math.max(0, startIdx - 3))}
-            disabled={startIdx === 0}
-            className="font-mono text-[0.6rem] uppercase px-3 py-1 border-2 border-ink/20 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed hover:border-ink/40 transition-colors bg-transparent"
-          >
-            ← Earlier
-          </button>
-          <span className="font-mono text-[0.55rem] uppercase opacity-40">
-            {visibleMonths.length > 0 && `${monthLabel(visibleMonths[0])} — ${monthLabel(visibleMonths[visibleMonths.length - 1])}`}
-          </span>
-          <button
-            onClick={() => setStartIdx(Math.min(monthKeys.length - 3, startIdx + 3))}
-            disabled={startIdx + 3 >= monthKeys.length}
-            className="font-mono text-[0.6rem] uppercase px-3 py-1 border-2 border-ink/20 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed hover:border-ink/40 transition-colors bg-transparent"
-          >
-            Later →
-          </button>
-        </div>
-      )}
-
-      {/* Month grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {visibleMonths.map((key) => {
+      {/* Fixed 12-month grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+        {gridKeys.map((key) => {
           const monthProjects = scheduled.get(key) ?? [];
-          const isCurrent = key === currentMonthKey;
-          const isPast = key < currentMonthKey;
+          const isCurrent = key === CURRENT_MONTH_KEY;
 
           return (
             <div
               key={key}
-              className="border-2 p-3 min-h-[140px]"
+              className="border-2 p-3 min-h-[100px]"
               style={{
-                borderColor: isCurrent ? "var(--orange)" : "color-mix(in srgb, var(--ink) 15%, transparent)",
-                opacity: isPast ? 0.5 : 1,
+                borderColor: isCurrent
+                  ? "var(--orange)"
+                  : "color-mix(in srgb, var(--ink) 15%, transparent)",
               }}
             >
               {/* Month header */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2">
                 <span
-                  className="font-head font-bold text-[0.75rem] uppercase"
+                  className="font-head font-bold text-[0.7rem] uppercase"
                   style={{ opacity: isCurrent ? 1 : 0.5 }}
                 >
                   {monthLabel(key)}
                 </span>
                 {isCurrent && (
-                  <span className="font-mono text-[0.45rem] uppercase px-1.5 py-0.5 bg-orange text-bg font-bold">
+                  <span className="font-mono text-[0.4rem] uppercase px-1 py-0.5 bg-orange text-bg font-bold">
                     Now
                   </span>
                 )}
@@ -142,34 +115,27 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
 
               {/* Projects in this month */}
               {monthProjects.length > 0 ? (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   {monthProjects.map((p) => {
                     const hex = statusHex(p.status);
                     return (
                       <button
                         key={p.id}
                         onClick={() => onProjectClick(p)}
-                        className="flex items-center gap-2 p-1.5 border border-ink/10 hover:border-ink/30 transition-colors cursor-pointer bg-transparent text-left w-full"
+                        className="flex items-center gap-1.5 p-1 border border-ink/10 hover:border-ink/30 transition-colors cursor-pointer bg-transparent text-left w-full"
                       >
-                        {/* Status dot */}
                         <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                           style={{ background: hex }}
                         />
-
-                        {/* Thumbnail */}
-                        {p.image_url ? (
+                        {p.image_url && (
                           <img
                             src={p.image_url}
                             alt=""
-                            className="w-8 h-8 object-cover border border-ink/10 flex-shrink-0"
+                            className="w-6 h-6 object-cover border border-ink/10 flex-shrink-0"
                           />
-                        ) : (
-                          <div className="w-8 h-8 bg-ink/5 flex-shrink-0" />
                         )}
-
-                        {/* Title */}
-                        <span className="font-mono text-[0.55rem] font-bold uppercase truncate">
+                        <span className="font-mono text-[0.5rem] font-bold uppercase truncate leading-tight">
                           {(p as any).short_name || p.title}
                         </span>
                       </button>
@@ -177,23 +143,40 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
                   })}
                 </div>
               ) : (
-                <span className="font-mono text-[0.5rem] opacity-20 uppercase">
-                  No deliveries
-                </span>
+                <span className="font-mono text-[0.45rem] opacity-15 uppercase">—</span>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Empty months message */}
-      {monthKeys.length === 0 && unscheduled.length === 0 && (
-        <p className="text-center opacity-40 font-mono text-[0.8rem] py-12">
-          No delivery dates set.
-        </p>
+      {/* Past deliveries (before current month) */}
+      {past.length > 0 && (
+        <div className="border-t-2 border-ink/10 pt-4 mb-4">
+          <span className="font-mono text-[0.6rem] uppercase opacity-40 block mb-3">
+            Past ({past.length})
+          </span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {past.map((p) => {
+              const hex = statusHex(p.status);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => onProjectClick(p)}
+                  className="flex items-center gap-2 p-2 border border-ink/10 hover:border-ink/30 transition-colors cursor-pointer bg-transparent text-left"
+                >
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex }} />
+                  <span className="font-mono text-[0.5rem] font-bold uppercase truncate">
+                    {(p as any).short_name || p.title}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      {/* Unscheduled section */}
+      {/* Unscheduled (no date) */}
       {unscheduled.length > 0 && (
         <div className="border-t-2 border-ink/10 pt-4">
           <span className="font-mono text-[0.6rem] uppercase opacity-40 block mb-3">
@@ -208,10 +191,7 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
                   onClick={() => onProjectClick(p)}
                   className="flex items-center gap-2 p-2 border border-ink/10 hover:border-ink/30 transition-colors cursor-pointer bg-transparent text-left"
                 >
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ background: hex }}
-                  />
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hex }} />
                   <span className="font-mono text-[0.5rem] font-bold uppercase truncate">
                     {(p as any).short_name || p.title}
                   </span>
@@ -220,6 +200,13 @@ export default function CalendarView({ projects, onProjectClick }: CalendarViewP
             })}
           </div>
         </div>
+      )}
+
+      {/* Empty state */}
+      {projects.length === 0 && (
+        <p className="text-center opacity-40 font-mono text-[0.8rem] py-12">
+          No projects to show.
+        </p>
       )}
     </div>
   );
