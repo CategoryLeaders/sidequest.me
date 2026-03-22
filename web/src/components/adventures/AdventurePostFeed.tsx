@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { AdventurePost, PostType, Chapter, PhotoItem } from '@/lib/adventures'
+import { ImageMosaic } from '@/components/ui/ImageMosaic'
 
 interface AdventurePostFeedProps {
   adventureId: string
@@ -21,7 +22,7 @@ function normalizePhoto(raw: unknown): PhotoItem {
   return raw as PhotoItem
 }
 
-// ── Smart photo display ──────────────────────────────────────────────────────
+// ── Smart photo display — delegates to shared ImageMosaic algorithm ──────────
 function PhotoDisplay({
   photos,
   interactive = false,
@@ -38,120 +39,52 @@ function PhotoDisplay({
 
   const label =
     count === 1 ? 'Photo'
-    : count === 2 ? '2 Photos — equal grid'
-    : count === 3 ? '3 Photos — equal grid'
-    : `${count} Photos — mosaic (★ to feature)`
+    : count === 2 ? '2 Photos'
+    : count === 3 ? '3 Photos'
+    : `${count} Photos${interactive ? ' — ★ to feature' : ''}`
 
-  // ── 1 photo: full width, natural aspect ratio ──
-  if (count === 1) {
-    return (
-      <div>
-        <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-        <div className="w-full border-2 border-ink overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photos[0].url}
-            alt={photos[0].caption ?? ''}
-            className="w-full h-auto block"
-          />
-        </div>
-        {photos[0].caption && (
-          <p className="font-mono text-[0.5rem] text-ink-muted mt-1 italic">{photos[0].caption}</p>
-        )}
-      </div>
-    )
-  }
-
-  // ── 2 photos: equal grid, natural aspect, object-cover ──
-  if (count === 2) {
-    return (
-      <div>
-        <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-        <div
-          className="gap-[3px]"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}
-        >
-          {photos.map((p, i) => (
-            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '3/2' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // ── 3 photos: equal 3-column grid, square (1:1), object-cover ──
-  if (count === 3) {
-    return (
-      <div>
-        <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-        <div
-          className="gap-[3px]"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
-        >
-          {photos.map((p, i) => (
-            <div key={i} className="overflow-hidden border-2 border-ink" style={{ aspectRatio: '1' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption ?? ''} className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // ── 4+ photos: mosaic ──
-  const featIdx = featuredIndex >= 0 && featuredIndex < count ? featuredIndex : 0
-  // Render featured first so CSS grid auto-placement fills remaining cells correctly
-  const indexed = photos.map((p, i) => ({ photo: p, originalIndex: i }))
-  const sortedForMosaic = [indexed[featIdx], ...indexed.filter((_, i) => i !== featIdx)]
+  const items = photos.map((p) => ({
+    url: p.url,
+    alt: p.caption ?? undefined,
+    width: p.width,
+    height: p.height,
+  }))
 
   return (
     <div>
       <p className="font-mono text-[0.52rem] text-ink-muted uppercase tracking-wide mb-1.5">{label}</p>
-      <div
-        className="gap-[3px]"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gridAutoRows: '140px' }}
-      >
-        {sortedForMosaic.map(({ photo, originalIndex }) => {
-          const isFeatured = originalIndex === featIdx
-          return (
-            <div
-              key={originalIndex}
-              className="relative overflow-hidden border-2 border-ink bg-[var(--bg-card)] group/photo"
-              style={
+      <ImageMosaic
+        images={items}
+        featuredIndex={featuredIndex}
+        // In interactive (editor) mode: clicks star a photo, no lightbox.
+        // In public view: clicks open the lightbox (onImageClick undefined).
+        onImageClick={interactive ? (idx) => onFeature?.(idx) : undefined}
+        renderOverlay={interactive ? (idx, isFeatured) => (
+          <>
+            {isFeatured && (
+              <div className="absolute bottom-2 left-2 font-mono text-[0.45rem] bg-black/60 text-white px-1.5 py-0.5 uppercase tracking-wider pointer-events-none">
+                Featured
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onFeature?.(idx) }}
+              title={isFeatured ? 'Featured (click another to change)' : 'Set as featured photo'}
+              className={`absolute top-2 right-2 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] transition-all cursor-pointer z-10 ${
                 isFeatured
-                  ? { gridColumn: 'span 4', gridRow: 'span 2' }
-                  : { gridColumn: 'span 2', gridRow: 'span 1' }
-              }
+                  ? 'bg-orange text-white opacity-100 shadow-md'
+                  : 'bg-black/50 text-white/80 opacity-60 hover:opacity-100 hover:bg-orange/80'
+              }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt={photo.caption ?? ''} className="w-full h-full object-cover" />
-              {isFeatured && (
-                <div className="absolute bottom-2 left-2 font-mono text-[0.45rem] bg-black/60 text-white px-1.5 py-0.5 uppercase tracking-wider">
-                  Featured
-                </div>
-              )}
-              {interactive && (
-                <button
-                  type="button"
-                  onClick={() => onFeature?.(originalIndex)}
-                  title={isFeatured ? 'Featured (click another to change)' : 'Set as featured photo'}
-                  className={`absolute top-2 right-2 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] transition-all cursor-pointer z-10 ${
-                    isFeatured
-                      ? 'bg-orange text-white opacity-100 shadow-md'
-                      : 'bg-black/50 text-white/80 opacity-60 hover:opacity-100 hover:bg-orange/80'
-                  }`}
-                >
-                  {isFeatured ? '★' : '☆'}
-                </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
+              {isFeatured ? '★' : '☆'}
+            </button>
+          </>
+        ) : undefined}
+        gap={3}
+      />
+      {count === 1 && photos[0].caption && (
+        <p className="font-mono text-[0.5rem] text-ink-muted mt-1 italic">{photos[0].caption}</p>
+      )}
     </div>
   )
 }
