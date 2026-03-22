@@ -2,18 +2,20 @@
 
 /**
  * Client component for the "Backed" sub-tab on the Projects page.
- * Renders a filterable grid of crowdfunding project cards.
+ * V2: Uses TubeMapFilter for status filtering, updated for V2 pipeline.
+ * [SQ.S-W-2603-0073]
  */
 
 import { useState } from "react";
 import Link from "next/link";
-import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
-import { formatPledge, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
+import { formatPledge } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
+import TubeMapFilter from "@/components/TubeMapFilter";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
-type StatusFilter = "all" | "crowdfunding" | "in_production" | "shipping" | "received";
+type FilterValue = "all" | CrowdfundingStatus;
 
 interface BackedProjectsProps {
   projects: CrowdfundingProject[];
@@ -22,61 +24,20 @@ interface BackedProjectsProps {
 }
 
 export default function BackedProjects({ projects, username, writingCounts }: BackedProjectsProps) {
-  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [filter, setFilter] = useState<FilterValue>("all");
 
   const filtered = filter === "all"
     ? projects
-    : projects.filter((p) => {
-        // Map legacy statuses to new equivalents for filtering
-        const mapped = p.status === "active" ? "crowdfunding"
-          : p.status === "delivered" ? "received"
-          : p.status === "shipped" ? "shipping"
-          : p.status;
-        return mapped === filter;
-      });
-
-  // Count including legacy status mappings
-  const statusBucket = (s: string) =>
-    s === "active" ? "crowdfunding"
-    : s === "delivered" ? "received"
-    : s === "shipped" ? "shipping"
-    : s;
-
-  const counts = {
-    all: projects.length,
-    crowdfunding: projects.filter((p) => statusBucket(p.status) === "crowdfunding").length,
-    in_production: projects.filter((p) => statusBucket(p.status) === "in_production").length,
-    shipping: projects.filter((p) => statusBucket(p.status) === "shipping").length,
-    received: projects.filter((p) => statusBucket(p.status) === "received").length,
-  };
-
-  const filters: { key: StatusFilter; label: string }[] = [
-    { key: "all", label: "All" },
-    ...(counts.crowdfunding > 0 ? [{ key: "crowdfunding" as StatusFilter, label: "Crowdfunding" }] : []),
-    ...(counts.in_production > 0 ? [{ key: "in_production" as StatusFilter, label: "In Production" }] : []),
-    ...(counts.shipping > 0 ? [{ key: "shipping" as StatusFilter, label: "Shipping" }] : []),
-    ...(counts.received > 0 ? [{ key: "received" as StatusFilter, label: "Received" }] : []),
-  ];
+    : projects.filter((p) => p.status === filter);
 
   return (
     <>
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {filters.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`font-mono text-[0.65rem] px-3 py-1 border-2 border-ink cursor-pointer transition-all ${
-              filter === f.key
-                ? "bg-ink text-bg font-bold"
-                : "bg-bg-card hover:bg-ink/5"
-            }`}
-            style={{ transform: "rotate(-0.3deg)" }}
-          >
-            {f.label} ({counts[f.key]})
-          </button>
-        ))}
-      </div>
+      {/* Tube Map Filter */}
+      <TubeMapFilter
+        projects={projects}
+        activeFilter={filter}
+        onFilterChange={setFilter}
+      />
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -88,7 +49,7 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
               className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col"
               style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
             >
-              {/* Image placeholder */}
+              {/* Image */}
               {project.image_url ? (
                 <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
                   <img

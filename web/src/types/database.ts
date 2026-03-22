@@ -251,6 +251,7 @@ export type Database = {
           pledged_at: string | null
           deadline: string | null
           est_delivery: string | null
+          est_delivery_deadline: string | null
           show_pledge_amount: boolean
           tags: string[]
           sort_order: number
@@ -275,6 +276,7 @@ export type Database = {
           pledged_at?: string | null
           deadline?: string | null
           est_delivery?: string | null
+          est_delivery_deadline?: string | null
           show_pledge_amount?: boolean
           tags?: string[]
           sort_order?: number
@@ -299,12 +301,142 @@ export type Database = {
           pledged_at?: string | null
           deadline?: string | null
           est_delivery?: string | null
+          est_delivery_deadline?: string | null
           show_pledge_amount?: boolean
           tags?: string[]
           sort_order?: number
           featured?: boolean
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      crowdfunding_updates: {
+        Row: {
+          id: string
+          project_id: string | null
+          user_id: string
+          subject: string
+          body_text: string | null
+          body_html: string | null
+          received_at: string
+          sender_email: string | null
+          sender_name: string | null
+          matched_method: string | null
+          confidence: number | null
+          raw_email_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id?: string | null
+          user_id: string
+          subject: string
+          body_text?: string | null
+          body_html?: string | null
+          received_at?: string
+          sender_email?: string | null
+          sender_name?: string | null
+          matched_method?: string | null
+          confidence?: number | null
+          raw_email_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string | null
+          user_id?: string
+          subject?: string
+          body_text?: string | null
+          body_html?: string | null
+          received_at?: string
+          sender_email?: string | null
+          sender_name?: string | null
+          matched_method?: string | null
+          confidence?: number | null
+          raw_email_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      crowdfunding_reviews: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          rating: number | null
+          title: string | null
+          body: string
+          body_html: string | null
+          images: Json
+          status: string
+          visibility: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          rating?: number | null
+          title?: string | null
+          body: string
+          body_html?: string | null
+          images?: Json
+          status?: string
+          visibility?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          rating?: number | null
+          title?: string | null
+          body?: string
+          body_html?: string | null
+          images?: Json
+          status?: string
+          visibility?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      object_links: {
+        Row: {
+          id: string
+          user_id: string
+          source_type: string
+          source_id: string
+          target_type: string
+          target_id: string
+          label: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          source_type: string
+          source_id: string
+          target_type: string
+          target_id: string
+          label?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          source_type?: string
+          source_id?: string
+          target_type?: string
+          target_id?: string
+          label?: string | null
+          sort_order?: number
+          created_at?: string
         }
         Relationships: []
       }
@@ -317,6 +449,7 @@ export type Database = {
           crowdfunding_enabled: boolean
           crowdfunding_title: string | null
           crowdfunding_carousel_auto: boolean
+          crowdfunding_email_token: string | null
           dislikes: Json | null
           display_name: string | null
           factoids: Json | null
@@ -339,6 +472,7 @@ export type Database = {
           crowdfunding_enabled?: boolean
           crowdfunding_title?: string | null
           crowdfunding_carousel_auto?: boolean
+          crowdfunding_email_token?: string | null
           dislikes?: Json | null
           display_name?: string | null
           factoids?: Json | null
@@ -361,6 +495,7 @@ export type Database = {
           crowdfunding_enabled?: boolean
           crowdfunding_title?: string | null
           crowdfunding_carousel_auto?: boolean
+          crowdfunding_email_token?: string | null
           dislikes?: Json | null
           display_name?: string | null
           factoids?: Json | null
@@ -383,6 +518,7 @@ export type Database = {
           writing_id: string
           entity_type: string
           entity_id: string
+          is_primary: boolean
           created_at: string
         }
         Insert: {
@@ -390,6 +526,7 @@ export type Database = {
           writing_id: string
           entity_type: string
           entity_id: string
+          is_primary?: boolean
           created_at?: string
         }
         Update: {
@@ -397,6 +534,7 @@ export type Database = {
           writing_id?: string
           entity_type?: string
           entity_id?: string
+          is_primary?: boolean
           created_at?: string
         }
         Relationships: [

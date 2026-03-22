@@ -287,9 +287,13 @@ html[data-font-size="large"]  body { font-size: 17px; }
 }
 
 .pipeline-hl-green::after { background: var(--green); opacity: 0.5; }
+.pipeline-hl-teal::after { background: #1d8a5f; opacity: 0.5; }
 .pipeline-hl-orange::after { background: var(--orange); opacity: 0.5; }
 .pipeline-hl-blue::after { background: var(--blue); opacity: 0.5; }
+.pipeline-hl-steel::after { background: #4a7ab5; opacity: 0.5; }
 .pipeline-hl-lilac::after { background: var(--lilac); opacity: 0.5; }
+.pipeline-hl-pink::after { background: var(--pink); opacity: 0.5; }
+.pipeline-hl-grey::after { background: #a0a0a0; opacity: 0.5; }
 
 /* Compact variant — sits inline next to titles */
 .pipeline-compact .pipeline-dot { width: 6px; height: 6px; border-width: 1.5px; }
