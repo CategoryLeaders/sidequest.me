@@ -217,17 +217,24 @@ export function MicroblogImageMosaic({ images }: Props) {
   }
 
   // ── 3 images: large left + 2 stacked right ──
+  // Fixed grid height so right-side cells fill completely — no per-cell aspectRatio
+  // (aspectRatio fights the 1fr rows and leaves whitespace gaps).
   if (count === 3) {
     return (
       <>
         <div
           className="gap-[2px]"
-          style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr',
+            gridTemplateRows: '1fr 1fr',
+            height: '400px',
+          }}
         >
           <button
             type="button"
             className="relative overflow-hidden block cursor-zoom-in"
-            style={{ gridRow: '1 / 3', aspectRatio: '3/4' }}
+            style={{ gridRow: '1 / 3' }}
             onClick={() => open(0)}
           >
             <Image
@@ -244,7 +251,6 @@ export function MicroblogImageMosaic({ images }: Props) {
               key={i}
               type="button"
               className="relative overflow-hidden block cursor-zoom-in"
-              style={{ aspectRatio: '3/2' }}
               onClick={() => open(i + 1)}
             >
               <Image
@@ -266,8 +272,10 @@ export function MicroblogImageMosaic({ images }: Props) {
   }
 
   // ── 4+ images: adventure-style mosaic ──
-  // 6-col grid: hero (4 cols × 2 rows) + small (2 cols × 1 row)
-  const MAX_SMALL = 4
+  // 6-col grid: hero (4 cols × 2 rows) + exactly 2 small cells (2 cols × 1 row each,
+  // filling the right side of the hero). MAX_SMALL=2 avoids a partial 3rd row with
+  // blank columns when there are more images.
+  const MAX_SMALL = 2
   const heroImage = images[0]
   const smallImages = images.slice(1, 1 + MAX_SMALL)
   const remaining = images.length - 1 - MAX_SMALL
