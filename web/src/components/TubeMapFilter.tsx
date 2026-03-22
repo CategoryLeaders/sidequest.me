@@ -4,53 +4,58 @@
  * Tube Map Status Filter — London Underground style, SVG-based.
  * [SQ.S-W-2603-0073] [SQ.S-W-2603-0084] [SQ.S-W-2603-0085]
  *
- * Main line: Pre-Launch → Crowdfunding → Funded → In Production → Shipped → Delivered
- * Branch:    Bezier curve diverging from the Crowdfunding station down to
- *            Failed / Cancelled / Suspended circles.
+ * Main line: Pre-Launch → Crowdfunding → Funded/In Production → Shipped → Delivered
  *
- * Desktop: SVG viewBox scales with container.
- * Mobile:  Scrollable dot strip.
+ * Two branches, both diverging between Crowd Funding and Funded/In Production:
+ *   Branch A (just after Crowd Funding)  → CANCELLED
+ *   Branch B (just right of A)           → FAILED / NOT FUNDED
+ *
+ * Both branch stations sit at the same vertical depth, side by side.
  */
 
 import { useState } from "react";
 import {
   MAIN_PIPELINE_STATUSES,
-  BRANCH_STATUSES,
   statusHex,
   normalizeStatus,
   type CrowdfundingStatus,
 } from "@/lib/crowdfunding-utils";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 
-// Local display labels — avoids the duplicate "Fund" in shared STEP_MAP
+// ─── Display labels ────────────────────────────────────────────────────────
+// Defined locally — avoids the duplicate "Fund" shortLabel in shared STEP_MAP
 const TUBE_LABELS: Record<string, string[]> = {
-  pre_launch:    ["Pre-Launch"],
-  crowdfunding:  ["Crowd", "Funding"],
-  funded:        ["Funded"],
-  in_production: ["In Prod"],
-  shipped:       ["Shipped"],
-  delivered:     ["Here!"],
-  failed:        ["Failed"],
-  cancelled:     ["Cancelled"],
-  suspended:     ["Suspended"],
+  pre_launch:    ["PRE-LAUNCH"],
+  crowdfunding:  ["CROWD", "FUNDING"],
+  funded:        ["FUNDED /", "IN PROD"],       // merged visual label
+  in_production: ["FUNDED /", "IN PROD"],       // same merged label as funded
+  shipped:       ["SHIPPED"],
+  delivered:     ["HERE!"],
+  failed:        ["FAILED /", "NOT FUNDED"],
+  cancelled:     ["CANCELLED"],
+  suspended:     ["SUSPENDED"],
 };
 
 // ─── SVG geometry ─────────────────────────────────────────────────────────
 const VW = 880;
 const MAIN_Y = 52;
-const BRANCH_Y = 158;
+const BRANCH_Y = 162;
 const PAD = 60;
 const N = MAIN_PIPELINE_STATUSES.length; // 6
-const SPACING = (VW - 2 * PAD) / (N - 1); // 152
+const SPACING = (VW - 2 * PAD) / (N - 1); // ≈ 152
 const MAIN_XS = Array.from({ length: N }, (_, i) => Math.round(PAD + i * SPACING));
 // ≈ [60, 212, 364, 516, 668, 820]
+// Indices:  0=pre_launch  1=crowdfunding  2=funded  3=in_production  4=shipped  5=delivered
 
-// Branch diverges from the Crowdfunding station (index 1)
-const BRANCH_JOIN_X = MAIN_XS[1]; // 212
-const BRANCH_STATION_START_X = 330;
-const BRANCH_STATION_SPACING = 145;
-const BRANCH_XS = BRANCH_STATUSES.map((_, i) => BRANCH_STATION_START_X + i * BRANCH_STATION_SPACING);
-// ≈ [330, 475, 620]
+// Branch diverge points — between crowdfunding (212) and funded (364)
+const BRANCH_A_X = 250; // just after crowdfunding
+const BRANCH_B_X = 295; // just right of A
+
+// Branch station positions — same Y level, side by side
+const CANCELLED_X = 195;
+const FAILED_X = 330;
+// Suspended (rarely populated) — to the right of failed
+const SUSPENDED_X = 465;
 
 const MAIN_R = 12;
 const ACTIVE_R = 15;
@@ -58,6 +63,11 @@ const BRANCH_R = 10;
 const BRANCH_ACTIVE_R = 13;
 const TRACK_W = 5;
 const BRANCH_TRACK_W = 4;
+
+// For the merged FUNDED/IN PRODUCTION display: treat these two as one visual station
+// We only render the in_production circle (index 3), and label it "FUNDED / IN PROD"
+// The funded circle (index 2) is skipped visually; projects at "funded" count toward in_production label
+const MERGED_STATIONS = new Set(["funded"]); // hidden from main line
 
 type FilterValue = "all" | CrowdfundingStatus;
 
@@ -80,12 +90,17 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   const counts = countByStatus(projects);
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const hasBranch = BRANCH_STATUSES.some((s) => (counts[s] ?? 0) > 0);
+  const hasCancelled = (counts["cancelled"] ?? 0) > 0;
+  const hasFailed    = (counts["failed"]    ?? 0) > 0;
+  const hasSuspended = (counts["suspended"] ?? 0) > 0;
+  const hasBranch    = hasCancelled || hasFailed || hasSuspended;
 
-  // Height: with branch ~210, without ~110
-  const VH = hasBranch ? 210 : 110;
+  const VH = hasBranch ? 218 : 110;
 
-  // Rightmost active station index on the main line (for progress track)
+  // Merge funded count into in_production for the combined visual label
+  const mergedInProdCount = (counts["funded"] ?? 0) + (counts["in_production"] ?? 0);
+
+  // Rightmost populated main station index (for progress fill)
   const activeMainIndex = (() => {
     let maxIdx = -1;
     for (const p of projects) {
@@ -97,18 +112,24 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   })();
 
   const handleStation = (status: string) => {
-    if (activeFilter === status) {
-      onFilterChange("all");
-    } else {
-      onFilterChange(status as CrowdfundingStatus);
+    // Clicking FUNDED/IN PROD circle toggles both statuses together
+    if (status === "in_production") {
+      if (activeFilter === "in_production" || activeFilter === "funded") {
+        onFilterChange("all");
+      } else {
+        onFilterChange("in_production");
+      }
+      return;
     }
+    onFilterChange(activeFilter === status ? "all" : (status as CrowdfundingStatus));
   };
+
+  const isInProdActive = activeFilter === "in_production" || activeFilter === "funded";
 
   return (
     <div className="mb-8">
-      {/* ── Desktop SVG tube map ──────────────────────────────────── */}
+      {/* ── Desktop SVG tube map ───────────────────────────────── */}
       <div className="hidden md:block">
-        {/* "All" pill */}
         <button
           onClick={() => onFilterChange("all")}
           className={`font-mono text-[0.6rem] px-3 py-1 mb-4 border-2 border-ink cursor-pointer transition-all ${
@@ -124,62 +145,79 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
           width="100%"
           style={{ overflow: "visible", userSelect: "none", display: "block" }}
         >
-          {/* ── Main track (background) ────────────────────────── */}
+          {/* ── Main track (background) ──────────────────────── */}
           <line
             x1={MAIN_XS[0]} y1={MAIN_Y}
             x2={MAIN_XS[N - 1]} y2={MAIN_Y}
-            stroke="currentColor"
-            strokeOpacity={0.12}
-            strokeWidth={TRACK_W}
-            strokeLinecap="round"
+            stroke="currentColor" strokeOpacity={0.12}
+            strokeWidth={TRACK_W} strokeLinecap="round"
           />
 
-          {/* ── Main track (progress fill) ─────────────────────── */}
+          {/* ── Main track (progress fill) ──────────────────── */}
           {activeMainIndex > 0 && (
             <line
               x1={MAIN_XS[0]} y1={MAIN_Y}
               x2={MAIN_XS[activeMainIndex]} y2={MAIN_Y}
-              stroke="currentColor"
-              strokeOpacity={0.28}
-              strokeWidth={TRACK_W}
-              strokeLinecap="round"
+              stroke="currentColor" strokeOpacity={0.28}
+              strokeWidth={TRACK_W} strokeLinecap="round"
             />
           )}
 
-          {/* ── Branch track: bezier curve + horizontal run ─────── */}
+          {/* ── Branch tracks ────────────────────────────────── */}
           {hasBranch && (
             <>
-              {/* Bezier: from crowdfunding station straight down then sweeping right */}
-              <path
-                d={`M ${BRANCH_JOIN_X} ${MAIN_Y} Q ${BRANCH_JOIN_X} ${BRANCH_Y} ${BRANCH_STATION_START_X} ${BRANCH_Y}`}
-                fill="none"
-                stroke="currentColor"
-                strokeOpacity={0.18}
-                strokeWidth={BRANCH_TRACK_W}
-                strokeLinecap="round"
-              />
-              {/* Horizontal extension to last branch station */}
-              {BRANCH_XS.length > 1 && (
+              {/* Branch A: just after crowdfunding → CANCELLED (curves left) */}
+              {hasCancelled && (
+                <path
+                  d={`M ${BRANCH_A_X} ${MAIN_Y} Q ${BRANCH_A_X} ${BRANCH_Y} ${CANCELLED_X} ${BRANCH_Y}`}
+                  fill="none"
+                  stroke="currentColor" strokeOpacity={0.18}
+                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
+                />
+              )}
+
+              {/* Branch B: just right of A → FAILED/NOT FUNDED (curves right) */}
+              {hasFailed && (
+                <path
+                  d={`M ${BRANCH_B_X} ${MAIN_Y} Q ${BRANCH_B_X} ${BRANCH_Y} ${FAILED_X} ${BRANCH_Y}`}
+                  fill="none"
+                  stroke="currentColor" strokeOpacity={0.18}
+                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
+                />
+              )}
+
+              {/* Suspended: horizontal extension from failed if populated */}
+              {hasSuspended && hasFailed && (
                 <line
-                  x1={BRANCH_STATION_START_X} y1={BRANCH_Y}
-                  x2={BRANCH_XS[BRANCH_XS.length - 1]} y2={BRANCH_Y}
-                  stroke="currentColor"
-                  strokeOpacity={0.18}
-                  strokeWidth={BRANCH_TRACK_W}
-                  strokeLinecap="round"
+                  x1={FAILED_X} y1={BRANCH_Y}
+                  x2={SUSPENDED_X} y2={BRANCH_Y}
+                  stroke="currentColor" strokeOpacity={0.14}
+                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
+                />
+              )}
+              {hasSuspended && !hasFailed && (
+                <path
+                  d={`M ${BRANCH_B_X} ${MAIN_Y} Q ${BRANCH_B_X} ${BRANCH_Y} ${SUSPENDED_X} ${BRANCH_Y}`}
+                  fill="none"
+                  stroke="currentColor" strokeOpacity={0.14}
+                  strokeWidth={BRANCH_TRACK_W} strokeLinecap="round"
                 />
               )}
             </>
           )}
 
-          {/* ── Main stations ──────────────────────────────────────── */}
+          {/* ── Main stations ──────────────────────────────────── */}
           {MAIN_PIPELINE_STATUSES.map((status, i) => {
-            const count = counts[status] ?? 0;
-            const isActive = activeFilter === status;
+            // Skip "funded" — it's merged into the in_production circle
+            if (MERGED_STATIONS.has(status)) return null;
+
+            const rawCount = counts[status] ?? 0;
+            const displayCount = status === "in_production" ? mergedInProdCount : rawCount;
+            const isActive = status === "in_production" ? isInProdActive : activeFilter === status;
             const isHov = hovered === status;
             const hex = statusHex(status);
             const r = isActive ? ACTIVE_R : MAIN_R;
-            const hasProjects = count > 0;
+            const hasProjects = displayCount > 0;
             const cx = MAIN_XS[i];
             const labels = TUBE_LABELS[status] ?? [status];
 
@@ -191,30 +229,23 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                 onMouseLeave={() => setHovered(null)}
                 style={{ cursor: hasProjects ? "pointer" : "default" }}
               >
-                {/* Glow halo for active */}
                 {isActive && (
                   <circle cx={cx} cy={MAIN_Y} r={r + 6}
                     fill={hex} fillOpacity={0.15} />
                 )}
-
-                {/* Station circle */}
                 <circle
                   cx={cx} cy={MAIN_Y} r={r}
                   fill={hasProjects ? hex : "var(--bg)"}
                   stroke={hasProjects ? hex : "currentColor"}
                   strokeOpacity={hasProjects ? 1 : 0.2}
                   strokeWidth={2.5}
-                  style={{ transition: "r 0.15s, opacity 0.15s" }}
                   opacity={isHov && hasProjects ? 0.82 : 1}
                 />
-
-                {/* White interchange ring for active station */}
                 {isActive && (
                   <circle cx={cx} cy={MAIN_Y} r={r - 4}
                     fill="var(--bg)" fillOpacity={0.65} />
                 )}
 
-                {/* Station labels */}
                 {labels.map((line, li) => (
                   <text
                     key={li}
@@ -226,17 +257,16 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                     fontWeight="bold"
                     fill="currentColor"
                     fillOpacity={hasProjects ? (isActive ? 1 : 0.65) : 0.2}
-                    style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}
+                    style={{ letterSpacing: "0.04em" }}
                   >
                     {line}
                   </text>
                 ))}
 
-                {/* Count on its own line */}
                 {hasProjects && (
                   <text
                     x={cx}
-                    y={MAIN_Y + ACTIVE_R + 12 + labels.length * 11 + 3}
+                    y={MAIN_Y + ACTIVE_R + 12 + labels.length * 11 + 4}
                     textAnchor="middle"
                     fontSize="9.5"
                     fontFamily="monospace"
@@ -244,15 +274,20 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                     fill={isActive ? hex : "currentColor"}
                     fillOpacity={isActive ? 1 : 0.45}
                   >
-                    {count}
+                    {displayCount}
                   </text>
                 )}
               </g>
             );
           })}
 
-          {/* ── Branch stations ────────────────────────────────────── */}
-          {hasBranch && BRANCH_STATUSES.map((status, i) => {
+          {/* ── Branch stations ────────────────────────────────── */}
+          {([
+            hasCancelled && { status: "cancelled", cx: CANCELLED_X },
+            hasFailed    && { status: "failed",    cx: FAILED_X    },
+            hasSuspended && { status: "suspended", cx: SUSPENDED_X },
+          ] as const).filter(Boolean).map((item: any) => {
+            const { status, cx } = item;
             const count = counts[status] ?? 0;
             if (count === 0) return null;
 
@@ -260,7 +295,6 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
             const isHov = hovered === status;
             const hex = statusHex(status);
             const r = isActive ? BRANCH_ACTIVE_R : BRANCH_R;
-            const cx = BRANCH_XS[i];
             const labels = TUBE_LABELS[status] ?? [status];
 
             return (
@@ -275,15 +309,11 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                   <circle cx={cx} cy={BRANCH_Y} r={r + 5}
                     fill={hex} fillOpacity={0.15} />
                 )}
-
                 <circle
                   cx={cx} cy={BRANCH_Y} r={r}
-                  fill={hex}
-                  stroke={hex}
-                  strokeWidth={2.5}
+                  fill={hex} stroke={hex} strokeWidth={2.5}
                   opacity={isHov ? 0.82 : 1}
                 />
-
                 {isActive && (
                   <circle cx={cx} cy={BRANCH_Y} r={r - 3}
                     fill="var(--bg)" fillOpacity={0.65} />
@@ -300,7 +330,7 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                     fontWeight="bold"
                     fill="currentColor"
                     fillOpacity={isActive ? 1 : 0.65}
-                    style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}
+                    style={{ letterSpacing: "0.04em" }}
                   >
                     {line}
                   </text>
@@ -308,7 +338,7 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
 
                 <text
                   x={cx}
-                  y={BRANCH_Y + BRANCH_ACTIVE_R + 12 + labels.length * 11 + 3}
+                  y={BRANCH_Y + BRANCH_ACTIVE_R + 12 + labels.length * 11 + 4}
                   textAnchor="middle"
                   fontSize="9.5"
                   fontFamily="monospace"
@@ -328,6 +358,7 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
       <div className="md:hidden">
         <MobileDotStrip
           counts={counts}
+          mergedInProdCount={mergedInProdCount}
           activeFilter={activeFilter}
           onFilterChange={onFilterChange}
           totalCount={projects.length}
@@ -337,19 +368,29 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Mobile Scrollable Dot Strip
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* ─── Mobile Dot Strip ────────────────────────────────────────────────────── */
 
 interface MobileProps {
   counts: Record<string, number>;
+  mergedInProdCount: number;
   activeFilter: FilterValue;
   onFilterChange: (f: FilterValue) => void;
   totalCount: number;
 }
 
-function MobileDotStrip({ counts, activeFilter, onFilterChange, totalCount }: MobileProps) {
-  const allStatuses = [...MAIN_PIPELINE_STATUSES, ...BRANCH_STATUSES];
+function MobileDotStrip({ counts, mergedInProdCount, activeFilter, onFilterChange, totalCount }: MobileProps) {
+  const stations = [
+    ...MAIN_PIPELINE_STATUSES
+      .filter(s => s !== "funded")
+      .map(s => ({
+        status: s,
+        count: s === "in_production" ? mergedInProdCount : (counts[s] ?? 0),
+        label: s === "in_production" ? "F/IP" : (TUBE_LABELS[s]?.[0] ?? s),
+      })),
+    { status: "cancelled", count: counts["cancelled"] ?? 0, label: "CANC" },
+    { status: "failed",    count: counts["failed"]    ?? 0, label: "FAIL" },
+    { status: "suspended", count: counts["suspended"] ?? 0, label: "SUSP" },
+  ].filter(s => s.count > 0);
 
   return (
     <div>
@@ -361,22 +402,15 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, totalCount }: Mo
       >
         All ({totalCount})
       </button>
-
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-        {allStatuses.map((status) => {
-          const count = counts[status] ?? 0;
-          if (count === 0) return null;
-
-          const isActive = activeFilter === status;
+        {stations.map(({ status, count, label }) => {
+          const isActive = activeFilter === status ||
+            (status === "in_production" && activeFilter === "funded");
           const hex = statusHex(status);
-          const labels = TUBE_LABELS[status] ?? [status];
-
           return (
             <button
               key={status}
-              onClick={() =>
-                onFilterChange(isActive ? "all" : (status as CrowdfundingStatus))
-              }
+              onClick={() => onFilterChange(isActive ? "all" : (status as CrowdfundingStatus))}
               className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 p-1 flex-shrink-0"
             >
               <div
@@ -393,7 +427,7 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, totalCount }: Mo
                 className="font-mono text-[0.45rem] font-bold uppercase whitespace-nowrap"
                 style={{ color: isActive ? hex : "var(--ink)", opacity: isActive ? 1 : 0.65 }}
               >
-                {labels[0]} ({count})
+                {label} ({count})
               </span>
             </button>
           );
