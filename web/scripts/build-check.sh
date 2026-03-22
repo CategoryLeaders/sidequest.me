@@ -18,6 +18,16 @@
 
 set -o pipefail
 
+# Guard: this script is for the Cowork VM (Linux) only.
+# node_modules contains Linux native binaries — running on macOS will fail with
+# "Cannot find module lightningcss.darwin-arm64.node".
+# To build on your Mac: npm install && npm run build
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo "✗ build:vm is for the Cowork VM only (Linux)."
+  echo "  To build on your Mac: npm install && npm run build"
+  exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WEB_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$WEB_DIR"
