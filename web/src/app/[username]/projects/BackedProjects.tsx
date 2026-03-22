@@ -2,16 +2,18 @@
 
 /**
  * Client component for the "Backed" sub-tab on the Projects page.
- * V2: Uses TubeMapFilter for status filtering, updated for V2 pipeline.
- * [SQ.S-W-2603-0073]
+ * V2: TubeMapFilter, lightbox on card click, countdown badges.
+ * [SQ.S-W-2603-0073] [SQ.S-W-2603-0074]
  */
 
 import { useState } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
-import { formatPledge } from "@/lib/crowdfunding-utils";
+import { formatPledge, parseDeliveryDeadline } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
+import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
+import ProjectLightbox from "@/components/crowdfunding/ProjectLightbox";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
@@ -25,6 +27,7 @@ interface BackedProjectsProps {
 
 export default function BackedProjects({ projects, username, writingCounts }: BackedProjectsProps) {
   const [filter, setFilter] = useState<FilterValue>("all");
+  const [lightboxProject, setLightboxProject] = useState<CrowdfundingProject | null>(null);
 
   const filtered = filter === "all"
     ? projects
@@ -43,43 +46,59 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((project, i) => {
           const wCount = writingCounts[project.id] ?? 0;
+
+          // Countdown logic
+          const showCampaignCountdown = project.status === "crowdfunding" && project.deadline;
+          const deliveryDeadline = project.est_delivery
+            ? parseDeliveryDeadline(project.est_delivery)
+            : null;
+          const showDeliveryCountdown =
+            (project.status === "in_production" || project.status === "shipped") &&
+            deliveryDeadline &&
+            deliveryDeadline.getTime() > Date.now();
+
           return (
             <div
               key={project.id}
-              className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col"
+              className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col cursor-pointer"
               style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+              onClick={() => setLightboxProject(project)}
             >
-              {/* Image */}
-              {project.image_url ? (
-                <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
-                  <img
-                    src={project.image_url}
-                    alt={project.title}
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-20 mb-3 bg-ink/5 flex items-center justify-center border-2 border-ink/10">
-                  <span className="font-mono text-[0.6rem] opacity-30 uppercase">
-                    {project.platform}
-                  </span>
-                </div>
-              )}
-
-              {/* Header: short_name + tagline */}
-              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-0.5">
-                {project.external_url ? (
-                  <a
-                    href={project.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="no-underline hover:text-orange transition-colors"
-                  >
-                    {(project as any).short_name || project.title}
-                  </a>
+              {/* Image with countdown badge */}
+              <div className="relative">
+                {project.image_url ? (
+                  <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
+                    <img
+                      src={project.image_url}
+                      alt={project.title}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
                 ) : (
-                  (project as any).short_name || project.title
+                  <div className="w-full h-20 mb-3 bg-ink/5 flex items-center justify-center border-2 border-ink/10">
+                    <span className="font-mono text-[0.6rem] opacity-30 uppercase">
+                      {project.platform}
+                    </span>
+                  </div>
                 )}
+
+                {/* Campaign countdown badge overlay */}
+                {showCampaignCountdown && (
+                  <CountdownBadge deadline={project.deadline!} label="Ends in" />
+                )}
+
+                {/* Delivery countdown badge overlay */}
+                {showDeliveryCountdown && deliveryDeadline && (
+                  <CountdownBadge
+                    deadline={deliveryDeadline.toISOString()}
+                    label="Due"
+                  />
+                )}
+              </div>
+
+              {/* Header */}
+              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-0.5">
+                {(project as any).short_name || project.title}
               </h3>
               {(project as any).tagline && (
                 <p className="text-[0.72rem] italic opacity-50 leading-snug mb-1.5 line-clamp-2">
@@ -90,7 +109,7 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
                 <StatusPipeline status={project.status} />
               </div>
 
-              {/* Pledge amount (only if toggled on) */}
+              {/* Pledge amount */}
               {project.show_pledge_amount && project.pledge_amount && (
                 <p className="font-mono text-[0.75rem] font-bold mb-1">
                   {formatPledge(project.pledge_amount, project.pledge_currency)}
@@ -128,12 +147,9 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
               {/* Writing link */}
               {wCount > 0 && (
                 <div className="mt-3 pt-2 border-t border-ink/10">
-                  <Link
-                    href={`/${username}/writings?crowdfunding=${project.slug}`}
-                    className="font-mono text-[0.6rem] font-semibold uppercase text-orange no-underline opacity-60 hover:opacity-100 transition-opacity"
-                  >
-                    Read my review →
-                  </Link>
+                  <span className="font-mono text-[0.6rem] font-semibold uppercase text-orange opacity-60">
+                    Has review
+                  </span>
                 </div>
               )}
             </div>
@@ -145,6 +161,16 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
         <p className="text-center opacity-40 font-mono text-[0.8rem] py-12">
           No projects match this filter.
         </p>
+      )}
+
+      {/* Lightbox */}
+      {lightboxProject && (
+        <ProjectLightbox
+          project={lightboxProject}
+          username={username}
+          writingCount={writingCounts[lightboxProject.id] ?? 0}
+          onClose={() => setLightboxProject(null)}
+        />
       )}
     </>
   );

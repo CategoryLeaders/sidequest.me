@@ -46,3 +46,57 @@ export const getAllCrowdfundingProjects = cache(
     return (data as CrowdfundingProject[]) ?? [];
   }
 );
+
+/**
+ * Fetch a single published crowdfunding project by slug.
+ * For the dedicated project detail page.
+ */
+export const getCrowdfundingProjectBySlug = cache(
+  async (userId: string, slug: string): Promise<CrowdfundingProject | null> => {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from("crowdfunding_projects")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("slug", slug)
+      .eq("pledge_status", "published")
+      .single();
+
+    return (data as CrowdfundingProject) ?? null;
+  }
+);
+
+/**
+ * Get previous and next published projects for navigation.
+ * Returns slugs for prev/next by sort_order.
+ */
+export const getAdjacentProjects = cache(
+  async (userId: string, currentSortOrder: number): Promise<{ prev: string | null; next: string | null }> => {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = supabase as any;
+
+    const [{ data: prevData }, { data: nextData }] = await Promise.all([
+      sb.from("crowdfunding_projects")
+        .select("slug")
+        .eq("user_id", userId)
+        .eq("pledge_status", "published")
+        .lt("sort_order", currentSortOrder)
+        .order("sort_order", { ascending: false })
+        .limit(1),
+      sb.from("crowdfunding_projects")
+        .select("slug")
+        .eq("user_id", userId)
+        .eq("pledge_status", "published")
+        .gt("sort_order", currentSortOrder)
+        .order("sort_order", { ascending: true })
+        .limit(1),
+    ]);
+
+    return {
+      prev: prevData?.[0]?.slug ?? null,
+      next: nextData?.[0]?.slug ?? null,
+    };
+  }
+);
