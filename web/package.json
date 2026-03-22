@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:vm": "bash scripts/build-check.sh",
     "start": "next start",
     "lint": "eslint"
   },

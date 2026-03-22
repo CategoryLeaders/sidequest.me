@@ -126,16 +126,21 @@ feat(auth): implement Supabase JWT refresh [SQ.M-A-00003]
 - Deploying or publishing anything
 
 ### Pre-push checklist (mandatory before every push to `main`)
-1. **`npm run build`** from `/web` — must pass. `tsc --noEmit` is NOT sufficient; Turbopack catches
-   server/client boundary violations (e.g. importing `next/headers` into a client component) that
-   `tsc` misses.
-2. Push to `main`.
-3. **Post-deploy verification** — check the Vercel deployment state via `list_deployments`. If the
+1. **`npm run build:vm`** from `/web` — must pass. Use `build:vm` (not `build`) in the Cowork VM;
+   it redirects Next.js output to `/tmp/sidequest-next-build` to avoid a macOS FUSE lock file
+   (`.fuse_hidden`) that blocks `unlink` on the `.next/` directory.
+   `tsc --noEmit` is NOT sufficient; Turbopack catches server/client boundary violations
+   (e.g. importing `next/headers` into a client component) that `tsc` misses.
+   Vercel always uses the default `npm run build` in its own Linux environment — `build:vm` is VM-only.
+2. Push to `main` via the GitHub REST API (git CLI is also blocked by the FUSE filesystem):
+   get HEAD SHA → create blobs → create tree → create commit → PATCH refs/heads/main.
+   Tokens are in `docs/scripts/tokens.pat` — `source` it before any curl calls.
+3. **Post-deploy verification** — check the Vercel deployment state via the Vercel API or MCP. If the
    deployment state is `ERROR`:
-   - Fetch build logs via `get_deployment_build_logs`
+   - Fetch build logs
    - Fix the error locally
-   - Run `npm run build` again to confirm
-   - Commit the fix and push
+   - Run `npm run build:vm` again to confirm
+   - Push the fix via GitHub API
    - Re-check deployment state
    - Do NOT tell Sophie it's live until the deployment is `READY`
 
