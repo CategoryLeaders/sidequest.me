@@ -19,6 +19,8 @@ export interface MicroblogImage {
   height: number;
   alt_text?: string;
   storage_path?: string;
+  /** Marks this image as the featured/hero image for the post */
+  starred?: boolean;
 }
 
 export interface LinkPreview {

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getProfileByUsername } from "@/lib/profiles";
 import { getProjectsForUser } from "@/lib/projects-data";
 import { countWritingsForEntities } from "@/lib/writing-links";
@@ -19,6 +20,10 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
   const { tab } = await searchParams;
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isOwner = user?.id === profile.id;
 
   const projects = await getProjectsForUser(profile.id);
 
@@ -153,6 +158,7 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
           writingCounts={backedWritingCounts}
           reviewRatings={backedReviewRatings}
           reviews={backedReviews}
+          isOwner={isOwner}
         />
       )}
     </main>

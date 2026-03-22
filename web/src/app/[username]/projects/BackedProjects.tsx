@@ -16,6 +16,7 @@ import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
 import ProjectLightbox from "@/components/crowdfunding/ProjectLightbox";
 import CalendarView from "@/components/crowdfunding/CalendarView";
 import StarRating from "@/components/crowdfunding/StarRating";
+import { ContentActions } from "@/components/shared/ContentActions";
 import type { Tables } from "@/types/database";
 
 type ViewMode = "grid" | "calendar";
@@ -32,9 +33,11 @@ interface BackedProjectsProps {
   reviewRatings?: Record<string, number | null>;
   /** Map of projectId → full review object */
   reviews?: Record<string, Tables<"crowdfunding_reviews">>;
+  /** True when the authenticated user owns this profile */
+  isOwner?: boolean;
 }
 
-export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {} }: BackedProjectsProps) {
+export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {}, isOwner = false }: BackedProjectsProps) {
   const [filter, setFilter] = useState<FilterValue>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [lightboxProject, setLightboxProject] = useState<CrowdfundingProject | null>(null);
@@ -134,9 +137,29 @@ export default function BackedProjects({ projects, username, writingCounts, revi
               </div>
 
               {/* Header */}
-              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-0.5">
-                {(project as any).short_name || project.title}
-              </h3>
+              <div className="flex items-start justify-between gap-1 mb-0.5">
+                <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight">
+                  {(project as any).short_name || project.title}
+                </h3>
+                {isOwner && (
+                  <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 -mt-1 -mr-1">
+                    <ContentActions
+                      contentType="crowdfunding_project"
+                      contentId={project.id}
+                      editData={{
+                        title: project.title,
+                        description: project.description ?? "",
+                        status: project.status,
+                        est_delivery: project.est_delivery ?? "",
+                        reward_tier: project.reward_tier ?? "",
+                        show_pledge_amount: project.show_pledge_amount ?? false,
+                        external_url: project.external_url ?? "",
+                        tags: project.tags ?? [],
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
               {(project as any).tagline && (
                 <p className="text-[0.72rem] italic opacity-50 leading-snug mb-1.5 line-clamp-2">
                   {(project as any).tagline}

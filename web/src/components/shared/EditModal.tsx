@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ContentType } from "./ThreeDotMenu";
+import type { MicroblogImage } from "@/lib/microblogs";
 
 interface Props {
   open: boolean;
@@ -234,6 +235,13 @@ function FieldsForType({
             onChange={(e) => setField("body", e.target.value)}
             style={{ ...inputBase, minHeight: 100, resize: "vertical" }}
           />
+          {/* Image starring — only shown when post has multiple images */}
+          {Array.isArray(fields.media) && (fields.media as MicroblogImage[]).length > 1 && (
+            <ImageStarPicker
+              images={fields.media as MicroblogImage[]}
+              onChange={(imgs) => setField("media", imgs)}
+            />
+          )}
           <FieldLabel label="Link URL" />
           <input
             value={(fields.link_url as string) ?? ""}
@@ -246,6 +254,13 @@ function FieldsForType({
             value={(fields.location_name as string) ?? ""}
             onChange={(e) => setField("location_name", e.target.value)}
             placeholder="e.g. Brighton, UK"
+            style={inputBase}
+          />
+          <FieldLabel label="Paired writing (slug or ID)" />
+          <input
+            value={(fields.paired_writing_id as string) ?? ""}
+            onChange={(e) => setField("paired_writing_id", e.target.value)}
+            placeholder="Leave blank to unlink"
             style={inputBase}
           />
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
@@ -363,6 +378,69 @@ function FieldsForType({
         </div>
       );
 
+    case "crowdfunding_project":
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <FieldLabel label="Title" />
+          <input
+            value={(fields.title as string) ?? ""}
+            onChange={(e) => setField("title", e.target.value)}
+            style={inputBase}
+          />
+          <FieldLabel label="Description" />
+          <textarea
+            value={(fields.description as string) ?? ""}
+            onChange={(e) => setField("description", e.target.value)}
+            style={{ ...inputBase, minHeight: 80, resize: "vertical" }}
+          />
+          <FieldLabel label="Status" />
+          <select
+            value={(fields.status as string) ?? "crowdfunding"}
+            onChange={(e) => setField("status", e.target.value)}
+            style={{ ...inputBase, width: "100%" }}
+          >
+            <option value="pre_launch">Pre-launch</option>
+            <option value="crowdfunding">Crowdfunding</option>
+            <option value="funded">Funded</option>
+            <option value="in_production">In Production</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <FieldLabel label="Est. delivery" />
+          <input
+            value={(fields.est_delivery as string) ?? ""}
+            onChange={(e) => setField("est_delivery", e.target.value)}
+            placeholder="e.g. Q3 2025"
+            style={inputBase}
+          />
+          <FieldLabel label="Reward tier" />
+          <input
+            value={(fields.reward_tier as string) ?? ""}
+            onChange={(e) => setField("reward_tier", e.target.value)}
+            style={inputBase}
+          />
+          <FieldLabel label="External URL" />
+          <input
+            value={(fields.external_url as string) ?? ""}
+            onChange={(e) => setField("external_url", e.target.value)}
+            placeholder="https://..."
+            style={inputBase}
+          />
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.78rem" }}>
+            <input
+              type="checkbox"
+              checked={(fields.show_pledge_amount as boolean) ?? false}
+              onChange={(e) => setField("show_pledge_amount", e.target.checked)}
+            />
+            Show pledge amount publicly
+          </label>
+          <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+        </div>
+      );
+
     default:
       return <p style={{ fontSize: "0.82rem", opacity: 0.6 }}>Editing not yet supported for this type.</p>;
   }
@@ -468,6 +546,67 @@ function VisibilityPicker({ value, onChange }: { value: string; onChange: (v: st
         <option value="unlisted">Unlisted</option>
         <option value="private">Private</option>
       </select>
+    </div>
+  );
+}
+
+function ImageStarPicker({
+  images,
+  onChange,
+}: {
+  images: MicroblogImage[];
+  onChange: (imgs: MicroblogImage[]) => void;
+}) {
+  const handleStar = (idx: number) => {
+    // Toggle: if already starred, unstar; else star this one and unstar others
+    const alreadyStarred = images[idx]?.starred;
+    onChange(images.map((img, i) => ({ ...img, starred: alreadyStarred ? false : i === idx })));
+  };
+
+  return (
+    <div>
+      <FieldLabel label="Featured image (★ to star)" />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+        {images.map((img, i) => (
+          <button
+            key={img.url}
+            type="button"
+            onClick={() => handleStar(i)}
+            title={img.starred ? "Unstar" : "Set as featured"}
+            style={{
+              position: "relative",
+              width: 72,
+              height: 72,
+              border: img.starred ? "2.5px solid var(--orange)" : "1.5px solid rgba(26,26,26,0.2)",
+              background: "none",
+              padding: 0,
+              cursor: "pointer",
+              overflow: "hidden",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={img.url}
+              alt={img.alt_text ?? `Image ${i + 1}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+            {img.starred && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  right: 3,
+                  fontSize: "0.8rem",
+                  lineHeight: 1,
+                  filter: "drop-shadow(0 0 2px rgba(0,0,0,0.6))",
+                }}
+              >
+                ★
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

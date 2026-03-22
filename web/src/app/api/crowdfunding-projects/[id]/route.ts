@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// PATCH /api/microblogs/[id]
+// PATCH /api/crowdfunding-projects/[id]
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -12,7 +12,7 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: existing } = await (supabase as any)
-    .from('microblogs')
+    .from('crowdfunding_projects')
     .select('user_id')
     .eq('id', id)
     .single()
@@ -23,41 +23,28 @@ export async function PATCH(
   const body = await request.json()
   const update: Record<string, unknown> = {}
 
-  if (body.body !== undefined) update.body = body.body
-  if (body.body_html !== undefined) update.body_html = body.body_html
-  if (body.media !== undefined) update.media = body.media
-  if (body.location_name !== undefined) update.location_name = body.location_name
-  if (body.link_url !== undefined) update.link_url = body.link_url
-  if (body.tags !== undefined) update.tags = body.tags
-  if (body.visibility !== undefined) update.visibility = body.visibility
+  if (body.title !== undefined) update.title = body.title
+  if (body.description !== undefined) update.description = body.description
   if (body.status !== undefined) update.status = body.status
-  if (body.paired_writing_id !== undefined) update.paired_writing_id = body.paired_writing_id || null
+  if (body.est_delivery !== undefined) update.est_delivery = body.est_delivery
+  if (body.reward_tier !== undefined) update.reward_tier = body.reward_tier
+  if (body.show_pledge_amount !== undefined) update.show_pledge_amount = body.show_pledge_amount
+  if (body.external_url !== undefined) update.external_url = body.external_url
+  if (body.tags !== undefined) update.tags = body.tags
+  if (body.platform !== undefined) update.platform = body.platform
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('crowdfunding_projects')
     .update(update)
     .eq('id', id)
     .select('id')
     .single()
 
-  // Update links if provided
-  if (body.links !== undefined) {
-    await (supabase as any).from('microblog_links').delete().eq('microblog_id', id)
-    if (body.links.length > 0) {
-      const linkRows = body.links.map((l: { entity_type: string; entity_id: string }) => ({
-        microblog_id: id,
-        entity_type: l.entity_type,
-        entity_id: l.entity_id,
-      }))
-      await (supabase as any).from('microblog_links').insert(linkRows)
-    }
-  }
-
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
 
-// DELETE /api/microblogs/[id]
+// DELETE /api/crowdfunding-projects/[id]
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -68,7 +55,7 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: existing } = await (supabase as any)
-    .from('microblogs')
+    .from('crowdfunding_projects')
     .select('user_id')
     .eq('id', id)
     .single()
@@ -76,7 +63,7 @@ export async function DELETE(
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (existing.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { error } = await (supabase as any).from('microblogs').delete().eq('id', id)
+  const { error } = await (supabase as any).from('crowdfunding_projects').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ deleted: true })
 }

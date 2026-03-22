@@ -190,19 +190,29 @@ function CardExtras({
             className="block border-2 border-ink/20 p-3 bg-ink/[0.03] hover:bg-ink/[0.06] transition-colors no-underline"
           >
             {post.link_preview ? (
-              <>
-                <span className="text-[0.6rem] font-mono opacity-40 block mb-0.5">
-                  {post.link_preview.domain}
-                </span>
-                <span className="text-[0.82rem] font-bold block mb-0.5">
-                  {post.link_preview.title}
-                </span>
-                {post.link_preview.description && (
-                  <span className="text-[0.75rem] opacity-55 block line-clamp-2">
-                    {post.link_preview.description}
-                  </span>
+              <div className="flex gap-3 items-start">
+                {post.link_preview.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={post.link_preview.image}
+                    alt=""
+                    className="w-16 h-16 object-cover flex-shrink-0 border border-ink/10"
+                  />
                 )}
-              </>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[0.6rem] font-mono opacity-40 block mb-0.5">
+                    {post.link_preview.domain}
+                  </span>
+                  <span className="text-[0.82rem] font-bold block mb-0.5">
+                    {post.link_preview.title}
+                  </span>
+                  {post.link_preview.description && (
+                    <span className="text-[0.75rem] opacity-55 block line-clamp-2">
+                      {post.link_preview.description}
+                    </span>
+                  )}
+                </div>
+              </div>
             ) : (
               <span className="text-[0.78rem] font-mono text-[var(--orange)] break-all">
                 {post.link_url}
@@ -293,8 +303,10 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
                 editData={{
                   body: post.body,
                   body_html: post.body_html,
+                  media: post.images,
                   link_url: post.link_url,
                   location_name: post.location_name,
+                  paired_writing_id: post.paired_writing_id ?? "",
                   tags: post.tags,
                   visibility: post.visibility,
                 }}
