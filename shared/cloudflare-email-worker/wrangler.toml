@@ -1,0 +1,10 @@
+name = "sidequest-email-worker"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# Email routing — catch-all for @sidequest.me
+[[email_routing.matchers]]
+type = "all"
+
+[[email_routing.handlers]]
+type = "worker"
