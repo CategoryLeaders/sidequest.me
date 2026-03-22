@@ -11,6 +11,7 @@
 import { useEffect, useCallback } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
+import type { Tables } from "@/types/database";
 import {
   formatPledge,
   statusStep,
@@ -20,11 +21,14 @@ import {
 } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import CountdownBadge from "./CountdownBadge";
+import ReviewDisplay from "./ReviewDisplay";
 
 interface ProjectLightboxProps {
   project: CrowdfundingProject;
   username: string;
   writingCount: number;
+  /** Pre-fetched review for this project (if any) */
+  review?: Tables<"crowdfunding_reviews"> | null;
   onClose: () => void;
 }
 
@@ -32,6 +36,7 @@ export default function ProjectLightbox({
   project,
   username,
   writingCount,
+  review,
   onClose,
 }: ProjectLightboxProps) {
   // Lock body scroll and handle Escape
@@ -211,6 +216,16 @@ export default function ProjectLightbox({
                   {tag}
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Review */}
+          {review && (
+            <div className="mb-3">
+              <span className="font-mono text-[0.55rem] uppercase opacity-40 block mb-1.5">
+                My Review
+              </span>
+              <ReviewDisplay review={review} variant="full" />
             </div>
           )}
 

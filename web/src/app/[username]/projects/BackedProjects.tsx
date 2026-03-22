@@ -14,6 +14,8 @@ import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
 import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
 import ProjectLightbox from "@/components/crowdfunding/ProjectLightbox";
+import StarRating from "@/components/crowdfunding/StarRating";
+import type { Tables } from "@/types/database";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
@@ -23,9 +25,13 @@ interface BackedProjectsProps {
   projects: CrowdfundingProject[];
   username: string;
   writingCounts: Record<string, number>;
+  /** Map of projectId → rating (null if review exists but no rating) */
+  reviewRatings?: Record<string, number | null>;
+  /** Map of projectId → full review object */
+  reviews?: Record<string, Tables<"crowdfunding_reviews">>;
 }
 
-export default function BackedProjects({ projects, username, writingCounts }: BackedProjectsProps) {
+export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {} }: BackedProjectsProps) {
   const [filter, setFilter] = useState<FilterValue>("all");
   const [lightboxProject, setLightboxProject] = useState<CrowdfundingProject | null>(null);
 
@@ -105,8 +111,11 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
                   {(project as any).tagline}
                 </p>
               )}
-              <div className="mb-2">
+              <div className="mb-2 flex items-center gap-2">
                 <StatusPipeline status={project.status} />
+                {reviewRatings[project.id] !== undefined && (
+                  <StarRating rating={reviewRatings[project.id]} />
+                )}
               </div>
 
               {/* Pledge amount */}
@@ -169,6 +178,7 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
           project={lightboxProject}
           username={username}
           writingCount={writingCounts[lightboxProject.id] ?? 0}
+          review={reviews[lightboxProject.id] ?? null}
           onClose={() => setLightboxProject(null)}
         />
       )}

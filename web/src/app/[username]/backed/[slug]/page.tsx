@@ -13,7 +13,9 @@ import {
   parseDeliveryDeadline,
 } from "@/lib/crowdfunding-utils";
 import { countWritingsForEntities } from "@/lib/writing-links";
+import { getReviewForProject } from "@/lib/crowdfunding-reviews";
 import StatusPipeline from "@/components/StatusPipeline";
+import ReviewDisplay from "@/components/crowdfunding/ReviewDisplay";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 interface BackedProjectPageProps {
@@ -31,8 +33,11 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
   // Adjacent projects for prev/next nav
   const adjacent = await getAdjacentProjects(profile.id, project.sort_order);
 
-  // Writing counts
-  const writingCountsMap = await countWritingsForEntities("crowdfunding", [project.id]);
+  // Writing counts + review
+  const [writingCountsMap, review] = await Promise.all([
+    countWritingsForEntities("crowdfunding", [project.id]),
+    getReviewForProject(profile.id, project.id),
+  ]);
   const writingCount = writingCountsMap.get(project.id) ?? 0;
 
   const step = statusStep(project.status);
@@ -169,6 +174,16 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
               {tag}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* Review */}
+      {review && (
+        <div className="mb-6">
+          <h2 className="font-head font-bold text-[0.85rem] uppercase mb-2 opacity-50">
+            My Review
+          </h2>
+          <ReviewDisplay review={review} variant="full" />
         </div>
       )}
 
