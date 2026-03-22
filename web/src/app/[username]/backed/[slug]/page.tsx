@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getProfileByUsername } from "@/lib/profiles";
 import {
   getCrowdfundingProjectBySlug,
   getAdjacentProjects,
+  getUpdatesForProject,
+  getProjectEmailToken,
 } from "@/lib/crowdfunding";
 import {
   formatPledge,
@@ -18,6 +21,9 @@ import { getLinksFromSource, enrichObjectLinks } from "@/lib/object-links";
 import StatusPipeline from "@/components/StatusPipeline";
 import ReviewDisplay from "@/components/crowdfunding/ReviewDisplay";
 import LinkedObjects from "@/components/crowdfunding/LinkedObjects";
+import ProjectTabs from "@/components/crowdfunding/ProjectTabs";
+import UpdateStream from "@/components/crowdfunding/UpdateStream";
+import EmailForwardingInfo from "@/components/crowdfunding/EmailForwardingInfo";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 interface BackedProjectPageProps {
@@ -32,14 +38,21 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
   const project = await getCrowdfundingProjectBySlug(profile.id, slug);
   if (!project) notFound();
 
+  // Auth — determine if viewer is the owner
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isOwner = user?.id === profile.id;
+
   // Adjacent projects for prev/next nav
   const adjacent = await getAdjacentProjects(profile.id, project.sort_order);
 
-  // Writing counts + review + object links
-  const [writingCountsMap, review, rawLinks] = await Promise.all([
+  // Writing counts + review + object links + updates
+  const [writingCountsMap, review, rawLinks, updates, emailToken] = await Promise.all([
     countWritingsForEntities("crowdfunding", [project.id]),
     getReviewForProject(profile.id, project.id),
     getLinksFromSource("crowdfunding", project.id),
+    getUpdatesForProject(project.id),
+    isOwner ? getProjectEmailToken(project.id) : Promise.resolve(null),
   ]);
   const writingCount = writingCountsMap.get(project.id) ?? 0;
   const objectLinks = await enrichObjectLinks(rawLinks, username);
@@ -181,18 +194,47 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
         </div>
       )}
 
-      {/* Review */}
-      {review && (
-        <div className="mb-6">
-          <h2 className="font-head font-bold text-[0.85rem] uppercase mb-2 opacity-50">
-            My Review
-          </h2>
-          <ReviewDisplay review={review} variant="full" />
-        </div>
-      )}
-
-      {/* Object links */}
-      <LinkedObjects links={objectLinks} title="Related" />
+      {/* Tabbed content — Updates / Review / Related */}
+      <ProjectTabs
+        defaultTab={updates.length > 0 ? "updates" : review ? "review" : "updates"}
+        tabs={[
+          {
+            key: "updates",
+            label: "Updates",
+            count: updates.length,
+            content: (
+              <div>
+                {isOwner && emailToken && (
+                  <EmailForwardingInfo
+                    emailToken={emailToken}
+                    projectTitle={project.title}
+                  />
+                )}
+                <UpdateStream updates={updates} />
+              </div>
+            ),
+          },
+          ...(review
+            ? [
+                {
+                  key: "review",
+                  label: "My Review",
+                  content: <ReviewDisplay review={review} variant="full" />,
+                },
+              ]
+            : []),
+          ...(objectLinks.length > 0
+            ? [
+                {
+                  key: "related",
+                  label: "Related",
+                  count: objectLinks.length,
+                  content: <LinkedObjects links={objectLinks} title="" />,
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {/* Action links */}
       <div className="flex flex-col gap-2 pt-4 border-t-2 border-ink/10 mb-8">

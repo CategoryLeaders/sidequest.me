@@ -283,6 +283,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   key={`mb-${item.data.id}`}
                   post={item.data}
                   username={username}
+                  isOwner={isOwner}
                 />
               )
             }
@@ -293,6 +294,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   key={`bk-${item.data.id}`}
                   bookmark={item.data}
                   username={username}
+                  isOwner={isOwner}
                 />
               )
             }
@@ -303,6 +305,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   key={`qt-${item.data.id}`}
                   quote={item.data}
                   username={username}
+                  isOwner={isOwner}
                 />
               )
             }
@@ -313,6 +316,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   key={`qn-${item.data.id}`}
                   question={item.data}
                   username={username}
+                  isOwner={isOwner}
                 />
               )
             }

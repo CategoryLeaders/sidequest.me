@@ -100,3 +100,48 @@ export const getAdjacentProjects = cache(
     };
   }
 );
+
+/**
+ * Fetch crowdfunding updates for a project (from email ingestion).
+ * Ordered by received_at descending (newest first).
+ */
+export const getUpdatesForProject = cache(
+  async (projectId: string): Promise<CrowdfundingUpdate[]> => {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from("crowdfunding_updates")
+      .select("id, subject, body_text, body_html, sender_name, sender_email, received_at")
+      .eq("project_id", projectId)
+      .order("received_at", { ascending: false });
+
+    return (data as CrowdfundingUpdate[]) ?? [];
+  }
+);
+
+export interface CrowdfundingUpdate {
+  id: string;
+  subject: string;
+  body_text: string | null;
+  body_html: string | null;
+  sender_name: string | null;
+  sender_email: string | null;
+  received_at: string;
+}
+
+/**
+ * Get the email ingestion token for a project (owner only).
+ */
+export const getProjectEmailToken = cache(
+  async (projectId: string): Promise<string | null> => {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from("crowdfunding_projects")
+      .select("crowdfunding_email_token")
+      .eq("id", projectId)
+      .single();
+
+    return data?.crowdfunding_email_token ?? null;
+  }
+);
