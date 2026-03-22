@@ -14,8 +14,10 @@ import {
 } from "@/lib/crowdfunding-utils";
 import { countWritingsForEntities } from "@/lib/writing-links";
 import { getReviewForProject } from "@/lib/crowdfunding-reviews";
+import { getLinksFromSource, enrichObjectLinks } from "@/lib/object-links";
 import StatusPipeline from "@/components/StatusPipeline";
 import ReviewDisplay from "@/components/crowdfunding/ReviewDisplay";
+import LinkedObjects from "@/components/crowdfunding/LinkedObjects";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 interface BackedProjectPageProps {
@@ -33,12 +35,14 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
   // Adjacent projects for prev/next nav
   const adjacent = await getAdjacentProjects(profile.id, project.sort_order);
 
-  // Writing counts + review
-  const [writingCountsMap, review] = await Promise.all([
+  // Writing counts + review + object links
+  const [writingCountsMap, review, rawLinks] = await Promise.all([
     countWritingsForEntities("crowdfunding", [project.id]),
     getReviewForProject(profile.id, project.id),
+    getLinksFromSource("crowdfunding", project.id),
   ]);
   const writingCount = writingCountsMap.get(project.id) ?? 0;
+  const objectLinks = await enrichObjectLinks(rawLinks, username);
 
   const step = statusStep(project.status);
   const hex = statusHex(project.status);
@@ -186,6 +190,9 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
           <ReviewDisplay review={review} variant="full" />
         </div>
       )}
+
+      {/* Object links */}
+      <LinkedObjects links={objectLinks} title="Related" />
 
       {/* Action links */}
       <div className="flex flex-col gap-2 pt-4 border-t-2 border-ink/10 mb-8">
