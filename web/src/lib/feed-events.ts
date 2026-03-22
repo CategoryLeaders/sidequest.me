@@ -24,7 +24,8 @@ export type FeedEventType =
   | "adventure_published"
   | "career_updated"
   | "profile_updated"
-  | "reshared";
+  | "reshared"
+  | "review_published";
 
 export type FeedVisibility = "public" | "unlisted" | "private";
 

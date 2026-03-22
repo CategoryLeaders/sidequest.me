@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { insertFeedEvent, deleteFeedEvent } from "@/lib/feed-events";
 
 /**
  * POST /api/crowdfunding-reviews — create or update a review.
@@ -59,6 +60,30 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Get profile_id for feed event
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profile && data?.id) {
+    try {
+      await insertFeedEvent({
+        profileId: profile.id,
+        eventType: "review_published",
+        objectId: data.id,
+        objectType: "crowdfunding_reviews",
+        visibility: body.visibility === "private" ? "private" : "public",
+      });
+    } catch (feedErr) {
+      console.error("[crowdfunding-reviews] Feed event insert failed:", feedErr);
+      // Non-fatal — review was saved successfully
+    }
+  }
+
   return NextResponse.json(data);
 }
 
@@ -84,5 +109,13 @@ export async function DELETE(request: Request) {
     .eq("user_id", user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Remove feed event for this review
+  try {
+    await deleteFeedEvent(reviewId, "crowdfunding_reviews");
+  } catch {
+    // Non-fatal
+  }
+
   return NextResponse.json({ ok: true });
 }

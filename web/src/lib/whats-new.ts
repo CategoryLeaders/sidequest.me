@@ -40,6 +40,7 @@ export interface WhatsNewItem {
   readingTime?: string;   // writings ("4 min read")
   projectStatus?: string; // projects
   resolved?: boolean;     // questions
+  reviewRating?: number | null;  // reviews
 }
 
 /**
@@ -153,6 +154,35 @@ export async function getWhatsNewFeed(
         .in("id", groups["projects"]);
       contentMap["projects"] = {};
       for (const row of data ?? []) contentMap["projects"][row.id] = row;
+    })());
+  }
+
+  if (groups["crowdfunding_reviews"]?.length) {
+    fetchers.push((async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("crowdfunding_reviews")
+        .select("id, project_id, rating, title, body")
+        .in("id", groups["crowdfunding_reviews"]);
+      contentMap["crowdfunding_reviews"] = {};
+      for (const row of data ?? []) {
+        contentMap["crowdfunding_reviews"][row.id] = row;
+      }
+      // Also fetch project titles for display
+      if (data?.length) {
+        const projectIds = [...new Set(data.map((r: any) => r.project_id))];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: projects } = await (supabase as any)
+          .from("crowdfunding_projects")
+          .select("id, title, short_name, slug")
+          .in("id", projectIds);
+        for (const row of data ?? []) {
+          const proj = projects?.find((p: any) => p.id === row.project_id);
+          if (proj) {
+            contentMap["crowdfunding_reviews"][row.id]._project = proj;
+          }
+        }
+      }
     })());
   }
 
@@ -303,6 +333,23 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-lilac",
         badgeLabel: "Profile",
         icon: "👤",
+      };
+    }
+
+    case "review_published": {
+      const proj = content?._project;
+      const projectName = proj?.short_name || proj?.title || "a project";
+      const projectSlug = proj?.slug ?? "";
+      const bodySnippet = (content?.body ?? "").slice(0, 100);
+      return {
+        ...base,
+        title: content?.title || `Review of ${projectName}`,
+        description: bodySnippet + (bodySnippet.length >= 100 ? "..." : ""),
+        link: projectSlug ? `/${username}/backed/${projectSlug}` : `/${username}/projects?tab=backed`,
+        badge: "badge-pink",
+        badgeLabel: "Review",
+        icon: "⭐",
+        reviewRating: content?.rating ?? null,
       };
     }
 

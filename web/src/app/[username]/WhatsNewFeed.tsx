@@ -22,6 +22,7 @@ const PILL_BG: Partial<Record<FeedEventType, string>> = {
   career_updated:      "var(--blue)",
   profile_updated:     "var(--lilac)",
   reshared:            "var(--yellow)",
+  review_published:    "var(--pink)",
 };
 
 const PILL_COLOR: Partial<Record<FeedEventType, string>> = {
@@ -39,6 +40,7 @@ const PILL_COLOR: Partial<Record<FeedEventType, string>> = {
   career_updated:      "var(--on-blue)",
   profile_updated:     "var(--on-lilac)",
   reshared:            "var(--on-yellow)",
+  review_published:    "var(--on-pink)",
 };
 
 // ─── Relative time ──────────────────────────────────────────────────────────
@@ -247,6 +249,31 @@ function CardBody({ item }: { item: WhatsNewItem }) {
             <p className="text-[0.82rem] leading-snug" style={{ opacity: 0.7 }}>
               {item.description}
             </p>
+          )}
+        </div>
+      );
+
+    case "review_published":
+      return (
+        <div>
+          <h3
+            className="font-[900] text-[1rem] uppercase leading-tight mb-1"
+            style={{ fontFamily: "var(--font-head)" }}
+          >
+            {item.title}
+          </h3>
+          {item.description && (
+            <p className="text-[0.85rem] leading-snug mt-1" style={{ opacity: 0.65 }}>
+              {item.description}
+            </p>
+          )}
+          {item.reviewRating !== undefined && item.reviewRating !== null && (
+            <span
+              className="inline-block mt-2 text-[0.75rem]"
+              style={{ opacity: 0.7 }}
+            >
+              {"★".repeat(item.reviewRating)}{"☆".repeat(5 - item.reviewRating)}
+            </span>
           )}
         </div>
       );
