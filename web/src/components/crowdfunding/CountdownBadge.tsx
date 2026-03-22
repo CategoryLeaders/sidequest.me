@@ -19,6 +19,11 @@ interface CountdownBadgeProps {
   label?: string;
   /** Style variant */
   variant?: "badge" | "inline";
+  /**
+   * Badge background colour (hex). Defaults to status-appropriate colour via the
+   * tube map palette. Falls back to var(--orange) if not provided.
+   */
+  color?: string;
 }
 
 interface CountdownParts {
@@ -51,7 +56,7 @@ function formatCountdownInline(targetDate: Date): string | null {
   return `${parts.value}${parts.unit}`;
 }
 
-export default function CountdownBadge({ deadline, label, variant = "badge" }: CountdownBadgeProps) {
+export default function CountdownBadge({ deadline, label, variant = "badge", color }: CountdownBadgeProps) {
   const [parts, setParts] = useState<CountdownParts | null>(() => {
     try {
       return formatCountdown(new Date(deadline));
@@ -90,10 +95,10 @@ export default function CountdownBadge({ deadline, label, variant = "badge" }: C
     <div
       className="absolute bottom-2 right-2 px-2 py-1 font-mono z-10 text-center leading-none"
       style={{
-        background: "var(--orange)",
-        color: "var(--bg)",
+        background: color ?? "var(--orange)",
+        color: "#fff",
         transform: "rotate(1.5deg)",
-        boxShadow: "2px 2px 0 var(--ink)",
+        boxShadow: "2px 2px 0 rgba(0,0,0,0.35)",
         minWidth: "48px",
       }}
     >

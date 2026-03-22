@@ -16,6 +16,7 @@ import {
   formatPledge,
   statusStep,
   statusHex,
+  normalizeStatus,
   platformLabel,
   parseDeliveryDeadline,
 } from "@/lib/crowdfunding-utils";
@@ -114,7 +115,11 @@ export default function ProjectLightbox({
 
           {/* Campaign countdown badge */}
           {showCampaignCountdown && (
-            <CountdownBadge deadline={project.deadline!} label="Ends in" />
+            <CountdownBadge
+              deadline={project.deadline!}
+              label="Ends in"
+              color={statusHex(normalizeStatus(project.status))}
+            />
           )}
         </div>
 

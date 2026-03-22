@@ -9,7 +9,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
-import { formatPledge, parseDeliveryDeadline, normalizeStatus } from "@/lib/crowdfunding-utils";
+import { formatPledge, parseDeliveryDeadline, normalizeStatus, statusHex } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
 import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
@@ -124,7 +124,11 @@ export default function BackedProjects({ projects, username, writingCounts, revi
 
                 {/* Campaign countdown badge overlay */}
                 {showCampaignCountdown && (
-                  <CountdownBadge deadline={project.deadline!} label="Ends in" />
+                  <CountdownBadge
+                    deadline={project.deadline!}
+                    label="Ends in"
+                    color={statusHex(normalizeStatus(project.status))}
+                  />
                 )}
 
                 {/* Delivery countdown badge overlay */}
@@ -132,6 +136,7 @@ export default function BackedProjects({ projects, username, writingCounts, revi
                   <CountdownBadge
                     deadline={deliveryDeadline.toISOString()}
                     label="Due"
+                    color={statusHex(normalizeStatus(project.status))}
                   />
                 )}
               </div>

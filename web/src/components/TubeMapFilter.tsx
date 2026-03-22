@@ -5,10 +5,13 @@
  * [SQ.S-W-2603-0073] [SQ.S-W-2603-0084] [SQ.S-W-2603-0085]
  *
  * Main line: Pre-launch → Crowdfunding → Funded → In Production → Shipped → Delivered
- * Branch: Failed / Cancelled / Suspended shown as a flat legend row below.
+ * Branch:    Failed / Cancelled / Suspended — shown as an "off-track" secondary row.
  *
- * Legacy statuses (live, active, dropped, etc.) are normalised to canonical before counting
- * so "live" projects don't create a phantom duplicate station.
+ * Layout note: the track line is absolutely positioned at top:10px (= half of 20px
+ * circle diameter) so it runs through the circle centers. The stations use a CSS grid
+ * (not items-center flex) so the circles sit at the top of the container and the track
+ * aligns correctly. Track left/right are set to 50/N% so the line starts and ends at
+ * the center of the first/last circle, not at the container edge.
  */
 
 import { useState, useRef } from "react";
@@ -22,6 +25,10 @@ import {
 } from "@/lib/crowdfunding-utils";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 
+const N = MAIN_PIPELINE_STATUSES.length; // 6 — used for track positioning
+const CIRCLE_D = 20; // default circle diameter px
+const TRACK_TOP = CIRCLE_D / 2; // track y = circle center
+
 type FilterValue = "all" | CrowdfundingStatus;
 
 interface TubeMapFilterProps {
@@ -30,7 +37,7 @@ interface TubeMapFilterProps {
   onFilterChange: (filter: FilterValue) => void;
 }
 
-/** Count projects per canonical status (legacy statuses merged into their canonical equivalents) */
+/** Count projects per canonical status */
 function countByStatus(projects: CrowdfundingProject[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const p of projects) {
@@ -40,7 +47,7 @@ function countByStatus(projects: CrowdfundingProject[]): Record<string, number> 
   return counts;
 }
 
-/** Get first 3 project images for a status (including legacy aliases) */
+/** First 3 project images for a status */
 function thumbnailsForStatus(projects: CrowdfundingProject[], status: string): string[] {
   return projects
     .filter((p) => normalizeStatus(p.status) === status && p.image_url)
@@ -53,7 +60,7 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
   const [hoveredStation, setHoveredStation] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Find the rightmost "active" main station for the fill line (normalise first)
+  // Rightmost active station on main line
   const activeMainIndex = (() => {
     let maxIdx = -1;
     for (const p of projects) {
@@ -64,12 +71,10 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
     return maxIdx;
   })();
 
-  // Which branch statuses have projects?
   const activeBranches = BRANCH_STATUSES.filter((s) => (counts[s] ?? 0) > 0);
 
   return (
     <div className="mb-8">
-      {/* Desktop tube map */}
       <div className="hidden md:block">
         <DesktopTubeMap
           counts={counts}
@@ -83,8 +88,6 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
           totalCount={projects.length}
         />
       </div>
-
-      {/* Mobile scrollable dot strip */}
       <div className="md:hidden">
         <MobileDotStrip
           counts={counts}
@@ -118,12 +121,23 @@ function DesktopTubeMap({
   counts, activeFilter, onFilterChange, activeMainIndex, activeBranches,
   hoveredStation, setHoveredStation, projects, totalCount,
 }: DesktopProps) {
+  // Track spans from center of first circle to center of last circle.
+  // Each grid cell = 100/N %, so circle center = (i + 0.5) * (100/N) %.
+  // First center = 50/N %, last center = (N - 0.5) * 100/N % → right offset = 50/N %.
+  const trackInset = `${50 / N}%`;
+
+  // Filled track width: from center of station 0 to center of station activeMainIndex.
+  // Width = (activeMainIndex * 100/N) %.
+  const filledWidth = activeMainIndex > 0
+    ? `${activeMainIndex * (100 / N)}%`
+    : "0%";
+
   return (
-    <div className="relative">
+    <div>
       {/* "All" pill */}
       <button
         onClick={() => onFilterChange("all")}
-        className={`font-mono text-[0.6rem] px-3 py-1 mb-3 border-2 border-ink cursor-pointer transition-all ${
+        className={`font-mono text-[0.6rem] px-3 py-1 mb-4 border-2 border-ink cursor-pointer transition-all ${
           activeFilter === "all" ? "bg-ink text-bg font-bold" : "bg-bg-card hover:bg-ink/5"
         }`}
         style={{ transform: "rotate(-0.3deg)" }}
@@ -131,33 +145,45 @@ function DesktopTubeMap({
         All ({totalCount})
       </button>
 
-      {/* Main track + stations */}
-      <div className="relative flex items-center" style={{ minHeight: "80px" }}>
-        {/* Track line (background) */}
+      {/* ── Main line ─────────────────────────────────────────────────── */}
+      <div className="relative" style={{ paddingBottom: "6px" }}>
+
+        {/* Track background — z-index 0, circles z-index 1 sit on top */}
         <div
-          className="absolute left-[10px] right-[10px] h-[4px] rounded-full"
+          className="absolute h-[3px] rounded-full"
           style={{
-            top: "10px",
+            top: TRACK_TOP,
+            left: trackInset,
+            right: trackInset,
             background: "color-mix(in srgb, var(--ink) 12%, transparent)",
+            zIndex: 0,
           }}
         />
 
-        {/* Filled track line */}
-        {activeMainIndex >= 0 && (
+        {/* Filled portion (progress indicator) */}
+        {activeMainIndex > 0 && (
           <div
-            className="absolute left-[10px] h-[4px] rounded-full transition-all duration-500"
+            className="absolute h-[3px] rounded-full transition-all duration-500"
             style={{
-              top: "10px",
-              width: `${(activeMainIndex / (MAIN_PIPELINE_STATUSES.length - 1)) * 100}%`,
-              maxWidth: "calc(100% - 20px)",
+              top: TRACK_TOP,
+              left: trackInset,
+              width: filledWidth,
               background: "var(--ink)",
-              opacity: 0.3,
+              opacity: 0.25,
+              zIndex: 0,
             }}
           />
         )}
 
-        {/* Stations */}
-        <div className="relative flex justify-between w-full">
+        {/* Stations — CSS grid so each cell is equal width, circles at top */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${N}, 1fr)`,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           {MAIN_PIPELINE_STATUSES.map((status) => {
             const step = statusStep(status);
             const count = counts[status] ?? 0;
@@ -166,35 +192,46 @@ function DesktopTubeMap({
             const hasProjects = count > 0;
             const hex = statusHex(status);
             const thumbs = thumbnailsForStatus(projects, status);
+            const circleSize = isActive ? CIRCLE_D + 2 : CIRCLE_D;
 
             return (
               <div
                 key={status}
-                className="relative flex flex-col items-center cursor-pointer group"
-                style={{ flex: "1 1 0", maxWidth: `${100 / MAIN_PIPELINE_STATUSES.length}%` }}
+                className="flex flex-col items-center cursor-pointer"
                 onClick={() => onFilterChange(isActive ? "all" : status as CrowdfundingStatus)}
                 onMouseEnter={() => setHoveredStation(status)}
                 onMouseLeave={() => setHoveredStation(null)}
               >
-                {/* Station dot */}
+                {/* Circle — sits directly at top of grid cell, track passes through its center */}
                 <div
-                  className="rounded-full border-2 transition-all duration-200 flex-shrink-0"
+                  className="rounded-full border-2 transition-all duration-150 flex-shrink-0"
                   style={{
-                    width: isActive ? "22px" : "20px",
-                    height: isActive ? "22px" : "20px",
-                    background: hasProjects ? hex : "color-mix(in srgb, var(--ink) 8%, var(--bg))",
-                    borderColor: hasProjects ? hex : "color-mix(in srgb, var(--ink) 20%, transparent)",
-                    boxShadow: isActive ? `0 0 0 3px ${hex}40` : "none",
+                    width: circleSize,
+                    height: circleSize,
+                    background: hasProjects
+                      ? hex
+                      : "color-mix(in srgb, var(--ink) 8%, var(--bg))",
+                    borderColor: hasProjects
+                      ? hex
+                      : "color-mix(in srgb, var(--ink) 20%, transparent)",
+                    boxShadow: isActive ? `0 0 0 3px ${hex}33` : "none",
                     transform: isActive ? "scale(1.15)" : "scale(1)",
+                    // White center ring for active (interchange style)
+                    outline: isActive ? `2px solid var(--bg)` : "none",
+                    outlineOffset: "-4px",
                   }}
                 />
 
-                {/* Station name + count combined */}
+                {/* Label + count */}
                 <span
-                  className="font-mono text-[0.5rem] font-bold uppercase mt-1.5 text-center leading-tight transition-opacity"
-                  style={{ opacity: hasProjects ? 0.8 : 0.25 }}
+                  className="font-mono text-[0.48rem] font-bold uppercase mt-1.5 text-center leading-tight"
+                  style={{
+                    opacity: hasProjects ? (isActive ? 1 : 0.65) : 0.2,
+                    color: isActive ? hex : "var(--ink)",
+                  }}
                 >
-                  {step.shortLabel} ({count})
+                  {step.shortLabel}
+                  {hasProjects ? ` (${count})` : ""}
                 </span>
 
                 {/* Hover tooltip */}
@@ -202,23 +239,24 @@ function DesktopTubeMap({
                   <div
                     className="absolute z-50 bg-bg-card border-2 border-ink p-2 shadow-lg"
                     style={{
-                      top: "-8px",
+                      top: "-4px",
                       transform: "translateY(-100%)",
-                      minWidth: "120px",
+                      minWidth: "130px",
                       pointerEvents: "none",
                     }}
                   >
-                    <div className="font-mono text-[0.6rem] font-bold mb-1">
-                      {step.label} ({count})
+                    <div className="font-mono text-[0.6rem] font-bold mb-1.5">
+                      {step.label} · {count}
                     </div>
                     {thumbs.length > 0 && (
                       <div className="flex gap-1">
                         {thumbs.map((url, ti) => (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             key={ti}
                             src={url}
                             alt=""
-                            className="w-8 h-8 object-cover border border-ink/20"
+                            className="w-9 h-9 object-cover border border-ink/20"
                           />
                         ))}
                       </div>
@@ -231,10 +269,22 @@ function DesktopTubeMap({
         </div>
       </div>
 
-      {/* Branch statuses — flat row below the main line, no diagonal connector */}
+      {/* ── Branch / off-track row ───────────────────────────────────── */}
       {activeBranches.length > 0 && (
-        <div className="flex items-center gap-4 mt-1 ml-2">
-          <span className="font-mono text-[0.55rem] opacity-20 select-none">/</span>
+        <div
+          className="flex items-center gap-4 flex-wrap mt-3 pt-2"
+          style={{
+            borderTop: "1px dashed color-mix(in srgb, var(--ink) 15%, transparent)",
+            marginLeft: "2px",
+          }}
+        >
+          <span
+            className="font-mono text-[0.42rem] font-bold uppercase tracking-widest"
+            style={{ opacity: 0.3 }}
+          >
+            off-track
+          </span>
+
           {activeBranches.map((status) => {
             const step = statusStep(status);
             const count = counts[status] ?? 0;
@@ -252,17 +302,20 @@ function DesktopTubeMap({
                 <div
                   className="rounded-full border-2 flex-shrink-0 transition-all"
                   style={{
-                    width: "12px",
-                    height: "12px",
-                    background: hex,
+                    width: "13px",
+                    height: "13px",
+                    background: isActive ? hex : "transparent",
                     borderColor: hex,
-                    boxShadow: isActive ? `0 0 0 2px ${hex}40` : "none",
-                    transform: isActive ? "scale(1.2)" : "scale(1)",
+                    boxShadow: isActive ? `0 0 0 2px ${hex}33` : "none",
+                    transform: isActive ? "scale(1.15)" : "scale(1)",
                   }}
                 />
                 <span
-                  className="font-mono text-[0.5rem] font-bold uppercase transition-opacity"
-                  style={{ opacity: isActive ? 0.9 : 0.5 }}
+                  className="font-mono text-[0.48rem] font-bold uppercase"
+                  style={{
+                    opacity: isActive ? 1 : 0.5,
+                    color: isActive ? hex : "var(--ink)",
+                  }}
                 >
                   {step.shortLabel} ({count})
                 </span>
@@ -276,7 +329,7 @@ function DesktopTubeMap({
 }
 
 /* ════════════════════════════════════════════════════
-   Mobile Scrollable Dot Strip (Option C)
+   Mobile Scrollable Dot Strip
    ════════════════════════════════════════════════════ */
 
 interface MobileProps {
@@ -292,7 +345,6 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
 
   return (
     <div>
-      {/* All button */}
       <button
         onClick={() => onFilterChange("all")}
         className={`font-mono text-[0.6rem] px-3 py-1 mb-3 border-2 border-ink cursor-pointer transition-all ${
@@ -302,7 +354,6 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
         All ({totalCount})
       </button>
 
-      {/* Scrollable strip */}
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4"
@@ -327,12 +378,15 @@ function MobileDotStrip({ counts, activeFilter, onFilterChange, scrollRef, total
                 style={{
                   width: isActive ? "28px" : "24px",
                   height: isActive ? "28px" : "24px",
-                  background: hex,
+                  background: isActive ? hex : "transparent",
                   borderColor: hex,
-                  boxShadow: isActive ? `0 0 0 3px ${hex}40` : "none",
+                  boxShadow: isActive ? `0 0 0 3px ${hex}33` : "none",
                 }}
               />
-              <span className="font-mono text-[0.45rem] font-bold uppercase whitespace-nowrap">
+              <span
+                className="font-mono text-[0.45rem] font-bold uppercase whitespace-nowrap"
+                style={{ color: isActive ? hex : "var(--ink)", opacity: isActive ? 1 : 0.65 }}
+              >
                 {step.shortLabel} ({count})
               </span>
             </button>
