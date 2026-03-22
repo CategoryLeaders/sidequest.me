@@ -3,14 +3,16 @@
 import Link from "next/link";
 import type { Question } from "@/lib/thoughts-types";
 import { relativeTime } from "@/lib/microblogs";
+import { ContentActions } from "@/components/shared/ContentActions";
 
 interface Props {
   question: Question;
   username: string;
   commentCount?: number;
+  isOwner?: boolean;
 }
 
-export function QuestionCard({ question, username, commentCount = 0 }: Props) {
+export function QuestionCard({ question, username, commentCount = 0, isOwner = false }: Props) {
   const permalink = `/${username}/thoughts/${question.short_id}`;
   const postDate = question.published_at ?? question.created_at;
 
@@ -28,6 +30,22 @@ export function QuestionCard({ question, username, commentCount = 0 }: Props) {
         )}
         {question.pinned && (
           <span className="text-[0.55rem] font-mono opacity-40 ml-auto">📌 Pinned</span>
+        )}
+        {isOwner && (
+          <span className="ml-auto">
+            <ContentActions
+              contentType="question"
+              contentId={question.id}
+              editData={{
+                question_text: question.question_text,
+                thinking: question.thinking,
+                resolved: question.resolved,
+                resolved_summary: question.resolved_summary,
+                tags: question.tags,
+                visibility: question.visibility,
+              }}
+            />
+          </span>
         )}
       </div>
 

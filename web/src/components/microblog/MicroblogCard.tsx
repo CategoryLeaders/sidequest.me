@@ -6,10 +6,12 @@ import { relativeTime, getPostDate } from '@/lib/microblogs'
 import { ReactionBar } from './ReactionBar'
 import { ExpandableBody } from './ExpandableBody'
 import { MicroblogImageMosaic } from './MicroblogImageMosaic'
+import { ContentActions } from '@/components/shared/ContentActions'
 
 interface Props {
   post: MicroblogPostWithCounts
   username: string
+  isOwner?: boolean
 }
 
 // ── Context configuration ─────────────────────────────────────────────────────
@@ -239,7 +241,7 @@ function CardExtras({
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export function MicroblogCard({ post, username }: Props) {
+export function MicroblogCard({ post, username, isOwner = false }: Props) {
   const postDate = getPostDate(post)
   const permalink = `/${username}/thoughts/${post.short_id}`
   const hasImages = post.images.length > 0
@@ -276,12 +278,30 @@ export function MicroblogCard({ post, username }: Props) {
           </Link>
         )}
 
-        {/* Pinned flag */}
-        {post.pinned && (
-          <div className="absolute top-0 right-0 z-20 font-mono text-[0.48rem] uppercase tracking-wider px-2 py-0.5 bg-[var(--orange)] text-white">
-            📌 Pinned
-          </div>
-        )}
+        {/* Pinned flag + owner menu */}
+        <div className="absolute top-0 right-0 z-20 flex items-center gap-1">
+          {post.pinned && (
+            <span className="font-mono text-[0.48rem] uppercase tracking-wider px-2 py-0.5 bg-[var(--orange)] text-white">
+              📌 Pinned
+            </span>
+          )}
+          {isOwner && (
+            <span className="bg-black/50 px-1 py-0.5" style={{ color: '#ccc' }}>
+              <ContentActions
+                contentType="microblog"
+                contentId={post.id}
+                editData={{
+                  body: post.body,
+                  body_html: post.body_html,
+                  link_url: post.link_url,
+                  location_name: post.location_name,
+                  tags: post.tags,
+                  visibility: post.visibility,
+                }}
+              />
+            </span>
+          )}
+        </div>
 
         {/* Full-bleed image mosaic */}
         <MicroblogImageMosaic images={post.images} />
@@ -365,6 +385,22 @@ export function MicroblogCard({ post, username }: Props) {
           </>
         )}
         {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35 ml-auto">📌</span>}
+        {isOwner && (
+          <span className="ml-auto">
+            <ContentActions
+              contentType="microblog"
+              contentId={post.id}
+              editData={{
+                body: post.body,
+                body_html: post.body_html,
+                link_url: post.link_url,
+                location_name: post.location_name,
+                tags: post.tags,
+                visibility: post.visibility,
+              }}
+            />
+          </span>
+        )}
         {post.edited_at && (
           <span
             className="font-mono text-[0.55rem] text-ink/25 ml-auto"

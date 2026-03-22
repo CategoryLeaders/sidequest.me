@@ -3,13 +3,15 @@
 import Link from "next/link";
 import type { Bookmark } from "@/lib/thoughts-types";
 import { relativeTime } from "@/lib/microblogs";
+import { ContentActions } from "@/components/shared/ContentActions";
 
 interface Props {
   bookmark: Bookmark;
   username: string;
+  isOwner?: boolean;
 }
 
-export function BookmarkCard({ bookmark, username }: Props) {
+export function BookmarkCard({ bookmark, username, isOwner = false }: Props) {
   const permalink = `/${username}/thoughts/${bookmark.short_id}`;
   const postDate = bookmark.published_at ?? bookmark.created_at;
 
@@ -22,6 +24,21 @@ export function BookmarkCard({ bookmark, username }: Props) {
         </span>
         {bookmark.pinned && (
           <span className="text-[0.55rem] font-mono opacity-40 ml-auto">📌 Pinned</span>
+        )}
+        {isOwner && (
+          <span className="ml-auto">
+            <ContentActions
+              contentType="bookmark"
+              contentId={bookmark.id}
+              editData={{
+                commentary: bookmark.commentary,
+                og_title: bookmark.og_title,
+                og_description: bookmark.og_description,
+                tags: bookmark.tags,
+                visibility: bookmark.visibility,
+              }}
+            />
+          </span>
         )}
       </div>
 

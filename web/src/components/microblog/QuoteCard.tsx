@@ -3,13 +3,15 @@
 import Link from "next/link";
 import type { Quote } from "@/lib/thoughts-types";
 import { relativeTime } from "@/lib/microblogs";
+import { ContentActions } from "@/components/shared/ContentActions";
 
 interface Props {
   quote: Quote;
   username: string;
+  isOwner?: boolean;
 }
 
-export function QuoteCard({ quote, username }: Props) {
+export function QuoteCard({ quote, username, isOwner = false }: Props) {
   const permalink = `/${username}/thoughts/${quote.short_id}`;
   const postDate = quote.published_at ?? quote.created_at;
 
@@ -22,6 +24,23 @@ export function QuoteCard({ quote, username }: Props) {
         </span>
         {quote.pinned && (
           <span className="text-[0.55rem] font-mono opacity-40 ml-auto">📌 Pinned</span>
+        )}
+        {isOwner && (
+          <span className="ml-auto">
+            <ContentActions
+              contentType="quote"
+              contentId={quote.id}
+              editData={{
+                quote_text: quote.quote_text,
+                source_name: quote.source_name,
+                source_work: quote.source_work,
+                source_url: quote.source_url,
+                commentary: quote.commentary,
+                tags: quote.tags,
+                visibility: quote.visibility,
+              }}
+            />
+          </span>
         )}
       </div>
 
