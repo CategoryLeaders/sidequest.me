@@ -21,6 +21,17 @@ interface CrowdfundingCardData {
   username: string;
 }
 
+/** Configurable tile from about_tiles JSONB [SQ.S-W-2603-0079] */
+interface AboutTile {
+  id: string;
+  tile_type: "static" | "crowdfunding" | "adventures";
+  title: string;
+  image_url?: string;
+  link_url?: string;
+  description?: string;
+  sort_order?: number;
+}
+
 interface AboutContentProps {
   displayName: string;
   aboutBio: string | null;
@@ -30,6 +41,8 @@ interface AboutContentProps {
   likes: LikeDislike[];
   dislikes: LikeDislike[];
   crowdfunding?: CrowdfundingCardData;
+  /** V2: configurable tiles. If set, renders tiles in order. Otherwise falls back to legacy. */
+  aboutTiles?: AboutTile[];
 }
 
 /**
@@ -209,6 +222,47 @@ function CrowdfundingCarousel({
   );
 }
 
+/** Render a static about tile */
+function StaticTile({ tile }: { tile: AboutTile }) {
+  const content = (
+    <div
+      className="border-3 border-ink p-5 bg-bg-card"
+      style={{ transform: "rotate(-0.3deg)" }}
+    >
+      {tile.image_url && (
+        <img
+          src={tile.image_url}
+          alt={tile.title}
+          className="w-full h-auto object-cover mb-3 border-2 border-ink/10"
+        />
+      )}
+      <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-1">
+        {tile.title}
+      </h3>
+      {tile.description && (
+        <p className="text-[0.8rem] opacity-60 leading-snug">
+          {tile.description}
+        </p>
+      )}
+    </div>
+  );
+
+  if (tile.link_url) {
+    return (
+      <a
+        href={tile.link_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="no-underline block"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return content;
+}
+
 export default function AboutContent({
   displayName,
   aboutBio,
@@ -217,6 +271,7 @@ export default function AboutContent({
   likes,
   dislikes,
   crowdfunding,
+  aboutTiles,
 }: AboutContentProps) {
   const [active, setActive] = useState<Tab>("Bio");
 
@@ -345,14 +400,57 @@ export default function AboutContent({
         </div>
       )}
 
-      {/* ── CROWDFUNDING CARD ── */}
-      {crowdfunding && crowdfunding.projects.length > 0 && (
-        <CrowdfundingCarousel
-          title={crowdfunding.title}
-          autoScroll={crowdfunding.autoScroll}
-          projects={crowdfunding.projects}
-          username={crowdfunding.username}
-        />
+      {/* ── CONFIGURABLE TILES (V2) ── */}
+      {aboutTiles && aboutTiles.length > 0 ? (
+        <>
+          {aboutTiles
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .map((tile) => {
+              if (tile.tile_type === "crowdfunding" && crowdfunding && crowdfunding.projects.length > 0) {
+                return (
+                  <CrowdfundingCarousel
+                    key={tile.id}
+                    title={tile.title || crowdfunding.title}
+                    autoScroll={crowdfunding.autoScroll}
+                    projects={crowdfunding.projects}
+                    username={crowdfunding.username}
+                  />
+                );
+              }
+              if (tile.tile_type === "static") {
+                return (
+                  <section key={tile.id} className="mt-12 pt-8 border-t-3 border-ink/10">
+                    <StaticTile tile={tile} />
+                  </section>
+                );
+              }
+              // Adventures tile — placeholder for future
+              if (tile.tile_type === "adventures") {
+                return (
+                  <section key={tile.id} className="mt-12 pt-8 border-t-3 border-ink/10">
+                    <h2
+                      className="font-head font-[900] text-[clamp(1rem,2.5vw,1.4rem)] uppercase leading-tight mb-5"
+                      style={{ transform: "rotate(-0.3deg)" }}
+                    >
+                      {tile.title}
+                    </h2>
+                    <p className="font-mono text-[0.7rem] opacity-30">Coming soon</p>
+                  </section>
+                );
+              }
+              return null;
+            })}
+        </>
+      ) : (
+        /* Legacy: CROWDFUNDING CARD (backward compat when about_tiles not configured) */
+        crowdfunding && crowdfunding.projects.length > 0 && (
+          <CrowdfundingCarousel
+            title={crowdfunding.title}
+            autoScroll={crowdfunding.autoScroll}
+            projects={crowdfunding.projects}
+            username={crowdfunding.username}
+          />
+        )
       )}
     </main>
   );

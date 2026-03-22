@@ -6,9 +6,9 @@ import { getPublishedCrowdfundingProjects } from "@/lib/crowdfunding";
 
 /**
  * About page — data-driven from the profiles table.
- * Falls back to empty state when the user hasn't set anything up yet.
- * force-dynamic: prevent Vercel full-route caching so settings changes appear immediately.
- * [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041] [SQ.S-W-2603-0051]
+ * V2: Supports configurable tile types via about_tiles JSONB.
+ * Falls back to legacy crowdfunding_enabled behaviour when about_tiles is empty.
+ * [SQ.S-W-2603-0039] [SQ.S-W-2603-0040] [SQ.S-W-2603-0041] [SQ.S-W-2603-0051] [SQ.S-W-2603-0079]
  */
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,17 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
+/** About tile type from the JSONB column */
+interface AboutTile {
+  id: string;
+  tile_type: "static" | "crowdfunding" | "adventures";
+  title: string;
+  image_url?: string;
+  link_url?: string;
+  description?: string;
+  sort_order?: number;
+}
+
 export default async function AboutPage({ params }: AboutPageProps) {
   const { username } = await params;
   const profile = await getProfileByUsername(username);
@@ -40,21 +51,26 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const allFactoids = (profile.factoids as Factoid[] | null) ?? [];
   const totalFactoids = allFactoids.length;
 
-  // If more than the display limit, randomly select FACTOID_DISPLAY_LIMIT to show [SQ.S-W-2603-0052]
   const displayedFactoids =
     allFactoids.length > FACTOID_DISPLAY_LIMIT
       ? shuffleArray(allFactoids).slice(0, FACTOID_DISPLAY_LIMIT)
       : allFactoids;
 
-  // Fetch crowdfunding data for the About card if enabled
+  // Read about_tiles from profile
+  const aboutTiles = ((profile as Record<string, unknown>).about_tiles as AboutTile[] | null) ?? [];
+
+  // Legacy fallback: if about_tiles is empty, use crowdfunding_enabled flags
   const crowdfundingEnabled = (profile as Record<string, unknown>).crowdfunding_enabled as boolean ?? false;
   const crowdfundingTitle = (profile as Record<string, unknown>).crowdfunding_title as string ?? "Weird Projects I Backed";
   const crowdfundingCarouselAuto = (profile as Record<string, unknown>).crowdfunding_carousel_auto as boolean ?? false;
 
+  // Determine if we need crowdfunding data
+  const hasCrowdfundingTile = aboutTiles.some((t) => t.tile_type === "crowdfunding");
+  const needsCrowdfunding = hasCrowdfundingTile || (aboutTiles.length === 0 && crowdfundingEnabled);
+
   let crowdfundingProjects: { id: string; title: string; slug: string; image_url: string | null }[] = [];
-  if (crowdfundingEnabled) {
+  if (needsCrowdfunding) {
     const allBacked = await getPublishedCrowdfundingProjects(profile.id);
-    // Take the 15 most recent (by sort_order, which is import order = most recent first)
     crowdfundingProjects = allBacked.slice(0, 15).map((p) => ({
       id: p.id,
       title: p.title,
@@ -62,6 +78,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
       image_url: p.image_url,
     }));
   }
+
+  // Build tile data for the component
+  // If about_tiles is configured, use it. Otherwise, fall back to legacy behaviour.
+  const useTiles = aboutTiles.length > 0;
+  const crowdfundingTileTitle = hasCrowdfundingTile
+    ? (aboutTiles.find((t) => t.tile_type === "crowdfunding")?.title ?? crowdfundingTitle)
+    : crowdfundingTitle;
 
   return (
     <AboutContent
@@ -71,12 +94,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
       totalFactoids={totalFactoids}
       likes={(profile.likes as LikeDislike[] | null) ?? []}
       dislikes={(profile.dislikes as LikeDislike[] | null) ?? []}
-      crowdfunding={crowdfundingEnabled ? {
-        title: crowdfundingTitle,
+      crowdfunding={needsCrowdfunding && crowdfundingProjects.length > 0 ? {
+        title: crowdfundingTileTitle,
         autoScroll: crowdfundingCarouselAuto,
         projects: crowdfundingProjects,
         username,
       } : undefined}
+      aboutTiles={useTiles ? aboutTiles : undefined}
     />
   );
 }
