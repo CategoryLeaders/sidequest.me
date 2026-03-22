@@ -13,16 +13,6 @@ function objectPos(img: MicroblogImage): string {
   return img.height > img.width * 1.05 ? 'top' : 'center'
 }
 
-/**
- * For single-image posts: use the image's natural aspect ratio so no pixels
- * are cropped. Clamped so very tall portraits don't consume the page and very
- * wide panoramas stay readable.
- */
-function naturalAspectRatio(img: MicroblogImage): number {
-  if (!img.width || !img.height) return 16 / 9
-  return Math.min(Math.max(img.width / img.height, 0.6), 2.5)
-}
-
 // ── Lightbox ─────────────────────────────────────────────────────────────────
 
 function Lightbox({
@@ -153,26 +143,40 @@ export function MicroblogImageMosaic({ images }: Props) {
   const open = (idx: number) => setLightboxIdx(idx)
   const close = () => setLightboxIdx(null)
 
-  // ── 1 image: natural aspect ratio, no forced crop ──
+  // ── 1 image: full natural dimensions — zero cropping ──
+  // Use width/height props so Next.js sizes the image correctly with height:auto.
+  // Falls back to a fill+object-contain container if dimensions are missing.
   if (count === 1) {
     const img = images[0]
-    const ratio = naturalAspectRatio(img)
+    const hasDims = img.width > 0 && img.height > 0
     return (
       <>
         <button
           type="button"
-          className="relative w-full overflow-hidden block cursor-zoom-in"
-          style={{ aspectRatio: ratio }}
+          className="block w-full cursor-zoom-in bg-[#0a0a0a]"
           onClick={() => open(0)}
         >
-          <Image
-            src={img.url}
-            alt={img.alt_text ?? ''}
-            fill
-            className="object-cover"
-            style={{ objectPosition: objectPos(img) }}
-            sizes="(max-width: 768px) 100vw, 640px"
-          />
+          {hasDims ? (
+            <Image
+              src={img.url}
+              alt={img.alt_text ?? ''}
+              width={img.width}
+              height={img.height}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              sizes="(max-width: 768px) 100vw, 640px"
+            />
+          ) : (
+            /* fallback when no dimensions stored */
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+              <Image
+                src={img.url}
+                alt={img.alt_text ?? ''}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 640px"
+              />
+            </div>
+          )}
         </button>
         {lightboxIdx !== null && (
           <Lightbox images={images} startIdx={lightboxIdx} onClose={close} />
