@@ -1,11 +1,11 @@
 /* ── MicroblogCard — BD-2 mashup redesign ── [SQ.S-W-2603-0062] */
 
 import Link from 'next/link'
-import Image from 'next/image'
-import type { MicroblogPostWithCounts, MicroblogImage } from '@/lib/microblogs'
+import type { MicroblogPostWithCounts } from '@/lib/microblogs'
 import { relativeTime, getPostDate } from '@/lib/microblogs'
 import { ReactionBar } from './ReactionBar'
 import { ExpandableBody } from './ExpandableBody'
+import { MicroblogImageMosaic } from './MicroblogImageMosaic'
 
 interface Props {
   post: MicroblogPostWithCounts
@@ -132,137 +132,6 @@ function DateStrip({
   )
 }
 
-// ── Image mosaic — same system as AdventurePostFeed ───────────────────────────
-function ImageMosaic({ images }: { images: MicroblogImage[] }) {
-  const count = images.length
-  if (count === 0) return null
-
-  // ── 1 image: full-bleed 16:9 ──
-  if (count === 1) {
-    return (
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
-        <Image
-          src={images[0].url}
-          alt={images[0].alt_text ?? ''}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 640px"
-        />
-      </div>
-    )
-  }
-
-  // ── 2 images: equal side-by-side ──
-  if (count === 2) {
-    return (
-      <div className="grid gap-[2px]" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        {images.map((img, i) => (
-          <div key={i} className="relative overflow-hidden" style={{ aspectRatio: '3/2' }}>
-            <Image
-              src={img.url}
-              alt={img.alt_text ?? ''}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 50vw, 320px"
-            />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // ── 3 images: large left + 2 stacked right ──
-  if (count === 3) {
-    return (
-      <div
-        className="gap-[2px]"
-        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}
-      >
-        <div
-          className="relative overflow-hidden"
-          style={{ gridRow: '1 / 3', aspectRatio: '3/4' }}
-        >
-          <Image
-            src={images[0].url}
-            alt={images[0].alt_text ?? ''}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 67vw, 427px"
-          />
-        </div>
-        {images.slice(1).map((img, i) => (
-          <div key={i} className="relative overflow-hidden" style={{ aspectRatio: '3/2' }}>
-            <Image
-              src={img.url}
-              alt={img.alt_text ?? ''}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 33vw, 213px"
-            />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // ── 4+ images: adventure-style mosaic ──
-  // 6-col grid, first = hero (4 cols × 2 rows), rest = small (2 cols × 1 row)
-  // Show hero + up to 4 small cells; if more images, overlay "+N more" on last visible
-  const MAX_SMALL = 4
-  const heroImage = images[0]
-  const smallImages = images.slice(1, 1 + MAX_SMALL)
-  const remaining = images.length - 1 - MAX_SMALL // count beyond what fits
-
-  return (
-    <div
-      className="gap-[2px]"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
-        gridAutoRows: '130px',
-      }}
-    >
-      {/* Hero — 4 cols × 2 rows */}
-      <div className="relative overflow-hidden" style={{ gridColumn: 'span 4', gridRow: 'span 2' }}>
-        <Image
-          src={heroImage.url}
-          alt={heroImage.alt_text ?? ''}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 67vw, 427px"
-        />
-      </div>
-
-      {/* Small images — 2 cols × 1 row each */}
-      {smallImages.map((img, i) => {
-        const isLast = i === smallImages.length - 1 && remaining > 0
-        return (
-          <div
-            key={i}
-            className="relative overflow-hidden"
-            style={{ gridColumn: 'span 2', gridRow: 'span 1' }}
-          >
-            <Image
-              src={img.url}
-              alt={img.alt_text ?? ''}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 33vw, 213px"
-            />
-            {isLast && (
-              <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
-                <span className="font-head font-[900] text-white text-xl">
-                  +{remaining + 1}
-                </span>
-              </div>
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 // ── Shared footer ─────────────────────────────────────────────────────────────
 function CardFooter({
   post,
@@ -310,7 +179,7 @@ function CardExtras({
 }) {
   return (
     <>
-      {post.link_url && post.link_preview && (
+      {post.link_url && (
         <div className={`${padX} pt-3`}>
           <a
             href={post.link_url}
@@ -318,15 +187,23 @@ function CardExtras({
             rel="noopener noreferrer"
             className="block border-2 border-ink/20 p-3 bg-ink/[0.03] hover:bg-ink/[0.06] transition-colors no-underline"
           >
-            <span className="text-[0.6rem] font-mono opacity-40 block mb-0.5">
-              {post.link_preview.domain}
-            </span>
-            <span className="text-[0.82rem] font-bold block mb-0.5">
-              {post.link_preview.title}
-            </span>
-            {post.link_preview.description && (
-              <span className="text-[0.75rem] opacity-55 block line-clamp-2">
-                {post.link_preview.description}
+            {post.link_preview ? (
+              <>
+                <span className="text-[0.6rem] font-mono opacity-40 block mb-0.5">
+                  {post.link_preview.domain}
+                </span>
+                <span className="text-[0.82rem] font-bold block mb-0.5">
+                  {post.link_preview.title}
+                </span>
+                {post.link_preview.description && (
+                  <span className="text-[0.75rem] opacity-55 block line-clamp-2">
+                    {post.link_preview.description}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="text-[0.78rem] font-mono text-[var(--orange)] break-all">
+                {post.link_url}
               </span>
             )}
           </a>
@@ -407,7 +284,7 @@ export function MicroblogCard({ post, username }: Props) {
         )}
 
         {/* Full-bleed image mosaic */}
-        <ImageMosaic images={post.images} />
+        <MicroblogImageMosaic images={post.images} />
 
         {/* Dark date + location strip */}
         <DateStrip
