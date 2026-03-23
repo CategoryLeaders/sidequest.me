@@ -148,13 +148,13 @@ export default function Nav({
                 {/* Menu items */}
                 <div className="py-1">
                   {isFullAccount ? (
-                    /* Full account → single "My SideQuest" link to dashboard */
+                    /* Full account → single "My SIDEQUEST" link to dashboard */
                     <a
                       href="https://my.sidequest.me"
                       className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors font-bold"
                     >
                       <span className="text-[0.9rem]">🚀</span>
-                      My SideQuest
+                      My SIDEQUEST
                     </a>
                   ) : (
                     /* Mini account → classic edit profile link */
