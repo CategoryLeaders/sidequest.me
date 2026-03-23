@@ -167,9 +167,9 @@ export default async function MicroblogPostPage({ params }: Props) {
         )}
 
         {/* Paired writing */}
-        {post.paired_writing_id && (
+        {post.paired_writing_id && (post as any).paired_writing_slug && (
           <Link
-            href={`/${username}/writings/${post.paired_writing_id}`}
+            href={`/${username}/writings/${(post as any).paired_writing_slug}`}
             className="text-[0.85rem] text-[var(--orange)] font-mono mb-4 block hover:underline"
           >
             Read the full article →

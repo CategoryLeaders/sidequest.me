@@ -104,6 +104,7 @@ export interface ReactionCount {
 export interface MicroblogPostWithCounts extends MicroblogPost {
   reaction_counts: ReactionCount[];
   comment_count: number;
+  paired_writing_slug: string | null;
 }
 
 // ─── Short ID Generation ────────────────────────────────────────────────────
@@ -137,7 +138,7 @@ export async function getPublishedPosts(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase as any)
     .from("microblog_posts")
-    .select("*")
+    .select("*, paired_writing:writings!paired_writing_id(slug)")
     .eq("profile_id", profileId)
     .eq("status", "published")
     .eq("visibility", "public")
@@ -154,7 +155,7 @@ export async function getPublishedPosts(
 
   // Fetch reaction counts and comment counts in parallel
   const postsWithCounts = await Promise.all(
-    (posts as MicroblogPost[]).map(async (post) => {
+    (posts as (MicroblogPost & { paired_writing: { slug: string } | null })[]).map(async (post) => {
       const [reactionCounts, commentCount] = await Promise.all([
         getReactionCounts(post.id),
         getCommentCount(post.id),
@@ -165,6 +166,7 @@ export async function getPublishedPosts(
         link_preview: post.link_preview as LinkPreview | null,
         reaction_counts: reactionCounts,
         comment_count: commentCount,
+        paired_writing_slug: post.paired_writing?.slug ?? null,
       };
     })
   );
@@ -207,14 +209,14 @@ export async function getPostByShortId(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from("microblog_posts")
-    .select("*")
+    .select("*, paired_writing:writings!paired_writing_id(slug)")
     .eq("profile_id", profileId)
     .eq("short_id", shortId)
     .single();
 
   if (error || !data) return null;
 
-  const post = data as MicroblogPost;
+  const post = data as MicroblogPost & { paired_writing: { slug: string } | null };
   const [reactionCounts, commentCount] = await Promise.all([
     getReactionCounts(post.id),
     getCommentCount(post.id),
@@ -226,6 +228,7 @@ export async function getPostByShortId(
     link_preview: post.link_preview as LinkPreview | null,
     reaction_counts: reactionCounts,
     comment_count: commentCount,
+    paired_writing_slug: post.paired_writing?.slug ?? null,
   };
 }
 

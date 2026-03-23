@@ -222,10 +222,10 @@ function CardExtras({
         </div>
       )}
 
-      {post.paired_writing_id && (
+      {post.paired_writing_id && (post as any).paired_writing_slug && (
         <div className={`${padX} pt-3`}>
           <Link
-            href={`/${username}/writings/${post.paired_writing_id}`}
+            href={`/${username}/writings/${(post as any).paired_writing_slug}`}
             className="text-[0.78rem] text-[var(--orange)] font-mono hover:underline block no-underline"
           >
             Read more →
