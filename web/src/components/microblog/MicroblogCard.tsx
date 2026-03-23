@@ -265,6 +265,91 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
     : ctxType === 'writing' ? 'Writing'
     : ctxCfg?.label ?? ''
 
+  // ── CHANGELOG POSTS ─────────────────────────────────────────────────────────
+  if (post.post_type === 'changelog') {
+    const items = (post.changelog_items ?? []) as { text: string; image?: { url: string } }[]
+    return (
+      <article
+        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+        style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
+      >
+        {/* Context banner */}
+        {ctxCfg && ctxLink && (
+          <Link
+            href={ctxLink}
+            className="flex items-center gap-2 px-4 py-2 no-underline border-b border-black/20 transition-opacity hover:opacity-85"
+            style={{ background: ctxCfg.bannerBg, color: ctxCfg.bannerText, display: 'flex' }}
+          >
+            <span className="text-[12px]">{ctxCfg.icon}</span>
+            <span className="font-mono text-[0.6rem] font-bold uppercase tracking-wider">{ctxDisplayName}</span>
+          </Link>
+        )}
+
+        {/* Header */}
+        <div className="px-4 pt-4 pb-2 border-b-2 border-ink/10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📋 Changelog</span>
+            {isOwner && (
+              <ContentActions
+                contentType="microblog"
+                contentId={post.id}
+                editData={{ body: post.body, tags: post.tags, visibility: post.visibility }}
+              />
+            )}
+          </div>
+          <Link href={permalink} className="no-underline group">
+            <h3 className="font-head font-[900] text-[1.05rem] uppercase leading-tight group-hover:text-[var(--orange)] transition-colors">
+              {post.title}
+            </h3>
+          </Link>
+          <div className="font-mono text-[0.62rem] text-ink/40 mt-1">
+            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            <span className="ml-1.5 opacity-60">{relativeTime(postDate)}</span>
+          </div>
+        </div>
+
+        {/* Change items */}
+        <div className="px-4 py-3 space-y-3">
+          {items.map((item, idx) => (
+            <div key={idx} className="flex gap-2.5">
+              <span className="text-[var(--orange)] font-mono text-[0.8rem] mt-0.5 shrink-0">•</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.85rem] leading-relaxed">{item.text}</p>
+                {item.image?.url && (
+                  <div className="mt-2 border-2 border-ink/10 overflow-hidden inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image.url}
+                      alt=""
+                      className="max-h-64 max-w-full object-contain block"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tags */}
+        {post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+            {post.tags.map((tag) => (
+              <Link
+                key={tag}
+                href={`/${username}/thoughts/tags/${encodeURIComponent(tag.toLowerCase())}`}
+                className="text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors no-underline"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <CardFooter post={post} permalink={permalink} />
+      </article>
+    )
+  }
+
   // ── IMAGE POSTS ─────────────────────────────────────────────────────────────
   if (hasImages) {
     return (

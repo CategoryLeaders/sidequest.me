@@ -30,10 +30,20 @@ export interface LinkPreview {
   domain: string;
 }
 
+export type MicroblogPostType = 'standard' | 'changelog';
+
+export interface ChangelogItem {
+  text: string;
+  image?: { url: string; storage_path?: string };
+}
+
 export interface MicroblogPost {
   id: string;
   profile_id: string;
   short_id: string;
+  post_type: MicroblogPostType;
+  title: string | null;
+  changelog_items: ChangelogItem[] | null;
   body: string;
   body_html: string | null;
   images: MicroblogImage[];

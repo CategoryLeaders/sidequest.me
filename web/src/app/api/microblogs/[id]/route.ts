@@ -23,6 +23,15 @@ export async function PATCH(
   const body = await request.json()
   const update: Record<string, unknown> = {}
 
+  if (body.post_type !== undefined) update.post_type = body.post_type
+  if (body.title !== undefined) update.title = body.title || null
+  if (body.changelog_items !== undefined) {
+    update.changelog_items = body.changelog_items || null
+    // Rebuild plain-text body from changelog items
+    if (body.changelog_items && body.post_type === 'changelog') {
+      update.body = `${body.title || ''}\n\n${body.changelog_items.map((i: { text: string }) => `• ${i.text}`).join('\n')}`
+    }
+  }
   if (body.body !== undefined) update.body = body.body
   if (body.body_html !== undefined) update.body_html = body.body_html
   if (body.media !== undefined) update.images = body.media

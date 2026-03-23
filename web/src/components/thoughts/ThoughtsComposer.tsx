@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ThoughtType } from "@/lib/thoughts-types";
 
 interface Props {
   username: string;
 }
 
-const TYPES: { key: ThoughtType; label: string; icon: string; color: string }[] = [
+type ComposerType = ThoughtType | "changelog";
+
+const TYPES: { key: ComposerType; label: string; icon: string; color: string }[] = [
   { key: "microblog", label: "Microblog", icon: "✏️", color: "sticker-orange" },
+  { key: "changelog", label: "Changelog", icon: "📋", color: "sticker-green" },
   { key: "writing", label: "Writing", icon: "📝", color: "sticker-blue" },
-  { key: "bookmark", label: "Bookmark", icon: "🔖", color: "sticker-green" },
-  { key: "quote", label: "Quote", icon: "💬", color: "sticker-lilac" },
-  { key: "question", label: "Question", icon: "❓", color: "sticker-yellow" },
+  { key: "bookmark", label: "Bookmark", icon: "🔖", color: "sticker-lilac" },
+  { key: "quote", label: "Quote", icon: "💬", color: "sticker-yellow" },
+  { key: "question", label: "Question", icon: "❓", color: "sticker-orange" },
 ];
 
 export default function ThoughtsComposer({ username }: Props) {
-  const [activeType, setActiveType] = useState<ThoughtType | null>(null);
+  const [activeType, setActiveType] = useState<ComposerType | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -88,6 +91,9 @@ export default function ThoughtsComposer({ username }: Props) {
 
       {activeType === "microblog" && (
         <MicroblogForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} />
+      )}
+      {activeType === "changelog" && (
+        <ChangelogForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} />
       )}
       {activeType === "bookmark" && (
         <BookmarkForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} />
@@ -170,6 +176,187 @@ function ActionButtons({ saving, onPublish, onDraft }: { saving: boolean; onPubl
         Save draft
       </button>
     </div>
+  );
+}
+
+/* ── Changelog composer ──────────────────────────────────────────────────── */
+
+interface ChangelogItemState {
+  id: string;
+  text: string;
+  image: { url: string; storage_path?: string } | null;
+  uploading: boolean;
+}
+
+function ChangelogForm({ saving, setSaving, setError, onSuccess }: FormChildProps) {
+  const [title, setTitle] = useState("");
+  const [items, setItems] = useState<ChangelogItemState[]>([
+    { id: crypto.randomUUID(), text: "", image: null, uploading: false },
+  ]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState("public");
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const totalChars = title.length + items.reduce((acc, i) => acc + i.text.length, 0);
+  const MAX = 2000;
+
+  const updateItem = (id: string, patch: Partial<ChangelogItemState>) =>
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+
+  const addItem = () =>
+    setItems((prev) => [...prev, { id: crypto.randomUUID(), text: "", image: null, uploading: false }]);
+
+  const removeItem = (id: string) =>
+    setItems((prev) => prev.filter((i) => i.id !== id));
+
+  const handleImageUpload = async (id: string, file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    updateItem(id, { uploading: true });
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("context", "microblogs");
+      const res = await fetch("/api/upload-image", { method: "POST", body: form });
+      if (res.ok) {
+        const { url, storage_path } = await res.json() as { url: string; storage_path?: string };
+        updateItem(id, { image: { url, storage_path }, uploading: false });
+      } else {
+        updateItem(id, { uploading: false });
+        setError("Image upload failed");
+      }
+    } catch {
+      updateItem(id, { uploading: false });
+      setError("Image upload failed");
+    }
+  };
+
+  const handleDeleteImage = (id: string) => updateItem(id, { image: null });
+
+  const submit = useCallback(async (status: "published" | "draft") => {
+    if (!title.trim()) { setError("Title is required"); return; }
+    if (items.every((i) => !i.text.trim())) { setError("At least one change item is required"); return; }
+    if (totalChars > MAX) { setError(`Too long — ${totalChars}/${MAX} characters`); return; }
+    setSaving(true);
+    setError(null);
+    try {
+      const changelogItems = items
+        .filter((i) => i.text.trim())
+        .map((i) => ({ text: i.text.trim(), ...(i.image ? { image: i.image } : {}) }));
+      const res = await fetch("/api/microblogs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_type: "changelog", title: title.trim(), changelog_items: changelogItems, tags, visibility, status }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
+      onSuccess("Changelog posted!");
+    } catch (e: any) { setError(e.message); setSaving(false); }
+  }, [title, items, tags, visibility, totalChars, setSaving, setError, onSuccess]);
+
+  return (
+    <>
+      {/* Title */}
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Changelog title *"
+        maxLength={200}
+        className="w-full border-2 border-ink/20 px-3 py-2.5 text-[0.95rem] font-head font-bold outline-none bg-transparent focus:border-[var(--orange)] transition-colors placeholder:text-ink/20 mb-4"
+      />
+
+      {/* Change items */}
+      <div className="space-y-3 mb-3">
+        {items.map((item, idx) => (
+          <div key={item.id} className="border-2 border-ink/10 p-3 bg-ink/[0.02]">
+            <div className="flex gap-2 items-start mb-2">
+              <span className="font-mono text-[0.65rem] text-ink/30 mt-2.5 shrink-0">•</span>
+              <textarea
+                value={item.text}
+                onChange={(e) => updateItem(item.id, { text: e.target.value })}
+                placeholder={`Change ${idx + 1}...`}
+                rows={2}
+                className="flex-1 border-2 border-ink/15 px-2.5 py-2 text-[0.85rem] font-mono outline-none bg-transparent focus:border-[var(--orange)] transition-colors placeholder:text-ink/20 resize-y"
+              />
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeItem(item.id)}
+                  className="font-mono text-[0.65rem] text-ink/25 hover:text-red-400 transition-colors mt-2 shrink-0"
+                  title="Remove item"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Image area */}
+            {item.image ? (
+              <div className="ml-4 relative inline-block mt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.image.url} alt="" className="max-h-48 max-w-full object-contain border-2 border-ink/15" />
+                <div className="flex gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => fileRefs.current[item.id]?.click()}
+                    className="font-mono text-[0.6rem] text-ink/40 hover:text-ink transition-colors border border-ink/15 px-2 py-0.5"
+                  >
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(item.id)}
+                    className="font-mono text-[0.6rem] text-red-400 hover:text-red-600 transition-colors border border-red-200 px-2 py-0.5"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="ml-4 mt-1">
+                {item.uploading ? (
+                  <span className="font-mono text-[0.65rem] text-ink/30">Uploading…</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileRefs.current[item.id]?.click()}
+                    className="font-mono text-[0.6rem] text-ink/30 hover:text-ink transition-colors border border-dashed border-ink/20 px-2.5 py-1"
+                  >
+                    + Add image
+                  </button>
+                )}
+              </div>
+            )}
+            <input
+              ref={(el) => { fileRefs.current[item.id] = el; }}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(item.id, f); e.target.value = ""; }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Add change */}
+      <button
+        type="button"
+        onClick={addItem}
+        className="font-mono text-[0.65rem] text-ink/40 hover:text-ink transition-colors border border-dashed border-ink/20 px-3 py-1.5 w-full mb-4"
+      >
+        + Add change
+      </button>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-4">
+          <TagInput tags={tags} setTags={setTags} />
+          <VisibilitySelect value={visibility} onChange={setVisibility} />
+        </div>
+        <span className={`font-mono text-[0.6rem] ${totalChars > MAX ? "text-red-500" : "text-ink/30"}`}>
+          {totalChars}/{MAX}
+        </span>
+      </div>
+      <ActionButtons saving={saving} onPublish={() => submit("published")} onDraft={() => submit("draft")} />
+    </>
   );
 }
 
