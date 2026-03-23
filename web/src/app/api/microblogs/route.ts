@@ -8,9 +8,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('microblog_posts')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('profile_id', user.id)
     .order('published_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -39,12 +39,12 @@ export async function POST(request: Request) {
   }
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('microblog_posts')
     .insert({
-      user_id: user.id,
+      profile_id: user.id,
       body: body.body.trim(),
       body_html: body.body_html || null,
-      media: body.media || [],
+      images: body.media || [],
       location_name: body.location_name?.trim() || null,
       tags: body.tags || [],
       status: body.status || 'published',

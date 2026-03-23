@@ -1,5 +1,6 @@
 import { getCurrentUserProfile } from '@/lib/profiles';
 import { createClient } from '@/lib/supabase/server';
+import { posts as archivePosts } from '@/lib/photowall-data';
 
 /** Simple relative time formatter — avoids date-fns dependency */
 function timeAgo(dateStr: string): string {
@@ -39,12 +40,13 @@ async function getStatsCounts(userId: string) {
   const stats = {
     writings: 0,
     microblogs: 0,
+    photos: archivePosts.length,
     adventures: 0,
     crowdfundingProjects: 0,
   };
 
   try {
-    const [writingsRes, microblogsRes, adventuresRes, projectsRes] =
+    const [writingsRes, microblogsRes, adventuresRes, projectsRes, photosRes] =
       await Promise.all([
         supabase
           .from('writings')
@@ -63,6 +65,10 @@ async function getStatsCounts(userId: string) {
           .from('crowdfunding_projects')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', userId),
+        supabase
+          .from('photos')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId),
       ]);
 
     if (writingsRes.count !== null) stats.writings = writingsRes.count;
@@ -70,6 +76,8 @@ async function getStatsCounts(userId: string) {
     if (adventuresRes.count !== null) stats.adventures = adventuresRes.count;
     if (projectsRes.count !== null)
       stats.crowdfundingProjects = projectsRes.count;
+    if (photosRes.count !== null)
+      stats.photos = stats.photos + photosRes.count;
   } catch (error) {
     console.error('Error fetching stats:', error);
   }
@@ -182,6 +190,11 @@ export default async function DashboardPage() {
             label="Microblogs"
             count={stats.microblogs}
             accentColor="#4d9fff"
+          />
+          <StatCard
+            label="Photos"
+            count={stats.photos}
+            accentColor="#c4a8ff"
           />
           <StatCard
             label="Adventures"

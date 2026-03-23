@@ -12,20 +12,20 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: existing } = await (supabase as any)
-    .from('microblogs')
-    .select('user_id')
+    .from('microblog_posts')
+    .select('profile_id')
     .eq('id', id)
     .single()
 
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (existing.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (existing.profile_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await request.json()
   const update: Record<string, unknown> = {}
 
   if (body.body !== undefined) update.body = body.body
   if (body.body_html !== undefined) update.body_html = body.body_html
-  if (body.media !== undefined) update.media = body.media
+  if (body.media !== undefined) update.images = body.media
   if (body.location_name !== undefined) update.location_name = body.location_name
   if (body.link_url !== undefined) update.link_url = body.link_url
   if (body.tags !== undefined) update.tags = body.tags
@@ -34,7 +34,7 @@ export async function PATCH(
   if (body.paired_writing_id !== undefined) update.paired_writing_id = body.paired_writing_id || null
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('microblog_posts')
     .update(update)
     .eq('id', id)
     .select('id')
@@ -68,15 +68,15 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: existing } = await (supabase as any)
-    .from('microblogs')
-    .select('user_id')
+    .from('microblog_posts')
+    .select('profile_id')
     .eq('id', id)
     .single()
 
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (existing.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (existing.profile_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { error } = await (supabase as any).from('microblogs').delete().eq('id', id)
+  const { error } = await (supabase as any).from('microblog_posts').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ deleted: true })
 }
