@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { updateFeedVisibility, deleteFeedEvent } from '@/lib/feed-events'
 
 // PATCH /api/microblogs/[id]
 export async function PATCH(
@@ -63,6 +64,16 @@ export async function PATCH(
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Sync visibility to feed_events if changed
+  if (body.visibility !== undefined) {
+    try {
+      await updateFeedVisibility(id, 'microblog_posts', body.visibility)
+    } catch (feedErr) {
+      console.error('[microblogs] feed_event visibility update failed:', feedErr)
+    }
+  }
+
   return NextResponse.json(data)
 }
 
@@ -87,5 +98,13 @@ export async function DELETE(
 
   const { error } = await (supabase as any).from('microblog_posts').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Remove from feed_events
+  try {
+    await deleteFeedEvent(id, 'microblog_posts')
+  } catch (feedErr) {
+    console.error('[microblogs] feed_event delete failed:', feedErr)
+  }
+
   return NextResponse.json({ deleted: true })
 }

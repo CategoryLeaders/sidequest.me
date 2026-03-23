@@ -51,10 +51,9 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
 
   const siteTags = ((profile as any).site_tags ?? []) as SiteTag[]
 
-  // Resolve tag filter
+  // Resolve tag filter — site tag if matched, otherwise treat the slug as a direct tag name
   const matchedTag = tagSlug ? tagBySlug(siteTags, tagSlug) : null
-  if (tagSlug && !matchedTag) notFound()
-  const filterLabel = matchedTag?.label ?? null
+  const filterLabel = matchedTag?.label ?? tagSlug ?? null
 
   // Type filter validation
   const validTypes = ['microblog', 'writing', 'bookmark', 'quote', 'question']

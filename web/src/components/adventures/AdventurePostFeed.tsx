@@ -493,7 +493,11 @@ function PostCard({
   const [editing, setEditing] = useState(false)
   const [editBody, setEditBody] = useState(post.body ?? '')
   const [editLocation, setEditLocation] = useState(post.location_name ?? '')
+  const [editPhotos, setEditPhotos] = useState<{ url: string; caption?: string }[]>(() =>
+    (post.photos ?? [] as unknown[]).map(normalizePhoto)
+  )
   const [saving, setSaving] = useState(false)
+  const editPhotoInputRef = useRef<HTMLInputElement>(null)
 
   // Normalize photos and derive featured index
   const normalizedPhotos = (post.photos ?? [] as unknown[]).map(normalizePhoto)
@@ -518,6 +522,24 @@ function PostCard({
     .toUpperCase()
   const time = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
+  const handleEditPhotoUpload = async (files: FileList) => {
+    const newPhotos = [...editPhotos]
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue
+      const form = new FormData()
+      form.append('file', file)
+      form.append('context', 'adventures')
+      try {
+        const res = await fetch('/api/upload-image', { method: 'POST', body: form })
+        if (res.ok) {
+          const { url } = await res.json() as { url: string }
+          newPhotos.push({ url })
+        }
+      } catch { /* skip */ }
+    }
+    setEditPhotos(newPhotos)
+  }
+
   const handleSave = async () => {
     setSaving(true)
     const res = await fetch(`/api/adventure-posts/${post.id}`, {
@@ -526,10 +548,11 @@ function PostCard({
       body: JSON.stringify({
         body: editBody.trim() || null,
         location_name: editLocation.trim() || null,
+        photos: editPhotos,
       }),
     })
     if (res.ok) {
-      onUpdate({ id: post.id, body: editBody.trim() || null, location_name: editLocation.trim() || null })
+      onUpdate({ id: post.id, body: editBody.trim() || null, location_name: editLocation.trim() || null, photos: editPhotos as any })
       setEditing(false)
     }
     setSaving(false)
@@ -538,6 +561,7 @@ function PostCard({
   const handleCancel = () => {
     setEditBody(post.body ?? '')
     setEditLocation(post.location_name ?? '')
+    setEditPhotos((post.photos ?? [] as unknown[]).map(normalizePhoto))
     setEditing(false)
   }
 
@@ -633,6 +657,41 @@ function PostCard({
                 rows={3}
                 className="w-full px-3 py-2 border-3 border-ink bg-bg font-body text-[0.88rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow resize-y"
               />
+              {/* Photo management in edit mode */}
+              <div>
+                {editPhotos.length > 0 && (
+                  <div className="flex gap-1.5 flex-wrap mb-1.5">
+                    {editPhotos.map((p, i) => (
+                      <div key={i} className="relative w-14 h-14 border border-ink/20 overflow-hidden group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setEditPhotos((prev) => prev.filter((_, j) => j !== i))}
+                          className="absolute top-0 right-0 bg-black/60 text-white text-[8px] w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <input
+                  ref={editPhotoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files) handleEditPhotoUpload(e.target.files); e.target.value = '' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => editPhotoInputRef.current?.click()}
+                  className="font-mono text-[0.6rem] text-ink-muted hover:text-ink border border-dashed border-ink/20 px-2 py-0.5 cursor-pointer transition-colors"
+                >
+                  📸 Add photos
+                </button>
+              </div>
               <input
                 value={editLocation}
                 onChange={(e) => setEditLocation(e.target.value)}

@@ -68,10 +68,18 @@ export default async function MicroblogPostPage({ params }: Props) {
 
       <article className="border-3 border-ink p-6 bg-[var(--bg-card)]">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="sticker sticker-orange text-[0.55rem] !px-2 !py-0.5 !border-2">
-            Microblog
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <span className="font-mono text-[0.55rem] font-bold uppercase px-2 py-0.5 border border-[var(--orange)]/40 text-[var(--orange)] bg-[var(--orange)]/8">
+            {(post as any).post_type === "changelog" ? "Changelog" : "Microblog"}
           </span>
+          {(post as any).context_type === "adventure" && (post as any).context_id && (
+            <Link
+              href={`/${username}/adventures/${(post as any).context_id}`}
+              className="font-mono text-[0.55rem] px-2 py-0.5 border border-[#2a7a4a]/40 text-[#5aaa7e] bg-[#2a7a4a]/8 no-underline hover:opacity-70"
+            >
+              🗺 Adventure
+            </Link>
+          )}
           {post.source !== "native" && (
             <span className="text-[0.55rem] font-mono opacity-30">
               via{" "}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { ThoughtType } from "@/lib/thoughts-types";
 
 interface Props {
@@ -366,6 +366,15 @@ function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [visibility, setVisibility] = useState("public");
+  const [adventures, setAdventures] = useState<{ id: string; title: string }[]>([]);
+  const [adventureId, setAdventureId] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/adventures")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setAdventures(Array.isArray(data) ? data.map((a: any) => ({ id: a.id, title: a.title })) : []))
+      .catch(() => {});
+  }, []);
 
   const submit = useCallback(async (status: "published" | "draft") => {
     if (!body.trim()) { setError("Post body is required"); return; }
@@ -375,12 +384,18 @@ function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
       const res = await fetch("/api/microblogs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: body.trim(), tags, visibility, status }),
+        body: JSON.stringify({
+          body: body.trim(),
+          tags,
+          visibility,
+          status,
+          ...(adventureId ? { context_type: "adventure", context_id: adventureId } : {}),
+        }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
       onSuccess("Microblog posted!");
     } catch (e: any) { setError(e.message); setSaving(false); }
-  }, [body, tags, visibility, setSaving, setError, onSuccess]);
+  }, [body, tags, visibility, adventureId, setSaving, setError, onSuccess]);
 
   return (
     <>
@@ -391,6 +406,20 @@ function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
         rows={4}
         className="w-full border-2 border-ink/20 px-3 py-2.5 text-[0.88rem] font-mono outline-none bg-transparent focus:border-[var(--orange)] transition-colors placeholder:text-ink/20 resize-y mb-3"
       />
+      {adventures.length > 0 && (
+        <div className="mb-3">
+          <select
+            value={adventureId}
+            onChange={(e) => setAdventureId(e.target.value)}
+            className="font-mono text-[0.7rem] border-2 border-ink/20 px-2 py-1.5 bg-transparent outline-none focus:border-[var(--orange)] transition-colors w-full max-w-xs"
+          >
+            <option value="">🗺 Tag to adventure (optional)</option>
+            {adventures.map((a) => (
+              <option key={a.id} value={a.id}>{a.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="flex items-center gap-4 mb-2">
         <TagInput tags={tags} setTags={setTags} />
         <VisibilitySelect value={visibility} onChange={setVisibility} />

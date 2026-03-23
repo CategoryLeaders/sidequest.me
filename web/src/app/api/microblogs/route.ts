@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { publishMicroblogToFeed } from '@/lib/feed-events'
 
 // GET /api/microblogs — list current user's microblogs
 export async function GET() {
@@ -89,6 +90,22 @@ export async function POST(request: Request) {
       entity_id: l.entity_id,
     }))
     await (supabase as any).from('microblog_links').insert(linkRows)
+  }
+
+  // Publish to feed_events so the post appears in What's New
+  const postStatus = body.status || 'published'
+  if (postStatus === 'published' && data?.id) {
+    try {
+      await publishMicroblogToFeed(
+        user.id,
+        data.id,
+        'public',
+        body.published_at || new Date().toISOString(),
+      )
+    } catch (feedErr) {
+      // Non-fatal — log but don't fail the post creation
+      console.error('[microblogs] feed_event insert failed:', feedErr)
+    }
   }
 
   return NextResponse.json(data, { status: 201 })
