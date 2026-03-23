@@ -465,7 +465,7 @@ export default function AdventurePostFeed({ adventureId, chapters = [] }: Advent
       ) : (
         /* ── Timeline view ── */
         <div>
-          {(sortNewest ? [...posts].reverse() : posts).map((post, index) => renderPost(post, index === 0))}
+          {(sortNewest ? posts : [...posts].reverse()).map((post, index) => renderPost(post, index === 0))}
         </div>
       )}
     </div>

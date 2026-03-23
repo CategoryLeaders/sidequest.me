@@ -142,7 +142,7 @@ export default async function AdventurePage({ params, searchParams }: Props) {
   // Draft adventures: only visible to owner
   if (adventure.status === 'draft' && !isOwner) notFound()
 
-  // Fetch posts — default ascending (start at beginning), ?sort=new for newest first
+  // Fetch posts — default newest first, ?sort=old for oldest first
   const { data: posts } = await (supabase as any)
     .from('adventure_posts')
     .select('*')
