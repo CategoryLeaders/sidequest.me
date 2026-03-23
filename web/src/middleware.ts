@@ -13,6 +13,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(rewriteUrl)
   }
 
+  // Route my.sidequest.me/* → /dashboard/*
+  // Matches both production (my.sidequest.me) and local dev (my.localhost:3000)
+  if (hostname.startsWith('my.')) {
+    const pathname = request.nextUrl.pathname
+    const rewriteUrl = request.nextUrl.clone()
+    rewriteUrl.pathname = `/dashboard${pathname === '/' ? '' : pathname}`
+    return updateSession(request, rewriteUrl)
+  }
+
   return await updateSession(request)
 }
 
