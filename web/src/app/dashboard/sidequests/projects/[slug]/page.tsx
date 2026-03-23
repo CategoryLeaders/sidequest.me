@@ -32,7 +32,9 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!project) notFound();
 
-  // Fetch linked microblogs (via microblog_links)
+  // Fetch linked microblogs — two sources:
+  // 1. Via microblog_links table (entity_type = 'project')
+  // 2. Via context_type / context_id directly on the post
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: linkedMicroblogIds } = await (supabase as any)
     .from('microblog_links')
@@ -40,14 +42,27 @@ export default async function ProjectDetailPage({ params }: Props) {
     .eq('entity_type', 'project')
     .eq('entity_id', project.id);
 
+  const linkedIds: string[] = (linkedMicroblogIds ?? []).map((l: any) => l.microblog_id);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: contextPosts } = await (supabase as any)
+    .from('microblog_posts')
+    .select('id, body, images, published_at, created_at, tags')
+    .eq('profile_id', profile.id)
+    .eq('context_type', 'project')
+    .eq('context_id', project.id)
+    .order('published_at', { ascending: false });
+
+  const contextIds = (contextPosts ?? []).map((p: any) => p.id);
+  const allIds = [...new Set([...linkedIds, ...contextIds])];
+
   let linkedMicroblogs: any[] = [];
-  if (linkedMicroblogIds && linkedMicroblogIds.length > 0) {
-    const ids = linkedMicroblogIds.map((l: any) => l.microblog_id);
+  if (allIds.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await (supabase as any)
       .from('microblog_posts')
       .select('id, body, images, published_at, created_at, tags')
-      .in('id', ids)
+      .in('id', allIds)
       .order('published_at', { ascending: false });
     linkedMicroblogs = data ?? [];
   }
