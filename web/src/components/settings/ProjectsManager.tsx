@@ -2,12 +2,13 @@
 
 /**
  * ProjectsManager — Settings list view for owned projects.
- * Drag-to-reorder, publish/hide toggle, status badge, edit link.
+ * Drag-to-reorder, publish/hide toggle, status badge, three-dot menu.
  * [SQ.S-W-2603-0060]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface Project {
   id: string;
@@ -34,6 +35,64 @@ const STATUS_COLORS: Record<string, string> = {
 interface ProjectsManagerProps {
   userId: string;
   username: string;
+}
+
+/** Three-dot dropdown menu for a project card */
+function ProjectMenu({ project, username }: { project: Project; username: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const items = [
+    { label: "✏️  Edit project", href: `/sidequests/projects/${project.slug}` },
+    { label: "💬  New Microblog", href: `/content/microblogs?project=${project.slug}` },
+    { label: "📸  New Image", href: `/content/photos?project=${project.slug}` },
+    { label: "📝  New Writing", href: `https://sidequest.me/${username}/admin/writings/new?project=${project.slug}` },
+  ];
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        className="w-7 h-7 flex items-center justify-center border-2 border-ink/20 hover:border-ink/50 bg-bg-card cursor-pointer transition-colors"
+        title="Actions"
+        style={{ fontSize: "1rem", lineHeight: 1 }}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 z-50 border-3 border-ink bg-white min-w-[180px]"
+          style={{ boxShadow: "3px 3px 0 var(--ink)" }}
+        >
+          {items.map((item) => {
+            const isExternal = item.href.startsWith("https://");
+            const Tag = isExternal ? "a" : Link;
+            return (
+              <Tag
+                key={item.label}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 font-mono text-[0.68rem] text-ink hover:bg-ink/5 no-underline transition-colors cursor-pointer"
+              >
+                {item.label}
+              </Tag>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProjectsManager({ userId, username }: ProjectsManagerProps) {
@@ -191,12 +250,12 @@ export default function ProjectsManager({ userId, username }: ProjectsManagerPro
             {/* Title + description */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <a
-                  href={`https://sidequest.me/${username}/projects/${project.slug}`}
+                <Link
+                  href={`/sidequests/projects/${project.slug}`}
                   className="font-head font-bold text-[0.82rem] uppercase truncate no-underline text-ink hover:text-[var(--orange)] transition-colors"
                 >
                   {project.title}
-                </a>
+                </Link>
                 {/* Status badge */}
                 <span
                   className="inline-block text-[0.55rem] font-mono font-bold px-2 py-0.5 border-2 border-ink uppercase"
@@ -245,13 +304,8 @@ export default function ProjectsManager({ userId, username }: ProjectsManagerPro
               {project.published ? "Published" : "Hidden"}
             </button>
 
-            {/* Edit link */}
-            <a
-              href={`https://sidequest.me/${username}/admin/projects/${project.slug}`}
-              className="font-mono text-[0.58rem] px-2 py-1 border-2 border-ink bg-bg-card hover:bg-ink/5 cursor-pointer no-underline text-ink flex-shrink-0"
-            >
-              Edit
-            </a>
+            {/* Three-dot menu */}
+            <ProjectMenu project={project} username={username} />
           </div>
         ))}
       </div>
