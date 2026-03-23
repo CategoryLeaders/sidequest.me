@@ -219,17 +219,27 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
       {/* ─── User footer ─── */}
       <div style={{ borderTop: '1px solid #333', padding: '14px 20px' }}>
         <div className="flex items-center gap-3 mb-3">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, #ff6b35, #ff69b4)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '0.7rem',
-            }}
-          >
-            {(profile.display_name || profile.username || 'U').charAt(0).toUpperCase()}
-          </div>
+          {profile.avatar_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={profile.avatar_url}
+              alt={profile.display_name || profile.username}
+              className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+              style={{ border: '2px solid rgba(255,255,255,0.2)' }}
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #ff6b35, #ff69b4)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.7rem',
+              }}
+            >
+              {(profile.display_name || profile.username || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0">
             <div
               style={{
