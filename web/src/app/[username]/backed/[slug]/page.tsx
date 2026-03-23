@@ -6,7 +6,6 @@ import {
   getCrowdfundingProjectBySlug,
   getAdjacentProjects,
   getUpdatesForProject,
-  getProjectEmailToken,
 } from "@/lib/crowdfunding";
 import {
   formatPledge,
@@ -23,7 +22,6 @@ import ReviewDisplay from "@/components/crowdfunding/ReviewDisplay";
 import LinkedObjects from "@/components/crowdfunding/LinkedObjects";
 import ProjectTabs from "@/components/crowdfunding/ProjectTabs";
 import UpdateStream from "@/components/crowdfunding/UpdateStream";
-import EmailForwardingInfo from "@/components/crowdfunding/EmailForwardingInfo";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 interface BackedProjectPageProps {
@@ -47,12 +45,11 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
   const adjacent = await getAdjacentProjects(profile.id, project.sort_order);
 
   // Writing counts + review + object links + updates
-  const [writingCountsMap, review, rawLinks, updates, emailToken] = await Promise.all([
+  const [writingCountsMap, review, rawLinks, updates] = await Promise.all([
     countWritingsForEntities("crowdfunding", [project.id]),
     getReviewForProject(profile.id, project.id),
     getLinksFromSource("crowdfunding", project.id),
     getUpdatesForProject(project.id),
-    isOwner ? getProjectEmailToken(project.id) : Promise.resolve(null),
   ]);
   const writingCount = writingCountsMap.get(project.id) ?? 0;
   const objectLinks = await enrichObjectLinks(rawLinks, username);
@@ -204,11 +201,21 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
             count: updates.length,
             content: (
               <div>
-                {isOwner && emailToken && (
-                  <EmailForwardingInfo
-                    emailToken={emailToken}
-                    projectTitle={project.title}
-                  />
+                {isOwner && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Link
+                      href={`/dashboard/sidequests/thoughts?context=crowdfunding&context_id=${project.id}`}
+                      className="font-mono text-[0.65rem] font-bold uppercase px-3 py-1.5 border-2 border-ink bg-ink text-bg hover:bg-orange hover:border-orange transition-colors no-underline"
+                    >
+                      + Post update
+                    </Link>
+                    <Link
+                      href={`/dashboard/sidequests/backed`}
+                      className="font-mono text-[0.65rem] font-bold uppercase px-3 py-1.5 border-2 border-ink/30 hover:border-ink transition-colors no-underline"
+                    >
+                      ⚙ Manage
+                    </Link>
+                  </div>
                 )}
                 <UpdateStream updates={updates} />
               </div>

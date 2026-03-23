@@ -8,12 +8,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
 import { formatPledge, parseDeliveryDeadline, normalizeStatus, statusHex } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
 import TubeMapFilter from "@/components/TubeMapFilter";
 import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
-import ProjectLightbox from "@/components/crowdfunding/ProjectLightbox";
 import CalendarView from "@/components/crowdfunding/CalendarView";
 import StarRating from "@/components/crowdfunding/StarRating";
 import { ContentActions } from "@/components/shared/ContentActions";
@@ -39,12 +39,25 @@ interface BackedProjectsProps {
 
 export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {}, isOwner = false }: BackedProjectsProps) {
   const [filter, setFilter] = useState<FilterValue>("all");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [lightboxProject, setLightboxProject] = useState<CrowdfundingProject | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
-  const filtered = filter === "all"
+  const statusFiltered = filter === "all"
     ? projects
     : projects.filter((p) => normalizeStatus(p.status) === filter);
+
+  const filtered = search.trim()
+    ? statusFiltered.filter((p) => {
+        const q = search.toLowerCase();
+        return (
+          p.title.toLowerCase().includes(q) ||
+          ((p as any).short_name ?? "").toLowerCase().includes(q) ||
+          ((p as any).tagline ?? "").toLowerCase().includes(q) ||
+          (p.tags ?? []).some((t) => t.toLowerCase().includes(q))
+        );
+      })
+    : statusFiltered;
 
   return (
     <>
@@ -74,11 +87,22 @@ export default function BackedProjects({ projects, username, writingCounts, revi
         </div>
       </div>
 
+      {/* Search bar */}
+      <div className="mt-3">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search projects…"
+          className="w-full px-3 py-2 border-2 border-ink/20 bg-bg-card font-mono text-[0.75rem] focus:outline-none focus:border-ink/50 transition-colors placeholder:opacity-40"
+        />
+      </div>
+
       {/* Calendar View */}
       {viewMode === "calendar" && (
         <CalendarView
           projects={filtered}
-          onProjectClick={setLightboxProject}
+          onProjectClick={(p) => router.push(`/${username}/backed/${p.slug}`)}
         />
       )}
 
@@ -102,7 +126,7 @@ export default function BackedProjects({ projects, username, writingCounts, revi
               key={project.id}
               className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col cursor-pointer"
               style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
-              onClick={() => setLightboxProject(project)}
+              onClick={() => router.push(`/${username}/backed/${project.slug}`)}
             >
               {/* Image with countdown badge */}
               <div className="relative">
@@ -212,14 +236,23 @@ export default function BackedProjects({ projects, username, writingCounts, revi
                 </div>
               )}
 
-              {/* Writing link */}
-              {wCount > 0 && (
+              {/* Writing link / Review CTA */}
+              {wCount > 0 ? (
                 <div className="mt-3 pt-2 border-t border-ink/10">
                   <span className="font-mono text-[0.6rem] font-semibold uppercase text-orange opacity-60">
                     Has review
                   </span>
                 </div>
-              )}
+              ) : isOwner && (normalizeStatus(project.status) === "delivered" || normalizeStatus(project.status) === "shipped") && reviewRatings[project.id] === undefined ? (
+                <div className="mt-3 pt-2 border-t border-ink/10" onClick={(e) => e.stopPropagation()}>
+                  <Link
+                    href={`/${username}/backed/${project.slug}#review`}
+                    className="font-mono text-[0.6rem] font-semibold uppercase text-orange no-underline hover:opacity-70 transition-opacity"
+                  >
+                    Leave a review →
+                  </Link>
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -231,16 +264,6 @@ export default function BackedProjects({ projects, username, writingCounts, revi
         </p>
       )}
 
-      {/* Lightbox */}
-      {lightboxProject && (
-        <ProjectLightbox
-          project={lightboxProject}
-          username={username}
-          writingCount={writingCounts[lightboxProject.id] ?? 0}
-          review={reviews[lightboxProject.id] ?? null}
-          onClose={() => setLightboxProject(null)}
-        />
-      )}
     </>
   );
 }
