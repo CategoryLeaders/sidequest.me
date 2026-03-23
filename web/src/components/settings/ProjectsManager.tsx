@@ -161,7 +161,7 @@ export default function ProjectsManager({ userId, username }: ProjectsManagerPro
           {projects.length} project{projects.length !== 1 ? "s" : ""} · {publishedCount} published · {hiddenCount} hidden
         </p>
         <a
-          href={`/${username}/admin/projects/new`}
+          href={`https://sidequest.me/${username}/admin/projects/new`}
           className="sticker sticker-green cursor-pointer text-[0.7rem] no-underline"
           style={{ transform: "rotate(0.5deg)" }}
         >
@@ -192,7 +192,7 @@ export default function ProjectsManager({ userId, username }: ProjectsManagerPro
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <a
-                  href={`/${username}/projects/${project.slug}`}
+                  href={`https://sidequest.me/${username}/projects/${project.slug}`}
                   className="font-head font-bold text-[0.82rem] uppercase truncate no-underline text-ink hover:text-[var(--orange)] transition-colors"
                 >
                   {project.title}
@@ -247,7 +247,7 @@ export default function ProjectsManager({ userId, username }: ProjectsManagerPro
 
             {/* Edit link */}
             <a
-              href={`/${username}/admin/projects/${project.slug}`}
+              href={`https://sidequest.me/${username}/admin/projects/${project.slug}`}
               className="font-mono text-[0.58rem] px-2 py-1 border-2 border-ink bg-bg-card hover:bg-ink/5 cursor-pointer no-underline text-ink flex-shrink-0"
             >
               Edit

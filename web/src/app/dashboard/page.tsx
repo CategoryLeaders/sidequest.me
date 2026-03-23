@@ -50,11 +50,11 @@ async function getStatsCounts(userId: string) {
           .from('writings')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', userId)
-          .eq('published', true),
+          .eq('status', 'published'),
         supabase
-          .from('microblogs')
+          .from('microblog_posts')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', userId),
+          .eq('profile_id', userId),
         supabase
           .from('adventures')
           .select('id', { count: 'exact', head: true })

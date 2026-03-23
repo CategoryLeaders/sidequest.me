@@ -34,7 +34,7 @@ export default function AdventuresManager({ username }: AdventuresManagerProps) 
           {adventures.length} {adventures.length === 1 ? "adventure" : "adventures"}
         </p>
         <Link
-          href={`/${username}/admin/adventures/new`}
+          href={`https://sidequest.me/${username}/admin/adventures/new`}
           className="px-4 py-1.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.68rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
         >
           + New adventure
@@ -44,7 +44,7 @@ export default function AdventuresManager({ username }: AdventuresManagerProps) 
       {adventures.length === 0 ? (
         <p className="font-mono text-[0.78rem] opacity-40 py-6 text-center">
           No adventures yet.{" "}
-          <Link href={`/${username}/admin/adventures/new`} className="text-orange no-underline">
+          <Link href={`https://sidequest.me/${username}/admin/adventures/new`} className="text-orange no-underline">
             Create your first →
           </Link>
         </p>
@@ -74,7 +74,7 @@ export default function AdventuresManager({ username }: AdventuresManagerProps) 
                     <span className="font-mono text-[0.55rem] opacity-40">{tm.icon} {tm.label}</span>
                   </div>
                   <Link
-                    href={`/${username}/admin/adventures/${a.slug}`}
+                    href={`https://sidequest.me/${username}/admin/adventures/${a.slug}`}
                     className="font-head font-bold text-[0.82rem] text-ink hover:text-orange no-underline line-clamp-1 transition-colors"
                   >
                     {a.title}
@@ -86,7 +86,7 @@ export default function AdventuresManager({ username }: AdventuresManagerProps) 
                   </p>
                 </div>
                 <Link
-                  href={`/${username}/admin/adventures/${a.slug}`}
+                  href={`https://sidequest.me/${username}/admin/adventures/${a.slug}`}
                   className="font-mono text-[0.6rem] text-ink-muted hover:text-ink px-2 py-1 border-2 border-ink/20 hover:border-ink/50 transition-colors no-underline flex-shrink-0"
                 >
                   Edit

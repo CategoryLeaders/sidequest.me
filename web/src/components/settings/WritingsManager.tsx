@@ -55,7 +55,7 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
           {published.length} published · {drafts.length} drafts
         </p>
         <Link
-          href={`/${username}/admin/writings/new`}
+          href={`https://sidequest.me/${username}/admin/writings/new`}
           className="px-4 py-1.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.68rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
         >
           + New post
@@ -94,7 +94,7 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
             <div key={w.id} className="py-3 flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/${username}/admin/writings/${w.slug}`}
+                  href={`https://sidequest.me/${username}/admin/writings/${w.slug}`}
                   className="font-head font-bold text-[0.82rem] text-ink hover:text-orange no-underline line-clamp-1 transition-colors"
                 >
                   {w.title}
@@ -107,7 +107,7 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
                 </p>
               </div>
               <Link
-                href={`/${username}/admin/writings/${w.slug}`}
+                href={`https://sidequest.me/${username}/admin/writings/${w.slug}`}
                 className="font-mono text-[0.6rem] text-ink-muted hover:text-ink px-2 py-1 border-2 border-ink/20 hover:border-ink/50 transition-colors no-underline flex-shrink-0"
               >
                 Edit
