@@ -43,7 +43,7 @@ export default async function ProfilePage({
           <p className="font-mono text-[0.78rem] opacity-60">Manage your avatar, bio, and personal details</p>
         </div>
 
-        <ProfileTabs profile={profile} initialTab={tab} />
+        <ProfileTabs key={tab} profile={profile} initialTab={tab} />
       </div>
     </main>
   );
