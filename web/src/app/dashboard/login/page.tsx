@@ -8,18 +8,21 @@ import Link from 'next/link'
 type AuthMode = 'magic-link' | 'password'
 
 /**
- * Validates redirect path — prevents open-redirect attacks.
+ * Get the main domain origin from the current window location.
+ * my.sidequest.me → https://sidequest.me
+ * my.localhost:3000 → https://localhost:3000
  */
-function safeNextPath(raw: string | null): string {
-  if (!raw) return '/dashboard'
-  if (raw.startsWith('/') && !raw.startsWith('//')) return raw
-  return '/dashboard'
+function getMainOrigin(): string {
+  const host = window.location.host
+  const protocol = window.location.protocol
+  // Strip 'my.' prefix to get back to main domain
+  const mainHost = host.startsWith('my.') ? host.slice(3) : host
+  return `${protocol}//${mainHost}`
 }
 
 function DashboardLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextPath = safeNextPath(searchParams.get('next'))
 
   const [mode, setMode] = useState<AuthMode>('magic-link')
   const [email, setEmail] = useState('')
@@ -40,7 +43,9 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+      // Callback must hit the main domain where /auth/callback route exists.
+      // ?next=/dashboard tells the callback to redirect to my.sidequest.me
+      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
@@ -75,7 +80,8 @@ function DashboardLoginForm() {
       }
 
       if (data.user) {
-        router.push(nextPath)
+        // On my.sidequest.me, "/" maps to /dashboard via middleware rewrite
+        router.push('/')
         router.refresh()
       }
     } catch {
@@ -91,7 +97,8 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+      // Callback must hit the main domain where /auth/callback route exists
+      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -115,13 +122,13 @@ function DashboardLoginForm() {
       <div className="text-center space-y-4">
         <div className="text-3xl">✉️</div>
         <h2
-          className="font-[900] text-[1rem] uppercase"
+          className="font-[900] text-[1rem] uppercase text-[#1a1a1a]"
           style={{ fontFamily: 'Archivo' }}
         >
           Check your email
         </h2>
         <p
-          className="text-[0.82rem] opacity-70 leading-relaxed"
+          className="text-[0.82rem] text-[#3a3a3a] leading-relaxed"
           style={{ fontFamily: 'Space Mono' }}
         >
           We sent a magic link to <strong>{email}</strong>. Click the link in the email to access your dashboard.
@@ -129,7 +136,7 @@ function DashboardLoginForm() {
         <button
           type="button"
           onClick={() => { setMagicLinkSent(false); setEmail('') }}
-          className="text-[0.75rem] opacity-50 underline cursor-pointer hover:opacity-80"
+          className="text-[0.75rem] text-[#666] underline cursor-pointer hover:text-[#1a1a1a]"
           style={{ fontFamily: 'Space Mono' }}
         >
           Try a different email
@@ -159,14 +166,14 @@ function DashboardLoginForm() {
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-6">
-        <div className="flex-1 h-[2px] bg-[#1a1a1a]/10" />
+        <div className="flex-1 h-[2px] bg-[#1a1a1a]/15" />
         <span
-          className="text-[0.7rem] opacity-40 uppercase"
+          className="text-[0.7rem] text-[#888] uppercase"
           style={{ fontFamily: 'Space Mono' }}
         >
           or
         </span>
-        <div className="flex-1 h-[2px] bg-[#1a1a1a]/10" />
+        <div className="flex-1 h-[2px] bg-[#1a1a1a]/15" />
       </div>
 
       {/* Mode tabs */}
@@ -197,7 +204,7 @@ function DashboardLoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="block font-[900] text-[0.78rem] uppercase mb-2"
+            className="block font-[900] text-[0.78rem] uppercase mb-2 text-[#1a1a1a]"
             style={{ fontFamily: 'Archivo' }}
           >
             Email
@@ -209,7 +216,7 @@ function DashboardLoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-[#fffbe6] text-[0.88rem] focus:outline-none transition-shadow"
+            className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-white text-[#1a1a1a] text-[0.88rem] focus:outline-none transition-shadow placeholder:text-[#999]"
             style={{ fontFamily: 'Space Mono' }}
             onFocus={(e) => { e.currentTarget.style.boxShadow = '5px 5px 0 #1a1a1a' }}
             onBlur={(e) => { e.currentTarget.style.boxShadow = 'none' }}
@@ -220,7 +227,7 @@ function DashboardLoginForm() {
           <div>
             <label
               htmlFor="password"
-              className="block font-[900] text-[0.78rem] uppercase mb-2"
+              className="block font-[900] text-[0.78rem] uppercase mb-2 text-[#1a1a1a]"
               style={{ fontFamily: 'Archivo' }}
             >
               Password
@@ -232,7 +239,7 @@ function DashboardLoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-[#fffbe6] text-[0.88rem] focus:outline-none transition-shadow"
+              className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-white text-[#1a1a1a] text-[0.88rem] focus:outline-none transition-shadow placeholder:text-[#999]"
               style={{ fontFamily: 'Space Mono' }}
               onFocus={(e) => { e.currentTarget.style.boxShadow = '5px 5px 0 #1a1a1a' }}
               onBlur={(e) => { e.currentTarget.style.boxShadow = 'none' }}
@@ -242,7 +249,7 @@ function DashboardLoginForm() {
 
         {error && (
           <div
-            className="border-[3px] border-red-500 bg-red-50 p-3 text-[0.78rem] text-red-600"
+            className="border-[3px] border-red-500 bg-red-50 p-3 text-[0.78rem] text-red-700"
             style={{ fontFamily: 'Space Mono' }}
           >
             {error}
@@ -266,7 +273,7 @@ function DashboardLoginForm() {
 
         {mode === 'magic-link' && (
           <p
-            className="text-[0.7rem] opacity-50 text-center"
+            className="text-[0.7rem] text-[#666] text-center"
             style={{ fontFamily: 'Space Mono' }}
           >
             No password needed — we&apos;ll email you a sign-in link.
@@ -288,13 +295,13 @@ export default function DashboardLoginPage() {
         style={{ boxShadow: '5px 5px 0 #1a1a1a' }}
       >
         <h1
-          className="font-[900] text-[2rem] uppercase leading-tight mb-2"
+          className="font-[900] text-[2rem] uppercase leading-tight mb-2 text-[#1a1a1a]"
           style={{ fontFamily: 'Archivo' }}
         >
           MY SIDEQUEST
         </h1>
         <p
-          className="text-[0.78rem] opacity-60 mb-8"
+          className="text-[0.78rem] text-[#555] mb-8"
           style={{ fontFamily: 'Space Mono' }}
         >
           Sign in to manage your SideQuest life.
@@ -307,7 +314,7 @@ export default function DashboardLoginPage() {
         <div className="mt-8 pt-6 border-t-[3px] border-[#1a1a1a] text-center">
           <Link
             href="/"
-            className="text-[0.75rem] opacity-60 hover:opacity-100 underline"
+            className="text-[0.75rem] text-[#666] hover:text-[#1a1a1a] underline"
             style={{ fontFamily: 'Space Mono' }}
           >
             Back to SideQuest.me

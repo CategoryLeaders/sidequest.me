@@ -12,6 +12,27 @@ function safeRedirectPath(raw: string | null): string {
   return '/'
 }
 
+/**
+ * Build the final redirect URL for a given `next` path.
+ * When next is "/dashboard" or starts with "/dashboard/", redirect to the
+ * my. subdomain instead of the main domain — the dashboard routes only
+ * exist behind the my.sidequest.me middleware rewrite.
+ *
+ * e.g. next="/dashboard"       → https://my.sidequest.me/
+ *      next="/dashboard/profile" → https://my.sidequest.me/profile
+ */
+function buildRedirectUrl(next: string, origin: string): URL {
+  if (next === '/dashboard' || next.startsWith('/dashboard/')) {
+    const subPath = next === '/dashboard' ? '/' : next.slice('/dashboard'.length)
+    const url = new URL(origin)
+    // Prepend "my." to the hostname (works for both sidequest.me and localhost)
+    url.hostname = 'my.' + url.hostname
+    url.pathname = subPath
+    return url
+  }
+  return new URL(next, origin)
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
@@ -39,7 +60,7 @@ export async function GET(request: Request) {
         )
       }
 
-      return NextResponse.redirect(new URL(next, requestUrl.origin))
+      return NextResponse.redirect(buildRedirectUrl(next, requestUrl.origin))
     }
   }
 
