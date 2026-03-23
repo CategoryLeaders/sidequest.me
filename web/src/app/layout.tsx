@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import ThemeProvider from "@/components/ThemeProvider";
 import CookieConsent from "@/components/CookieConsent";
 import { getCurrentUserProfile } from "@/lib/profiles";
@@ -25,6 +27,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Detect dashboard subdomain (my.sidequest.me)
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "";
+  const isDashboard = host.startsWith("my.");
+
   // Fetch current user's profile for Nav (null if not logged in)
   const currentProfile = await getCurrentUserProfile();
 
@@ -44,14 +51,18 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <Nav
-            currentUsername={currentProfile?.username ?? null}
-            displayName={currentProfile?.display_name ?? null}
-            avatarUrl={currentProfile?.avatar_url ?? null}
-            accountType={(currentProfile as any)?.account_type ?? null}
-          />
+          {isDashboard ? (
+            <DashboardHeader username={currentProfile?.username ?? null} />
+          ) : (
+            <Nav
+              currentUsername={currentProfile?.username ?? null}
+              displayName={currentProfile?.display_name ?? null}
+              avatarUrl={currentProfile?.avatar_url ?? null}
+              accountType={(currentProfile as any)?.account_type ?? null}
+            />
+          )}
           {children}
-          <Footer />
+          {!isDashboard && <Footer />}
           <CookieConsent />
         </ThemeProvider>
       </body>

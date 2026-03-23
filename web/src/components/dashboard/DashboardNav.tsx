@@ -19,21 +19,26 @@ interface NavSection {
   children?: NavChild[];    // sub-items (always expanded)
 }
 
+/**
+ * Nav hrefs use subdomain-relative paths (no /dashboard prefix).
+ * On my.sidequest.me, middleware already rewrites /* → /dashboard/*,
+ * so "/" here maps to /dashboard internally, "/profile" → /dashboard/profile, etc.
+ */
 const NAV: NavSection[] = [
   {
     key: 'home',
     label: 'Home',
     icon: '🏠',
-    href: '/dashboard',
+    href: '/',
   },
   {
     key: 'identity',
     label: 'Profile & Identity',
     icon: '👤',
     children: [
-      { label: 'Avatar & Name', href: '/dashboard/profile?tab=avatar' },
-      { label: 'Bio & Factoids', href: '/dashboard/profile?tab=factoids' },
-      { label: 'Likes & Dislikes', href: '/dashboard/profile?tab=likes' },
+      { label: 'Avatar & Name', href: '/profile?tab=avatar' },
+      { label: 'Bio & Factoids', href: '/profile?tab=factoids' },
+      { label: 'Likes & Dislikes', href: '/profile?tab=likes' },
     ],
   },
   {
@@ -41,8 +46,8 @@ const NAV: NavSection[] = [
     label: 'Professional',
     icon: '💼',
     children: [
-      { label: 'Career History', href: '/dashboard/professional' },
-      { label: 'LinkedIn & Links', href: '/dashboard/professional?tab=links' },
+      { label: 'Career History', href: '/professional' },
+      { label: 'LinkedIn & Links', href: '/professional?tab=links' },
     ],
   },
   {
@@ -50,10 +55,10 @@ const NAV: NavSection[] = [
     label: 'Content',
     icon: '✍️',
     children: [
-      { label: 'Microblogs', href: '/dashboard/content/microblogs' },
-      { label: 'Writings', href: '/dashboard/content/writings' },
-      { label: 'Photos', href: '/dashboard/content/photos' },
-      { label: 'Ticker', href: '/dashboard/content/ticker' },
+      { label: 'Microblogs', href: '/content/microblogs' },
+      { label: 'Writings', href: '/content/writings' },
+      { label: 'Photos', href: '/content/photos' },
+      { label: 'Ticker', href: '/content/ticker' },
     ],
   },
   {
@@ -61,9 +66,9 @@ const NAV: NavSection[] = [
     label: 'Sidequests',
     icon: '🚀',
     children: [
-      { label: 'Adventures', href: '/dashboard/sidequests/adventures' },
-      { label: 'My Projects', href: '/dashboard/sidequests/projects' },
-      { label: 'Backed Projects', href: '/dashboard/sidequests/backed' },
+      { label: 'Adventures', href: '/sidequests/adventures' },
+      { label: 'My Projects', href: '/sidequests/projects' },
+      { label: 'Backed Projects', href: '/sidequests/backed' },
     ],
   },
   {
@@ -71,9 +76,9 @@ const NAV: NavSection[] = [
     label: 'Site Settings',
     icon: '⚙️',
     children: [
-      { label: 'Theme & Visuals', href: '/dashboard/settings/theme' },
-      { label: 'Tags', href: '/dashboard/settings/tags' },
-      { label: 'API Keys', href: '/dashboard/settings/api-keys' },
+      { label: 'Theme & Visuals', href: '/settings/theme' },
+      { label: 'Tags', href: '/settings/tags' },
+      { label: 'API Keys', href: '/settings/api-keys' },
     ],
   },
 ];
@@ -86,8 +91,13 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
   /* Match current path + query to an href */
   const isChildActive = (href: string) => {
     const [path, qs] = href.split('?');
-    if (!pathname.startsWith(path)) return false;
-    if (!qs) return pathname === path || pathname.startsWith(path + '/');
+    if (path === '/') {
+      if (pathname !== '/') return false;
+    } else {
+      if (!pathname.startsWith(path)) return false;
+      if (!qs) return pathname === path || pathname.startsWith(path + '/');
+    }
+    if (!qs) return pathname === path;
     // Match query param too (e.g. ?tab=avatar)
     const params = new URLSearchParams(qs);
     for (const [k, v] of params) {
@@ -100,6 +110,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
     if (section.href) return pathname === section.href;
     return section.children?.some((c) => {
       const [path] = c.href.split('?');
+      if (path === '/') return pathname === '/';
       return pathname.startsWith(path);
     }) ?? false;
   };
@@ -116,7 +127,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
       style={{ backgroundColor: '#1a1a1a' }}
     >
       {/* ─── Logo ─── */}
-      <Link href="/dashboard" className="block">
+      <Link href="/" className="block">
         <div
           className="px-5 py-5 flex items-center gap-3"
           style={{ borderBottom: '1px solid #333' }}
@@ -157,7 +168,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
           return (
             <div key={section.key} className="mb-1">
               {/* Section heading — clickable, links to first child or direct href */}
-              <Link href={section.href || section.children?.[0]?.href || '/dashboard'}>
+              <Link href={section.href || section.children?.[0]?.href || '/'}>
                 <div
                   className="flex items-center gap-2.5 py-2.5 transition-colors"
                   style={{
@@ -244,8 +255,8 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <Link
-            href={`/${profile.username}`}
+          <a
+            href={`https://sidequest.me/${profile.username}`}
             style={{
               fontFamily: 'var(--font-mono, Space Mono, monospace)',
               fontSize: '0.62rem',
@@ -256,7 +267,7 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
             }}
           >
             View profile →
-          </Link>
+          </a>
           <button
             onClick={handleLogout}
             style={{
