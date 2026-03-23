@@ -16,14 +16,20 @@ export function QuoteCard({ quote, username, isOwner = false }: Props) {
   const postDate = quote.published_at ?? quote.created_at;
 
   return (
-    <article className="border-3 border-ink p-5 bg-[var(--bg-card)]">
-      {/* Type badge */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="sticker sticker-lilac text-[0.55rem] !px-2 !py-0.5 !border-2">
+    <article
+      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+      style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
+    >
+      {/* Header: type badge + date */}
+      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-ink/8">
+        <span
+          className="font-mono text-[0.58rem] font-bold uppercase tracking-widest"
+          style={{ color: '#7b3fa0' }}
+        >
           💬 Quote
         </span>
         {quote.pinned && (
-          <span className="text-[0.55rem] font-mono opacity-40 ml-auto">📌 Pinned</span>
+          <span className="font-mono text-[0.55rem] text-ink/35">📌</span>
         )}
         {isOwner && (
           <span className="ml-auto">
@@ -42,20 +48,29 @@ export function QuoteCard({ quote, username, isOwner = false }: Props) {
             />
           </span>
         )}
+        <Link
+          href={permalink}
+          className={`font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline${isOwner ? '' : ' ml-auto'}`}
+        >
+          <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
+            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </time>
+          <span className="ml-1.5 opacity-70">{relativeTime(postDate)}</span>
+        </Link>
       </div>
 
       {/* Large quotation mark + quote text */}
-      <div className="relative pl-6 mb-3">
-        <span className="absolute left-0 top-0 text-[2.5rem] leading-none opacity-15 font-head font-[900]">
+      <div className="relative px-5 pt-5 pb-1">
+        <span className="absolute left-3 top-4 text-[2.5rem] leading-none opacity-10 font-head font-[900]">
           &ldquo;
         </span>
-        <blockquote className="text-[1.05rem] leading-relaxed font-[500] italic">
+        <blockquote className="text-[1.05rem] leading-relaxed font-[500] italic pl-5">
           {quote.quote_text}
         </blockquote>
       </div>
 
       {/* Source attribution */}
-      <div className="mb-3 pl-6 text-[0.78rem] opacity-60">
+      <div className="pl-10 px-5 pb-1 text-[0.78rem] opacity-60">
         <span className="font-bold">{quote.source_name}</span>
         {quote.source_work && (
           <span>
@@ -79,19 +94,19 @@ export function QuoteCard({ quote, username, isOwner = false }: Props) {
 
       {/* Commentary */}
       {quote.commentary && (
-        <p className="text-[0.82rem] opacity-60 leading-relaxed mb-3 pl-3 border-l-2 border-ink/15">
+        <p className="text-[0.82rem] opacity-60 leading-relaxed mx-5 mt-2 mb-1 pl-3 border-l-2 border-ink/15">
           {quote.commentary}
         </p>
       )}
 
       {/* Tags */}
       {quote.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-1.5 px-5 pt-3">
           {quote.tags.map((tag) => (
             <Link
               key={tag}
               href={`/${username}/thoughts/tags/${encodeURIComponent(tag.toLowerCase())}`}
-              className="inline-block text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors"
+              className="inline-block text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors no-underline"
             >
               #{tag}
             </Link>
@@ -100,15 +115,13 @@ export function QuoteCard({ quote, username, isOwner = false }: Props) {
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-ink/10">
-        <Link
-          href={permalink}
-          className="text-[0.6rem] font-mono opacity-40 hover:opacity-70 transition-opacity no-underline"
+      <div className="flex items-center justify-end px-5 pt-3 pb-4 mt-1 border-t border-ink/10">
+        <button
+          className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
+          title="Copy link"
         >
-          <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
-            {relativeTime(postDate)}
-          </time>
-        </Link>
+          🔗
+        </button>
       </div>
     </article>
   );

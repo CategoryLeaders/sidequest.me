@@ -250,6 +250,40 @@ function CardExtras({
   )
 }
 
+// ── Inline context chip ───────────────────────────────────────────────────────
+function InlineCtxChip({
+  ctxCfg,
+  ctxLink,
+  ctxDisplayName,
+}: {
+  ctxCfg: { bannerBg: string; bannerText: string; icon: string }
+  ctxLink: string
+  ctxDisplayName: string
+}) {
+  return (
+    <Link
+      href={ctxLink}
+      className="no-underline hover:opacity-75 transition-opacity"
+      style={{
+        background: ctxCfg.bannerBg,
+        color: ctxCfg.bannerText,
+        padding: '2px 7px',
+        fontSize: '0.52rem',
+        fontFamily: 'monospace',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.07em',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 3,
+      }}
+    >
+      <span>{ctxCfg.icon}</span>
+      <span>{ctxDisplayName}</span>
+    </Link>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export function MicroblogCard({ post, username, isOwner = false }: Props) {
   const postDate = getPostDate(post)
@@ -273,39 +307,32 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
         className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
         style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
       >
-        {/* Context banner */}
-        {ctxCfg && ctxLink && (
-          <Link
-            href={ctxLink}
-            className="flex items-center gap-2 px-4 py-2 no-underline border-b border-black/20 transition-opacity hover:opacity-85"
-            style={{ background: ctxCfg.bannerBg, color: ctxCfg.bannerText, display: 'flex' }}
-          >
-            <span className="text-[12px]">{ctxCfg.icon}</span>
-            <span className="font-mono text-[0.6rem] font-bold uppercase tracking-wider">{ctxDisplayName}</span>
-          </Link>
-        )}
+        {/* Header: type badge + context chip + date */}
+        <div className="flex items-center gap-2 flex-wrap px-4 pt-3 pb-2.5 border-b-2 border-ink/10">
+          <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📋 Changelog</span>
+          {ctxCfg && ctxLink && (
+            <InlineCtxChip ctxCfg={ctxCfg} ctxLink={ctxLink} ctxDisplayName={ctxDisplayName} />
+          )}
+          {isOwner && (
+            <ContentActions
+              contentType="microblog"
+              contentId={post.id}
+              editData={{ body: post.body, tags: post.tags, visibility: post.visibility }}
+            />
+          )}
+          <span className="ml-auto font-mono text-[0.6rem] text-ink/35">
+            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            <span className="ml-1 opacity-70"> · {relativeTime(postDate)}</span>
+          </span>
+        </div>
 
-        {/* Header */}
-        <div className="px-4 pt-4 pb-2 border-b-2 border-ink/10">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📋 Changelog</span>
-            {isOwner && (
-              <ContentActions
-                contentType="microblog"
-                contentId={post.id}
-                editData={{ body: post.body, tags: post.tags, visibility: post.visibility }}
-              />
-            )}
-          </div>
+        {/* Title */}
+        <div className="px-4 pt-3 pb-1">
           <Link href={permalink} className="no-underline group">
             <h3 className="font-head font-[900] text-[1.05rem] uppercase leading-tight group-hover:text-[var(--orange)] transition-colors">
               {post.title}
             </h3>
           </Link>
-          <div className="font-mono text-[0.62rem] text-ink/40 mt-1">
-            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-            <span className="ml-1.5 opacity-60">{relativeTime(postDate)}</span>
-          </div>
         </div>
 
         {/* Change items */}
@@ -354,34 +381,22 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
   if (hasImages) {
     return (
       <article
-        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
+        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
         style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
       >
-        {/* Full-width dark context banner at top */}
-        {ctxCfg && ctxLink && (
-          <Link
-            href={ctxLink}
-            className="flex items-center gap-2 px-4 py-2 no-underline border-b border-black/20 transition-opacity hover:opacity-85"
-            style={{ background: ctxCfg.bannerBg, color: ctxCfg.bannerText, display: 'flex' }}
-          >
-            <span className="text-[12px]">{ctxCfg.icon}</span>
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-60">
-              {ctxCfg.label}
-            </span>
-            <span className="font-head font-[800] text-[13px] ml-0.5">{ctxDisplayName}</span>
-            <span className="ml-auto text-[12px] opacity-50">→</span>
-          </Link>
-        )}
-
-        {/* Pinned flag + owner menu */}
-        <div className="absolute top-0 right-0 z-20 flex items-center gap-1">
+        {/* Header: type badge + context chip + date + owner */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-ink/8">
+          <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📷 Photo</span>
+          {ctxCfg && ctxLink && (
+            <InlineCtxChip ctxCfg={ctxCfg} ctxLink={ctxLink} ctxDisplayName={ctxDisplayName} />
+          )}
           {post.pinned && (
             <span className="font-mono text-[0.48rem] uppercase tracking-wider px-2 py-0.5 bg-[var(--orange)] text-white">
               📌 Pinned
             </span>
           )}
           {isOwner && (
-            <span className="bg-black/50 px-1 py-0.5" style={{ color: '#ccc' }}>
+            <span className="ml-auto">
               <ContentActions
                 contentType="microblog"
                 contentId={post.id}
@@ -398,6 +413,9 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
               />
             </span>
           )}
+          <span className={`font-mono text-[0.6rem] text-ink/35${isOwner ? '' : ' ml-auto'}`}>
+            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
         </div>
 
         {/* Full-bleed image mosaic */}
@@ -441,30 +459,18 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
         borderLeftColor: leftBorderColor,
       }}
     >
-      {/* Thin accent bar with inline context link (BD-3 style) */}
-      {ctxCfg && ctxLink && (
-        <div
-          className="flex items-center gap-2 px-4 py-2 font-mono text-[0.68rem] border-b border-ink/10"
-          style={{ background: ctxCfg.barBg }}
-        >
-          <span>{ctxCfg.icon}</span>
-          <span className="uppercase tracking-[0.08em] text-[9px] text-ink/40">{ctxCfg.label}</span>
-          <Link
-            href={ctxLink}
-            className="font-bold hover:underline no-underline"
-            style={{ color: ctxCfg.chipText }}
-          >
-            {ctxDisplayName}
-            <span className="ml-1 text-[var(--orange)]">→</span>
-          </Link>
-        </div>
-      )}
-
-      {/* Date header row */}
+      {/* Header: type badge + context chip + location + date + metadata */}
       <div className="flex items-center flex-wrap gap-2 px-5 py-2.5 border-b border-ink/8">
+        <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">💭 Thought</span>
+        {ctxCfg && ctxLink && (
+          <InlineCtxChip ctxCfg={ctxCfg} ctxLink={ctxLink} ctxDisplayName={ctxDisplayName} />
+        )}
+        {post.location_name && (
+          <span className="font-mono text-[0.58rem] text-ink/40">📍 {post.location_name}</span>
+        )}
         <Link
           href={permalink}
-          className="font-mono text-[0.68rem] text-ink/45 hover:text-ink/70 transition-colors no-underline"
+          className="font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline ml-auto"
         >
           <time dateTime={postDate} title={new Date(postDate).toLocaleString('en-GB')}>
             {new Date(postDate).toLocaleDateString('en-GB', {
@@ -473,17 +479,11 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
               year: 'numeric',
             })}
           </time>
-          <span className="ml-1.5 opacity-60">{relativeTime(postDate)}</span>
+          <span className="ml-1.5 opacity-70">{relativeTime(postDate)}</span>
         </Link>
-        {post.location_name && (
-          <>
-            <span className="font-mono text-[0.65rem] text-ink/20">·</span>
-            <span className="font-mono text-[0.65rem] text-ink/40">📍 {post.location_name}</span>
-          </>
-        )}
-        {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35 ml-auto">📌</span>}
+        {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35">📌</span>}
         {isOwner && (
-          <span className="ml-auto">
+          <span>
             <ContentActions
               contentType="microblog"
               contentId={post.id}
@@ -500,14 +500,14 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
         )}
         {post.edited_at && (
           <span
-            className="font-mono text-[0.55rem] text-ink/25 ml-auto"
+            className="font-mono text-[0.55rem] text-ink/25"
             title={`Edited ${new Date(post.edited_at).toLocaleString('en-GB')}`}
           >
             edited
           </span>
         )}
         {sourceLabel(post.source) && (
-          <span className="font-mono text-[0.55rem] text-ink/25 ml-auto">
+          <span className="font-mono text-[0.55rem] text-ink/25">
             via {sourceLabel(post.source)}
           </span>
         )}

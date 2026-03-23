@@ -17,19 +17,28 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner = f
   const postDate = question.published_at ?? question.created_at;
 
   return (
-    <article className="border-3 border-ink p-5 bg-[var(--bg-card)]">
-      {/* Type badge + resolved status */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="sticker sticker-yellow text-[0.55rem] !px-2 !py-0.5 !border-2">
+    <article
+      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+      style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
+    >
+      {/* Header: type badge + resolved + date */}
+      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-ink/8">
+        <span
+          className="font-mono text-[0.58rem] font-bold uppercase tracking-widest"
+          style={{ color: '#a07a00' }}
+        >
           ❓ Question
         </span>
         {question.resolved && (
-          <span className="sticker sticker-green text-[0.5rem] !px-2 !py-0.5 !border-2">
+          <span
+            className="font-mono text-[0.52rem] font-bold uppercase tracking-widest"
+            style={{ color: '#2d6a4f' }}
+          >
             ✓ Resolved
           </span>
         )}
         {question.pinned && (
-          <span className="text-[0.55rem] font-mono opacity-40 ml-auto">📌 Pinned</span>
+          <span className="font-mono text-[0.55rem] text-ink/35">📌</span>
         )}
         {isOwner && (
           <span className="ml-auto">
@@ -47,16 +56,25 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner = f
             />
           </span>
         )}
+        <Link
+          href={permalink}
+          className={`font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline${isOwner ? '' : ' ml-auto'}`}
+        >
+          <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
+            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </time>
+          <span className="ml-1.5 opacity-70">{relativeTime(postDate)}</span>
+        </Link>
       </div>
 
       {/* Question text — prominent */}
-      <h3 className="text-[1.05rem] font-head font-bold leading-snug mb-3">
+      <h3 className="text-[1.05rem] font-head font-bold leading-snug px-5 pt-4 pb-1">
         {question.question_text}
       </h3>
 
       {/* Resolved summary */}
       {question.resolved && question.resolved_summary && (
-        <div className="border-2 border-green/30 bg-green/[0.05] p-3 mb-3">
+        <div className="border-2 border-green/30 bg-green/[0.05] p-3 mx-5 mt-2 mb-1">
           <p className="text-[0.7rem] font-mono font-bold opacity-50 mb-1 uppercase">
             Resolution
           </p>
@@ -68,7 +86,7 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner = f
 
       {/* Author's thinking */}
       {question.thinking && !question.resolved && (
-        <div className="mb-3">
+        <div className="px-5 pt-1 pb-1">
           <p className="text-[0.65rem] font-mono opacity-40 mb-1 uppercase">
             My thinking so far:
           </p>
@@ -80,12 +98,12 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner = f
 
       {/* Tags */}
       {question.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-1.5 px-5 pt-3">
           {question.tags.map((tag) => (
             <Link
               key={tag}
               href={`/${username}/thoughts/tags/${encodeURIComponent(tag.toLowerCase())}`}
-              className="inline-block text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors"
+              className="inline-block text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors no-underline"
             >
               #{tag}
             </Link>
@@ -93,22 +111,20 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner = f
         </div>
       )}
 
-      {/* Footer — comment count prominent for questions */}
-      <div className="flex items-center justify-between pt-2 border-t border-ink/10">
-        <Link
-          href={permalink}
-          className="text-[0.6rem] font-mono opacity-40 hover:opacity-70 transition-opacity no-underline"
-        >
-          <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
-            {relativeTime(postDate)}
-          </time>
-        </Link>
+      {/* Footer — answer count prominent for questions */}
+      <div className="flex items-center justify-between px-5 pt-3 pb-4 mt-1 border-t border-ink/10">
         <Link
           href={`${permalink}#comments`}
           className="text-[0.72rem] font-mono opacity-50 hover:opacity-80 transition-opacity no-underline"
         >
           💬 {commentCount} {commentCount === 1 ? "answer" : "answers"}
         </Link>
+        <button
+          className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
+          title="Copy link"
+        >
+          🔗
+        </button>
       </div>
     </article>
   );
