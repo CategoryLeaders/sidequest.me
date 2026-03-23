@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Routes that require authentication (regex patterns)
 const PROTECTED_PATTERNS = [
   /^\/[^/]+\/settings(\/.*)?$/,  // /[username]/settings/*
-  /^\/dashboard(\/.*)?$/,        // /dashboard/* (my.sidequest.me)
+  /^\/dashboard(?!\/login).*$/,  // /dashboard/* EXCEPT /dashboard/login
 ]
 
 // Auth routes — redirect to own profile if already logged in

@@ -14,8 +14,10 @@ export default async function DashboardLayout({
 }) {
   const profile = await getCurrentUserProfile();
 
+  // Not authenticated — render children without nav.
+  // The login page (or middleware rewrite) will handle the UX.
   if (!profile) {
-    redirect('/dashboard/login');
+    return <>{children}</>;
   }
 
   // Mini accounts don't get the dashboard — redirect to public profile
