@@ -115,7 +115,7 @@ function renderPublicPhotos(rawPhotos: unknown[]) {
 export default async function AdventurePage({ params, searchParams }: Props) {
   const { username, slug } = await params
   const { sort } = await searchParams
-  const sortNewest = sort === 'new'
+  const sortOldest = sort === 'old'
   const supabase = await createClient()
 
   const { data: profile } = await (supabase as any)
@@ -147,7 +147,7 @@ export default async function AdventurePage({ params, searchParams }: Props) {
     .from('adventure_posts')
     .select('*')
     .eq('adventure_id', adventure.id)
-    .order('posted_at', { ascending: !sortNewest }) as { data: AdventurePost[] | null }
+    .order('posted_at', { ascending: sortOldest }) as { data: AdventurePost[] | null }
 
   const allPosts = posts ?? []
   const chapters = (adventure.chapters ?? []) as Chapter[]
@@ -305,18 +305,18 @@ export default async function AdventurePage({ params, searchParams }: Props) {
           <a
             href={`/${username}/adventures/${slug}`}
             className={`font-mono text-[0.6rem] font-bold uppercase px-3 py-1 border-2 transition-all no-underline ${
-              !sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
-            }`}
-          >
-            Start at beginning
-          </a>
-          <a
-            href={`/${username}/adventures/${slug}?sort=new`}
-            className={`font-mono text-[0.6rem] font-bold uppercase px-3 py-1 border-2 transition-all no-underline ${
-              sortNewest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+              !sortOldest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
             }`}
           >
             What&apos;s new
+          </a>
+          <a
+            href={`/${username}/adventures/${slug}?sort=old`}
+            className={`font-mono text-[0.6rem] font-bold uppercase px-3 py-1 border-2 transition-all no-underline ${
+              sortOldest ? 'border-ink bg-ink text-bg' : 'border-ink/20 text-ink-muted hover:border-ink/50'
+            }`}
+          >
+            Start at beginning
           </a>
         </div>
       )}
