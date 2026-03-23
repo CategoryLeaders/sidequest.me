@@ -20,17 +20,27 @@ Arguments:
 
 The entry is saved as a JSON file + optional PNG in docs/changelog-queue/pending/.
 The midnight job (post_daily_changelog.py) picks these up and posts them to the feed.
+
+Alternatively, pass --url to auto-capture a screenshot from the live site (no browser needed):
+  python queue_changelog.py \
+    --description "New card design system" \
+    --url https://sidequest.me/sophie/thoughts \
+    --selector article \
+    --ticket SQ.S-W-2603-0086
 """
 
 import argparse
 import json
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
 QUEUE_DIR = Path(__file__).parent.parent / "changelog-queue" / "pending"
+SCRIPTS_DIR = Path(__file__).parent
 
 
 def slugify(text: str, max_len: int = 40) -> str:
@@ -39,10 +49,28 @@ def slugify(text: str, max_len: int = 40) -> str:
     return text.strip("-")
 
 
+def auto_screenshot(url: str, selector: str, out_path: str) -> bool:
+    """Call screenshot_feature.py to render the live page element to PNG."""
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPTS_DIR / "screenshot_feature.py"),
+            "--url", url,
+            "--selector", selector,
+            "--out", out_path,
+            "--count", "1",
+        ],
+        capture_output=False,
+    )
+    return result.returncode == 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Add a changelog entry to the queue.")
     parser.add_argument("--description", required=True, help="Human-readable feature description")
-    parser.add_argument("--screenshot", default=None, help="Path to screenshot PNG (optional)")
+    parser.add_argument("--screenshot", default=None, help="Path to an existing screenshot PNG (optional)")
+    parser.add_argument("--url", default=None, help="Live URL to auto-screenshot (alternative to --screenshot)")
+    parser.add_argument("--selector", default="article", help="CSS tag to screenshot when using --url (default: article)")
     parser.add_argument("--ticket", default="", help="Asana ticket ID (optional)")
     parser.add_argument("--subdomain", default="www.sidequest.me", help="Affected subdomain")
     args = parser.parse_args()
@@ -54,7 +82,19 @@ def main() -> None:
     base_name = f"{ts}_{slug}"
 
     screenshot_filename = None
-    if args.screenshot:
+
+    if args.url and not args.screenshot:
+        # Auto-capture from live URL
+        tmp_png = str(QUEUE_DIR / f"{base_name}.png")
+        print(f"Auto-capturing screenshot from {args.url} …")
+        ok = auto_screenshot(args.url, args.selector, tmp_png)
+        if ok and Path(tmp_png).exists():
+            screenshot_filename = f"{base_name}.png"
+            print(f"Screenshot captured → {tmp_png}")
+        else:
+            print("WARNING: Screenshot capture failed — queuing without image.", file=sys.stderr)
+
+    elif args.screenshot:
         src = Path(args.screenshot).expanduser().resolve()
         if not src.exists():
             print(f"ERROR: Screenshot not found: {src}", file=sys.stderr)
