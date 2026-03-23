@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useTheme, type Theme, type Mode } from '@/components/ThemeProvider';
 import type { Profile } from '@/lib/profiles';
 
 const THEMES = [
@@ -29,6 +30,7 @@ interface ThemeVisualsFormProps {
 
 export default function ThemeVisualsForm({ profile }: ThemeVisualsFormProps) {
   const router = useRouter();
+  const { setTheme: applyTheme, setMode: applyMode } = useTheme();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const p = profile as any;
 
@@ -62,7 +64,13 @@ export default function ThemeVisualsForm({ profile }: ThemeVisualsFormProps) {
         })
         .eq('id', profile.id);
       if (err) setError(err.message);
-      else { setSaved(true); router.refresh(); }
+      else {
+        setSaved(true);
+        // Apply theme and mode live via ThemeProvider (updates localStorage + DOM)
+        applyTheme(theme as Theme);
+        applyMode(mode as Mode);
+        router.refresh();
+      }
     } catch {
       setError('An unexpected error occurred');
     } finally {

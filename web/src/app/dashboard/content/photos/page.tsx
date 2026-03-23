@@ -33,7 +33,7 @@ export default async function PhotosPage() {
         </div>
 
         <div className="bg-white p-8 border-3 border-ink" style={{ boxShadow: '3px 3px 0 var(--ink)' }}>
-          <PhotoUpload onUploaded={() => {}} />
+          <PhotoUpload />
         </div>
       </div>
     </main>

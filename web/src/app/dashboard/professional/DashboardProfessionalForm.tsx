@@ -133,7 +133,7 @@ export default function DashboardProfessionalForm({ profile }: DashboardProfessi
           {saving ? "Saving…" : "Save Changes"}
         </button>
         <a
-          href={`/${profile.username}`}
+          href={`https://sidequest.me/${profile.username}`}
           className="px-6 py-2.5 bg-transparent text-ink font-head font-bold text-[0.78rem] uppercase border-3 border-ink hover:bg-ink hover:text-bg transition-colors no-underline inline-block"
         >
           Cancel

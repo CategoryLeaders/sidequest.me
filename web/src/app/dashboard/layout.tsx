@@ -20,10 +20,10 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
-  // Mini accounts don't get the dashboard — redirect to public profile
+  // Mini accounts don't get the dashboard — redirect to public profile on main domain
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((profile as any).account_type === 'mini') {
-    redirect(`/${profile.username}`);
+    redirect(`https://sidequest.me/${profile.username}`);
   }
 
   return (
