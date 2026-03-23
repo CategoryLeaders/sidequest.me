@@ -48,6 +48,7 @@ export default async function RootLayout({
             currentUsername={currentProfile?.username ?? null}
             displayName={currentProfile?.display_name ?? null}
             avatarUrl={currentProfile?.avatar_url ?? null}
+            accountType={(currentProfile as any)?.account_type ?? null}
           />
           {children}
           <Footer />

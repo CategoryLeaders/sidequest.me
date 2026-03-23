@@ -18,6 +18,7 @@ interface NavProps {
   currentUsername: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  accountType: string | null;
 }
 
 const NAV_USERNAME = "sophie";
@@ -36,7 +37,9 @@ export default function Nav({
   currentUsername,
   displayName,
   avatarUrl,
+  accountType,
 }: NavProps) {
+  const isFullAccount = accountType === 'full';
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
@@ -144,29 +147,25 @@ export default function Nav({
 
                 {/* Menu items */}
                 <div className="py-1">
-                  <Link
-                    href={`/${currentUsername}/publish`}
-                    className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
-                  >
-                    <span className="text-[0.9rem]">📷</span>
-                    Post Image
-                  </Link>
-
-                  <Link
-                    href={`/${currentUsername}/admin/writings`}
-                    className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
-                  >
-                    <span className="text-[0.9rem]">✍️</span>
-                    Writings
-                  </Link>
-
-                  <Link
-                    href={`/${currentUsername}/settings`}
-                    className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
-                  >
-                    <span className="text-[0.9rem]">✏️</span>
-                    Edit Profile
-                  </Link>
+                  {isFullAccount ? (
+                    /* Full account → single "My SideQuest" link to dashboard */
+                    <a
+                      href="https://my.sidequest.me"
+                      className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors font-bold"
+                    >
+                      <span className="text-[0.9rem]">🚀</span>
+                      My SideQuest
+                    </a>
+                  ) : (
+                    /* Mini account → classic edit profile link */
+                    <Link
+                      href={`/${currentUsername}/settings`}
+                      className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-[0.75rem] text-ink no-underline hover:bg-ink/5 transition-colors"
+                    >
+                      <span className="text-[0.9rem]">✏️</span>
+                      Edit Profile
+                    </Link>
+                  )}
 
                   <button
                     type="button"
