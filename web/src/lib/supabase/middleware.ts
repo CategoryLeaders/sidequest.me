@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { COOKIE_DOMAIN } from './config'
 
 // Routes that require authentication (regex patterns)
 const PROTECTED_PATTERNS = [
@@ -32,7 +33,10 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
             ? NextResponse.rewrite(rewriteUrl, { request })
             : NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+            })
           )
         },
       },
