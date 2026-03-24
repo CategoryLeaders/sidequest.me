@@ -17,9 +17,24 @@ export function BookmarkCard({ bookmark, username, isOwner = false }: Props) {
 
   return (
     <article
-      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
       style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
     >
+      {isOwner && (
+        <div className="absolute top-2 right-2 z-10">
+          <ContentActions
+            contentType="bookmark"
+            contentId={bookmark.id}
+            editData={{
+              commentary: bookmark.commentary,
+              og_title: bookmark.og_title,
+              og_description: bookmark.og_description,
+              tags: bookmark.tags,
+              visibility: bookmark.visibility,
+            }}
+          />
+        </div>
+      )}
       {/* Header: type badge + date */}
       <div className="flex items-center gap-2 px-5 py-2.5 border-b border-ink/8">
         <span
@@ -31,24 +46,9 @@ export function BookmarkCard({ bookmark, username, isOwner = false }: Props) {
         {bookmark.pinned && (
           <span className="font-mono text-[0.55rem] text-ink/35">📌</span>
         )}
-        {isOwner && (
-          <span className="ml-auto">
-            <ContentActions
-              contentType="bookmark"
-              contentId={bookmark.id}
-              editData={{
-                commentary: bookmark.commentary,
-                og_title: bookmark.og_title,
-                og_description: bookmark.og_description,
-                tags: bookmark.tags,
-                visibility: bookmark.visibility,
-              }}
-            />
-          </span>
-        )}
         <Link
           href={permalink}
-          className={`font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline${isOwner ? '' : ' ml-auto'}`}
+          className="font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline ml-auto"
         >
           <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
             {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}

@@ -304,21 +304,23 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
     const items = (post.changelog_items ?? []) as { text: string; image?: { url: string } }[]
     return (
       <article
-        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
         style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
       >
-        {/* Header: type badge + context chip + date */}
-        <div className="flex items-center gap-2 flex-wrap px-4 pt-3 pb-2.5 border-b-2 border-ink/10">
-          <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📋 Changelog</span>
-          {ctxCfg && ctxLink && (
-            <InlineCtxChip ctxCfg={ctxCfg} ctxLink={ctxLink} ctxDisplayName={ctxDisplayName} />
-          )}
-          {isOwner && (
+        {isOwner && (
+          <div className="absolute top-2 right-2 z-10">
             <ContentActions
               contentType="microblog"
               contentId={post.id}
               editData={{ body: post.body, tags: post.tags, visibility: post.visibility }}
             />
+          </div>
+        )}
+        {/* Header: type badge + context chip + date */}
+        <div className="flex items-center gap-2 flex-wrap px-4 pt-3 pb-2.5 border-b-2 border-ink/10">
+          <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📋 Changelog</span>
+          {ctxCfg && ctxLink && (
+            <InlineCtxChip ctxCfg={ctxCfg} ctxLink={ctxLink} ctxDisplayName={ctxDisplayName} />
           )}
           <span className="ml-auto font-mono text-[0.6rem] text-ink/35">
             {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -381,10 +383,28 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
   if (hasImages) {
     return (
       <article
-        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden"
+        className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
         style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
       >
-        {/* Header: type badge + context chip + date + owner */}
+        {isOwner && (
+          <div className="absolute top-2 right-2 z-10">
+            <ContentActions
+              contentType="microblog"
+              contentId={post.id}
+              editData={{
+                body: post.body,
+                body_html: post.body_html,
+                media: post.images,
+                link_url: post.link_url,
+                location_name: post.location_name,
+                paired_writing_id: post.paired_writing_id ?? "",
+                tags: post.tags,
+                visibility: post.visibility,
+              }}
+            />
+          </div>
+        )}
+        {/* Header: type badge + context chip + date */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-ink/8">
           <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">📷 Photo</span>
           {ctxCfg && ctxLink && (
@@ -395,25 +415,7 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
               📌 Pinned
             </span>
           )}
-          {isOwner && (
-            <span className="ml-auto">
-              <ContentActions
-                contentType="microblog"
-                contentId={post.id}
-                editData={{
-                  body: post.body,
-                  body_html: post.body_html,
-                  media: post.images,
-                  link_url: post.link_url,
-                  location_name: post.location_name,
-                  paired_writing_id: post.paired_writing_id ?? "",
-                  tags: post.tags,
-                  visibility: post.visibility,
-                }}
-              />
-            </span>
-          )}
-          <span className={`font-mono text-[0.6rem] text-ink/35${isOwner ? '' : ' ml-auto'}`}>
+          <span className="ml-auto font-mono text-[0.6rem] text-ink/35">
             {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         </div>
@@ -459,6 +461,22 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
         borderLeftColor: leftBorderColor,
       }}
     >
+      {isOwner && (
+        <div className="absolute top-2 right-2 z-10">
+          <ContentActions
+            contentType="microblog"
+            contentId={post.id}
+            editData={{
+              body: post.body,
+              body_html: post.body_html,
+              link_url: post.link_url,
+              location_name: post.location_name,
+              tags: post.tags,
+              visibility: post.visibility,
+            }}
+          />
+        </div>
+      )}
       {/* Header: type badge + context chip + location + date + metadata */}
       <div className="flex items-center flex-wrap gap-2 px-5 py-2.5 border-b border-ink/8">
         <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-[var(--orange)]">💭 Thought</span>
@@ -467,6 +485,20 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
         )}
         {post.location_name && (
           <span className="font-mono text-[0.58rem] text-ink/40">📍 {post.location_name}</span>
+        )}
+        {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35">📌</span>}
+        {post.edited_at && (
+          <span
+            className="font-mono text-[0.55rem] text-ink/25"
+            title={`Edited ${new Date(post.edited_at).toLocaleString('en-GB')}`}
+          >
+            edited
+          </span>
+        )}
+        {sourceLabel(post.source) && (
+          <span className="font-mono text-[0.55rem] text-ink/25">
+            via {sourceLabel(post.source)}
+          </span>
         )}
         <Link
           href={permalink}
@@ -481,36 +513,6 @@ export function MicroblogCard({ post, username, isOwner = false }: Props) {
           </time>
           <span className="ml-1.5 opacity-70">{relativeTime(postDate)}</span>
         </Link>
-        {post.pinned && <span className="font-mono text-[0.55rem] text-ink/35">📌</span>}
-        {isOwner && (
-          <span>
-            <ContentActions
-              contentType="microblog"
-              contentId={post.id}
-              editData={{
-                body: post.body,
-                body_html: post.body_html,
-                link_url: post.link_url,
-                location_name: post.location_name,
-                tags: post.tags,
-                visibility: post.visibility,
-              }}
-            />
-          </span>
-        )}
-        {post.edited_at && (
-          <span
-            className="font-mono text-[0.55rem] text-ink/25"
-            title={`Edited ${new Date(post.edited_at).toLocaleString('en-GB')}`}
-          >
-            edited
-          </span>
-        )}
-        {sourceLabel(post.source) && (
-          <span className="font-mono text-[0.55rem] text-ink/25">
-            via {sourceLabel(post.source)}
-          </span>
-        )}
       </div>
 
       {/* Body — larger text for text-only posts */}

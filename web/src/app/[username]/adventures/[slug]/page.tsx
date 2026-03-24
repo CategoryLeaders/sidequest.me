@@ -386,7 +386,8 @@ export default async function AdventurePage({ params, searchParams }: Props) {
       {/* ── Magazine (chapter-based) ── */}
       {theme === 'magazine' && (
         <div className="space-y-12">
-          {chapters.map((ch, ci) => {
+          {(sortOldest ? chapters : [...chapters].reverse()).map((ch, ri) => {
+            const ci = sortOldest ? ri : chapters.length - 1 - ri
             const chapterPosts = allPosts.filter((p) => p.chapter_index === ci)
             if (chapterPosts.length === 0) return null
             return (
@@ -452,7 +453,8 @@ export default async function AdventurePage({ params, searchParams }: Props) {
 
             {/* Posts grouped by chapter (with location context) */}
             {chapters.length > 0 ? (
-              chapters.map((ch, ci) => {
+              (sortOldest ? chapters : [...chapters].reverse()).map((ch, ri) => {
+                const ci = sortOldest ? ri : chapters.length - 1 - ri
                 const chPosts = allPosts.filter((p) => p.chapter_index === ci)
                 if (chPosts.length === 0) return null
                 return (

@@ -210,7 +210,7 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
                       + Post update
                     </Link>
                     <Link
-                      href={`/dashboard/sidequests/backed`}
+                      href={`/dashboard/sidequests/backed?edit=${project.slug}`}
                       className="font-mono text-[0.65rem] font-bold uppercase px-3 py-1.5 border-2 border-ink/30 hover:border-ink transition-colors no-underline"
                     >
                       ⚙ Manage

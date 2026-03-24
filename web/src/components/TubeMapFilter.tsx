@@ -22,6 +22,18 @@ import {
 } from "@/lib/crowdfunding-utils";
 import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
 
+// ─── Hover icons per stage ──────────────────────────────────────────────
+const STATION_ICONS: Record<string, string> = {
+  pre_launch:    "🚀",
+  crowdfunding:  "💰",
+  in_production: "⚙",
+  shipped:       "📦",
+  delivered:     "✓",
+  cancelled:     "✕",
+  failed:        "✗",
+  suspended:     "⏸",
+};
+
 // ─── Display labels ─────────────────────────────────────────────────────
 const TUBE_LABELS: Record<string, string[]> = {
   pre_launch:    ["PRE-LAUNCH"],
@@ -219,6 +231,17 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                   strokeOpacity={hasP ? 1 : 0.2}
                   opacity={isHov && hasP ? 0.82 : 1}
                 />
+                {isHov && hasP && STATION_ICONS[status] && (
+                  <text
+                    x={cx} y={MAIN_Y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize="10"
+                    style={{ userSelect: "none", pointerEvents: "none" }}
+                  >
+                    {STATION_ICONS[status]}
+                  </text>
+                )}
                 {labels.map((line, li) => (
                   <text
                     key={li} x={cx}
@@ -277,6 +300,17 @@ export default function TubeMapFilter({ projects, activeFilter, onFilterChange }
                   strokeWidth={active ? STROKE_W + 1 : STROKE_W}
                   opacity={isHov ? 0.82 : 1}
                 />
+                {isHov && STATION_ICONS[status] && (
+                  <text
+                    x={cx} y={LOWER_Y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize="10"
+                    style={{ userSelect: "none", pointerEvents: "none" }}
+                  >
+                    {STATION_ICONS[status]}
+                  </text>
+                )}
                 {labels.map((line, li) => (
                   <text
                     key={li} x={cx}
