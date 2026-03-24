@@ -93,8 +93,29 @@ export default async function MicroblogPostPage({ params }: Props) {
           )}
         </div>
 
-        {/* Body */}
-        {post.body_html ? (
+        {/* Body — changelog posts render structured items with screenshots */}
+        {(post as any).post_type === 'changelog' && (post as any).changelog_items?.length > 0 ? (
+          <ul className="space-y-4 mb-4 list-none p-0">
+            {((post as any).changelog_items as { text: string; image?: { url: string } }[]).map((item, idx) => (
+              <li key={idx} className="flex gap-2.5">
+                <span className="text-[var(--orange)] font-mono text-[0.9rem] mt-0.5 shrink-0">•</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[0.95rem] leading-relaxed">{item.text}</p>
+                  {item.image?.url && (
+                    <div className="mt-2 border-2 border-ink/10 overflow-hidden inline-block max-w-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.image.url}
+                        alt=""
+                        className="max-h-80 max-w-full object-contain block"
+                      />
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : post.body_html ? (
           <div
             className="text-[1rem] leading-relaxed mb-4 prose prose-a:text-[var(--orange)] prose-a:underline"
             dangerouslySetInnerHTML={{ __html: post.body_html }}
