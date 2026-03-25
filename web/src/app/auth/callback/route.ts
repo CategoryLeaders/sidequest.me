@@ -102,9 +102,19 @@ export async function GET(request: Request) {
       return NextResponse.redirect(errorUrl.toString())
     }
 
+    // Decode the code_verifier — @supabase/ssr stores cookies with base64url encoding
+    // by default (prefix "base64-" followed by base64url-encoded value)
+    const BASE64_PREFIX = 'base64-'
+    const rawValue = codeVerifierCookie.value
+    const codeVerifier = rawValue.startsWith(BASE64_PREFIX)
+      ? Buffer.from(rawValue.substring(BASE64_PREFIX.length), 'base64url').toString('utf-8')
+      : rawValue
+
+    console.log('[auth/callback] code_verifier raw length:', rawValue.length, 'decoded length:', codeVerifier.length, 'was_encoded:', rawValue.startsWith(BASE64_PREFIX))
+
     // Manual PKCE exchange — bypasses @supabase/ssr client which fails silently
     console.log('[auth/callback] attempting manual PKCE exchange...')
-    const { data: tokenData, error: tokenError } = await manualPkceExchange(code, codeVerifierCookie.value)
+    const { data: tokenData, error: tokenError } = await manualPkceExchange(code, codeVerifier)
 
     if (tokenError) {
       console.error('[auth/callback] manual PKCE exchange FAILED:', tokenError.message, '| status:', tokenError.status)
