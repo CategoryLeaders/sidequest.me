@@ -117,7 +117,35 @@ export interface MicroblogPostWithCounts extends MicroblogPost {
   paired_writing_slug: string | null;
 }
 
-// ─── Short ID Generation ────────────────────────────────────────────────────
+// ─── External API Types ─────────────────────────────────────────────────
+
+export interface MicroblogApiItem {
+  id: string
+  short_id: string
+  post_type: MicroblogPostType
+  title: string | null
+  changelog_items: ChangelogItem[] | null
+  body: string
+  tags: string[]
+  images: MicroblogImage[]
+  published_at: string
+  location_name: string | null
+  body_html?: string // only included when ?fields=body
+}
+
+export interface MicroblogApiMeta {
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+export interface MicroblogApiResponse {
+  data: MicroblogApiItem[]
+  meta: MicroblogApiMeta
+}
+
+// ─── Short ID Generation ────────────────────────────────────────────────
 
 const SHORT_ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const SHORT_ID_LENGTH = 4;
@@ -132,7 +160,7 @@ export function generateShortId(): string {
   return result;
 }
 
-// ─── Data Fetching (Server) ─────────────────────────────────────────────────
+// ─── Data Fetching (Server) ─────────────────────────────────────────────
 
 /**
  * Fetch published microblog posts for a profile's public feed.
@@ -268,7 +296,7 @@ export async function getPostComments(
   );
 }
 
-// ─── Aggregation Helpers ────────────────────────────────────────────────────
+// ─── Aggregation Helpers ────────────────────────────────────────────────
 
 async function getReactionCounts(postId: string): Promise<ReactionCount[]> {
   const supabase = await createClient();
@@ -304,7 +332,7 @@ async function getCommentCount(postId: string): Promise<number> {
   return count ?? 0;
 }
 
-// ─── Display Helpers ────────────────────────────────────────────────────────
+// ─── Display Helpers ────────────────────────────────────────────────────
 
 /** Display timestamp for a post (uses source_created_at for imports) */
 export function getPostDate(post: MicroblogPost): string {
