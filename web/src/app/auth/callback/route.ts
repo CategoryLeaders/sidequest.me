@@ -36,6 +36,37 @@ function buildRedirectUrl(next: string, origin: string): URL {
   return new URL(next, origin)
 }
 
+/**
+ * Manually exchange an auth code + code_verifier for a session via the Supabase
+ * token endpoint. Bypasses the @supabase/ssr client's exchangeCodeForSession
+ * which silently fails in cross-subdomain cookie scenarios.
+ */
+async function manualPkceExchange(code: string, codeVerifier: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=pkce`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+    },
+    body: JSON.stringify({
+      auth_code: code,
+      code_verifier: codeVerifier,
+    }),
+  })
+
+  const body = await res.json()
+
+  if (!res.ok) {
+    return { data: null, error: { message: body.error_description || body.msg || body.error || 'Token exchange failed', status: res.status } }
+  }
+
+  return { data: body, error: null }
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const hostname = requestUrl.hostname
@@ -43,42 +74,68 @@ export async function GET(request: Request) {
   const next = safeRedirectPath(requestUrl.searchParams.get('next'))
 
   if (code) {
-    // Diagnostic: log all cookies to understand PKCE state
+    // Read all cookies to find the PKCE code_verifier
     const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
-    const cookieNames = allCookies.map(c => c.name)
     const codeVerifierCookie = allCookies.find(c => c.name.includes('code-verifier'))
 
-    console.log('[auth/callback] hostname:', hostname, 'next:', next, 'code:', code.slice(0, 8) + '...')
-    console.log('[auth/callback] cookie count:', allCookies.length, 'names:', cookieNames.join(', '))
-    console.log('[auth/callback] code_verifier cookie:', codeVerifierCookie ? 'PRESENT (' + codeVerifierCookie.name + ')' : 'MISSING')
+    console.log('[auth/callback] hostname:', hostname, '| next:', next, '| code:', code.slice(0, 8) + '...')
+    console.log('[auth/callback] cookies:', allCookies.map(c => c.name).join(', '))
+    console.log('[auth/callback] code_verifier:', codeVerifierCookie ? 'FOUND' : 'MISSING')
 
-    // PKCE fix: If code_verifier cookie is missing on main domain, bounce to my. subdomain
-    // where the login started and the cookie was set. No condition on `next` — any auth
-    // callback on the main domain without a code_verifier should bounce.
+    // If code_verifier is missing and we're on the main domain, bounce to my. subdomain
     if (!codeVerifierCookie && !hostname.startsWith('my.')) {
       const bounceUrl = new URL(requestUrl.toString())
       bounceUrl.hostname = 'my.' + bounceUrl.hostname
-      // Ensure next param is preserved for redirect after exchange
       if (!bounceUrl.searchParams.has('next')) {
         bounceUrl.searchParams.set('next', '/dashboard')
       }
-      console.error('[auth/callback] code_verifier MISSING on main domain — bouncing to my. subdomain')
+      console.log('[auth/callback] BOUNCING to my. subdomain')
       return NextResponse.redirect(bounceUrl.toString())
     }
 
-    const supabase = await createClient()
-
-    console.log('[auth/callback] calling exchangeCodeForSession...')
-    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (error) {
-      console.error('[auth/callback] exchangeCodeForSession FAILED:', error.message, '| status:', error.status, '| name:', error.name)
-    } else {
-      console.log('[auth/callback] exchangeCodeForSession SUCCESS, user:', sessionData?.user?.email)
+    // If we still don't have the code_verifier (even on my.), redirect to error with details
+    if (!codeVerifierCookie) {
+      console.error('[auth/callback] code_verifier MISSING even on my. subdomain — cannot exchange')
+      const errorUrl = new URL('/auth/error', requestUrl.origin)
+      errorUrl.searchParams.set('reason', 'missing_code_verifier')
+      return NextResponse.redirect(errorUrl.toString())
     }
 
-    if (!error && sessionData.user) {
+    // Manual PKCE exchange — bypasses @supabase/ssr client which fails silently
+    console.log('[auth/callback] attempting manual PKCE exchange...')
+    const { data: tokenData, error: tokenError } = await manualPkceExchange(code, codeVerifierCookie.value)
+
+    if (tokenError) {
+      console.error('[auth/callback] manual PKCE exchange FAILED:', tokenError.message, '| status:', tokenError.status)
+      const errorUrl = new URL('/auth/error', requestUrl.origin)
+      errorUrl.searchParams.set('reason', 'exchange_failed')
+      errorUrl.searchParams.set('detail', tokenError.message)
+      return NextResponse.redirect(errorUrl.toString())
+    }
+
+    console.log('[auth/callback] PKCE exchange succeeded — setting session')
+
+    // Now use the Supabase client to set the session from the tokens we received
+    const supabase = await createClient()
+    const { data: sessionData, error: setError } = await supabase.auth.setSession({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+    })
+
+    if (setError) {
+      console.error('[auth/callback] setSession failed:', setError.message)
+      return NextResponse.redirect(new URL('/auth/error', requestUrl.origin))
+    }
+
+    // Remove the code_verifier cookie now that it's been used
+    try {
+      cookieStore.delete(codeVerifierCookie.name)
+    } catch {
+      // Non-fatal — cookie will expire naturally
+    }
+
+    if (sessionData.user) {
       // Check that a profile exists for this user — no auto-creation [SQ.S-W-2603-0049]
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const db = supabase as any
@@ -96,6 +153,7 @@ export async function GET(request: Request) {
         )
       }
 
+      console.log('[auth/callback] SUCCESS — redirecting to', next)
       return NextResponse.redirect(buildRedirectUrl(next, requestUrl.origin))
     }
   }
