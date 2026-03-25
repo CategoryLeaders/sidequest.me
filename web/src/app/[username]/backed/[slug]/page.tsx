@@ -41,6 +41,12 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
   const { data: { user } } = await supabase.auth.getUser();
   const isOwner = user?.id === profile.id;
 
+  // Build dashboard base URL (my.sidequest.me in prod, my.localhost:3000 in dev)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sidequest.me";
+  const siteOrigin = new URL(siteUrl);
+  siteOrigin.hostname = "my." + siteOrigin.hostname;
+  const dashboardBase = siteOrigin.origin;
+
   // Adjacent projects for prev/next nav
   const adjacent = await getAdjacentProjects(profile.id, project.sort_order);
 
@@ -203,18 +209,18 @@ export default async function BackedProjectPage({ params }: BackedProjectPagePro
               <div>
                 {isOwner && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <Link
-                      href={`/dashboard/sidequests/thoughts?context=crowdfunding&context_id=${project.id}`}
+                    <a
+                      href={`${dashboardBase}/sidequests/thoughts?context=crowdfunding&context_id=${project.id}`}
                       className="font-mono text-[0.65rem] font-bold uppercase px-3 py-1.5 border-2 border-ink bg-ink text-bg hover:bg-orange hover:border-orange transition-colors no-underline"
                     >
                       + Post update
-                    </Link>
-                    <Link
-                      href={`/dashboard/sidequests/backed?edit=${project.slug}`}
+                    </a>
+                    <a
+                      href={`${dashboardBase}/sidequests/backed?edit=${project.slug}`}
                       className="font-mono text-[0.65rem] font-bold uppercase px-3 py-1.5 border-2 border-ink/30 hover:border-ink transition-colors no-underline"
                     >
                       ⚙ Manage
-                    </Link>
+                    </a>
                   </div>
                 )}
                 <UpdateStream updates={updates} />

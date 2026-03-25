@@ -42,6 +42,10 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
+    }
+
     if (!error && sessionData.user) {
       // Check that a profile exists for this user — no auto-creation [SQ.S-W-2603-0049]
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
