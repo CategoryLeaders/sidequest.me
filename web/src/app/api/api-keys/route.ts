@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 
 // Generate a cryptographically random API key and return its SHA-256 hash
 async function generateKey(): Promise<{ rawKey: string; keyHash: string; keyPrefix: string }> {
@@ -22,9 +22,9 @@ async function generateKey(): Promise<{ rawKey: string; keyHash: string; keyPref
 
 // POST /api/api-keys — create a new key
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { label } = await request.json() as { label?: string }
   if (!label?.trim()) return NextResponse.json({ error: 'Label is required' }, { status: 400 })

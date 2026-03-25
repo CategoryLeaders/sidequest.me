@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 import { slugifyTitle, uniqueSlug } from '@/lib/writings'
 import { publishWritingToFeed } from '@/lib/feed-events'
 
 // GET /api/writings — list current user's writings
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { data, error } = await (supabase as any)
     .from('writings')
@@ -21,10 +21,9 @@ export async function GET() {
 
 // POST /api/writings — create a new writing
 export async function POST(request: Request) {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const body = await request.json() as {
     title: string

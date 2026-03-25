@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireOwner } from '@/lib/auth/require'
 import AdventureEditorForm from '@/components/adventures/AdventureEditorForm'
 
 export default async function NewAdventurePage({
@@ -8,9 +7,7 @@ export default async function NewAdventurePage({
   params: Promise<{ username: string }>
 }) {
   const { username } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${username}`)
+  await requireOwner(username)
 
   return <AdventureEditorForm username={username} />
 }

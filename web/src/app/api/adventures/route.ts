@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 import { slugifyAdventure } from '@/lib/adventures'
 import type { LayoutTheme, AdventureStatus, Chapter, ItineraryItem, LocationType, Waypoint } from '@/lib/adventures'
 
 // GET /api/adventures — list user's adventures
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { data, error } = await (supabase as any)
     .from('adventures')
@@ -22,9 +22,9 @@ export async function GET() {
 
 // POST /api/adventures — create a new adventure
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const body = await request.json() as {
     title: string

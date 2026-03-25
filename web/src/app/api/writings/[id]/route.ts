@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 import { slugifyTitle, uniqueSlug } from '@/lib/writings'
 import type { Writing } from '@/lib/writings'
 import { publishWritingToFeed, deleteFeedEvent } from '@/lib/feed-events'
@@ -10,10 +10,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   // Verify ownership
   const { data: existing } = await (supabase as any)
@@ -116,10 +115,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { data: existing } = await (supabase as any)
     .from('writings')

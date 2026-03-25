@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 
 // GET /api/microblogs — list current user's microblogs
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { data, error } = await (supabase as any)
     .from('microblogs')
@@ -19,9 +19,9 @@ export async function GET() {
 
 // POST /api/microblogs — create a new microblog
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const body = await request.json() as {
     body: string

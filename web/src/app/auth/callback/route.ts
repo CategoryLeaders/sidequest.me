@@ -1,16 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { safeRedirectPath } from '@/lib/auth/redirect'
 import { NextResponse } from 'next/server'
-
-/**
- * Validates a redirect path to prevent open-redirect attacks.
- * Only allows relative paths starting with "/" (not "//").
- */
-function safeRedirectPath(raw: string | null): string {
-  if (!raw) return '/'
-  // Must start with exactly one slash (not //) to stay on-origin
-  if (raw.startsWith('/') && !raw.startsWith('//')) return raw
-  return '/'
-}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -23,9 +13,7 @@ export async function GET(request: Request) {
 
     if (!error && sessionData.user) {
       // Check that a profile exists for this user — no auto-creation [SQ.S-W-2603-0049]
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any
-      const { data: profile } = await db
+      const { data: profile } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', sessionData.user.id)
@@ -43,6 +31,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // return the user to an error page with instructions
+  // Auth flow failed — show error page
   return NextResponse.redirect(new URL('/auth/error', requestUrl.origin))
 }

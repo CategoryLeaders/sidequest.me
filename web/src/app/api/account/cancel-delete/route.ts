@@ -1,14 +1,12 @@
 /* ── Cancel account deletion ── [SQ.S-W-2603-0067] */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { apiRequireAuth, isAuthError } from "@/lib/auth/require";
 
 export async function POST() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await apiRequireAuth();
+  if (isAuthError(auth)) return auth;
+  const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: profile } = await (supabase as any)

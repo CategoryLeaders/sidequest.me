@@ -1,5 +1,5 @@
-import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import { requireOwner } from '@/lib/auth/require'
 import { createClient } from '@/lib/supabase/server'
 import type { Adventure } from '@/lib/adventures'
 import { STATUS_META, THEME_META } from '@/lib/adventures'
@@ -10,20 +10,9 @@ export default async function AdminAdventuresPage({
   params: Promise<{ username: string }>
 }) {
   const { username } = await params
+  const { profile } = await requireOwner(username)
+
   const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${username}`)
-
-  const { data: profile } = await (supabase as any)
-    .from('profiles')
-    .select('id, username')
-    .eq('username', username)
-    .single() as { data: { id: string; username: string } | null }
-
-  if (!profile) notFound()
-  if (profile.id !== user.id) redirect(`/${username}`)
-
   const { data: adventures } = await (supabase as any)
     .from('adventures')
     .select('*')

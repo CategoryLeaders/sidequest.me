@@ -1,5 +1,4 @@
-import { notFound, redirect } from "next/navigation";
-import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
+import { requireOwner } from "@/lib/auth/require";
 import { createClient } from "@/lib/supabase/server";
 import SettingsForm from "./SettingsForm";
 
@@ -9,25 +8,7 @@ interface SettingsPageProps {
 
 export default async function SettingsPage({ params }: SettingsPageProps) {
   const { username } = await params;
-
-  const [profile, user] = await Promise.all([
-    getProfileByUsername(username),
-    getCurrentUser(),
-  ]);
-
-  // Should be caught by middleware, but belt-and-suspenders
-  if (!user) {
-    redirect(`/login?next=/${username}/settings`);
-  }
-
-  if (!profile) {
-    notFound();
-  }
-
-  // Can only edit your own profile
-  if (user.id !== profile.id) {
-    redirect(`/${username}`);
-  }
+  const { profile } = await requireOwner(username);
 
   // Fetch all distinct tags used across this user's writings
   const supabase = await createClient();

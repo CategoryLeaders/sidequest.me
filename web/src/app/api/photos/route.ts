@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 import { NextResponse } from 'next/server'
 
 /**
@@ -10,12 +11,9 @@ import { NextResponse } from 'next/server'
  *   - tags (optional): comma-separated tags
  */
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   try {
     const formData = await request.formData()
@@ -141,12 +139,9 @@ export async function GET(request: Request) {
  * Requires auth; user must own the photo. [SQ.S-W-2603-0054]
  */
 export async function PATCH(request: Request) {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   let body: { id?: string; caption?: string | null; tags?: string[] }
   try {
@@ -201,12 +196,9 @@ export async function PATCH(request: Request) {
  * Deletes the DB record and all associated files from Supabase Storage. [SQ.S-W-2603-0053]
  */
 export async function DELETE(request: Request) {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const { searchParams } = new URL(request.url)
   const photoId = searchParams.get('id')

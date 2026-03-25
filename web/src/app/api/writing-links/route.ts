@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRequireAuth, isAuthError } from '@/lib/auth/require'
 
 /**
  * PUT /api/writing-links
@@ -7,9 +7,9 @@ import { createClient } from '@/lib/supabase/server'
  * Body: { writing_id: string, links: Array<{ entity_type: string, entity_id: string }> }
  */
 export async function PUT(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await apiRequireAuth()
+  if (isAuthError(auth)) return auth
+  const { user, supabase } = auth
 
   const body = await req.json() as {
     writing_id: string

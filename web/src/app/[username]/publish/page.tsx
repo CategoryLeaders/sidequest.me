@@ -1,5 +1,4 @@
-import { notFound, redirect } from "next/navigation";
-import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
+import { requireOwner } from "@/lib/auth/require";
 import PublishForm from "./PublishForm";
 
 /**
@@ -13,24 +12,7 @@ interface Props {
 
 export default async function PublishPage({ params }: Props) {
   const { username } = await params;
-
-  const [profile, user] = await Promise.all([
-    getProfileByUsername(username),
-    getCurrentUser(),
-  ]);
-
-  if (!user) {
-    redirect(`/login?next=/${username}/publish`);
-  }
-
-  if (!profile) {
-    notFound();
-  }
-
-  // Only the profile owner can post
-  if (user.id !== profile.id) {
-    redirect(`/${username}`);
-  }
+  await requireOwner(username);
 
   return (
     <main className="max-w-[680px] mx-auto px-8 py-12">

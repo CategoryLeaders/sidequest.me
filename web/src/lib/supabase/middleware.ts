@@ -1,10 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Routes that require authentication (regex patterns)
-const PROTECTED_PATTERNS = [
-  /^\/[^/]+\/settings(\/.*)?$/,  // /[username]/settings/*
-]
+// Path segments under /[username]/ that require authentication.
+// Adding a new protected section = adding one string here.
+const OWNER_ONLY_SEGMENTS = new Set(['settings', 'admin', 'publish'])
+
+/**
+ * Check if a pathname requires authentication.
+ * Matches /[username]/settings/*, /[username]/admin/*, /[username]/publish/*.
+ */
+function isOwnerOnlyRoute(pathname: string): boolean {
+  const parts = pathname.split('/').filter(Boolean)
+  // Need at least /[username]/[segment]
+  return parts.length >= 2 && OWNER_ONLY_SEGMENTS.has(parts[1])
+}
 
 // Auth routes — redirect to own profile if already logged in
 const AUTH_ROUTES = ['/login', '/signup']
@@ -35,8 +44,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Protect routes that require authentication
-  const isProtected = PROTECTED_PATTERNS.some(p => p.test(pathname))
-  if (isProtected && !user) {
+  if (isOwnerOnlyRoute(pathname) && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
