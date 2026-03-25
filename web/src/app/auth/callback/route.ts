@@ -45,19 +45,21 @@ async function manualPkceExchange(code: string, codeVerifier: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  const formBody = new URLSearchParams({
+  const jsonBody = JSON.stringify({
     auth_code: code,
     code_verifier: codeVerifier,
   })
 
+  console.log('[manualPkceExchange] code length:', code.length, '| codeVerifier length:', codeVerifier.length, '| body length:', jsonBody.length)
+
   const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=pkce`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
       'apikey': supabaseKey,
       'Authorization': `Bearer ${supabaseKey}`,
     },
-    body: formBody.toString(),
+    body: jsonBody,
   })
 
   const body = await res.json()
