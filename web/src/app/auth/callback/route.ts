@@ -26,8 +26,10 @@ function buildRedirectUrl(next: string, origin: string): URL {
   if (next === '/dashboard' || next.startsWith('/dashboard/')) {
     const subPath = next === '/dashboard' ? '/' : next.slice('/dashboard'.length)
     const url = new URL(origin)
-    // Prepend "my." to the hostname (works for both sidequest.me and localhost)
-    url.hostname = 'my.' + url.hostname
+    // Ensure we're on the my. subdomain (don't double-prepend if already there)
+    if (!url.hostname.startsWith('my.')) {
+      url.hostname = 'my.' + url.hostname
+    }
     url.pathname = subPath
     return url
   }

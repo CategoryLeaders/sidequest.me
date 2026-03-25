@@ -43,9 +43,9 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      // Callback must hit the main domain where /auth/callback route exists.
-      // ?next=/dashboard tells the callback to redirect to my.sidequest.me
-      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
+      // Callback stays on my.sidequest.me so the PKCE code_verifier cookie is available.
+      // The middleware passes /auth/* paths through without rewriting.
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
@@ -97,8 +97,8 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      // Callback must hit the main domain where /auth/callback route exists
-      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
+      // Callback stays on my.sidequest.me so the PKCE code_verifier cookie is available
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
