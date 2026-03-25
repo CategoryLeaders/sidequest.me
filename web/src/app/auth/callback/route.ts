@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 /**
@@ -39,6 +40,13 @@ export async function GET(request: Request) {
   const next = safeRedirectPath(requestUrl.searchParams.get('next'))
 
   if (code) {
+    // Diagnostic: log all cookie names to debug PKCE code_verifier delivery
+    const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    const codeVerifierCookie = allCookies.find(c => c.name.includes('code-verifier'))
+    console.error('[auth/callback] cookies received:', allCookies.map(c => c.name).join(', '))
+    console.error('[auth/callback] code_verifier cookie:', codeVerifierCookie ? 'PRESENT' : 'MISSING')
+
     const supabase = await createClient()
     const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
