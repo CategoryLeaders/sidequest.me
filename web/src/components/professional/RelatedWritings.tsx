@@ -38,7 +38,7 @@ export default function RelatedWritings({
           fontWeight: 600,
           textTransform: "uppercase",
           textDecoration: "none",
-          color: brandColour ?? "var(--ink)",
+          color: "var(--ink)",
           opacity: 0.7,
           transition: "opacity 0.15s",
         }}

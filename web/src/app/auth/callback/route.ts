@@ -38,16 +38,26 @@ function buildRedirectUrl(next: string, origin: string): URL {
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
+  const hostname = requestUrl.hostname
   const code = requestUrl.searchParams.get('code')
   const next = safeRedirectPath(requestUrl.searchParams.get('next'))
 
   if (code) {
-    // Diagnostic: log all cookie names to debug PKCE code_verifier delivery
+    // Check if the PKCE code_verifier cookie is present
     const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
     const codeVerifierCookie = allCookies.find(c => c.name.includes('code-verifier'))
-    console.error('[auth/callback] cookies received:', allCookies.map(c => c.name).join(', '))
-    console.error('[auth/callback] code_verifier cookie:', codeVerifierCookie ? 'PRESENT' : 'MISSING')
+
+    // PKCE fix: The code_verifier cookie is set on my.sidequest.me (where login happens)
+    // but Supabase redirects back to sidequest.me (the site URL). If we're on the main
+    // domain and the cookie is missing, bounce to my.sidequest.me/auth/callback where
+    // the cookie lives. The middleware passes /auth/* through without rewriting.
+    if (!codeVerifierCookie && !hostname.startsWith('my.') && (next === '/dashboard' || next.startsWith('/dashboard/'))) {
+      const bounceUrl = new URL(requestUrl.toString())
+      bounceUrl.hostname = 'my.' + bounceUrl.hostname
+      console.error('[auth/callback] code_verifier MISSING on main domain — bouncing to my. subdomain')
+      return NextResponse.redirect(bounceUrl.toString())
+    }
 
     const supabase = await createClient()
     const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)

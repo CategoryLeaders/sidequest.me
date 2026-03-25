@@ -43,9 +43,9 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      // Callback stays on my.sidequest.me so the PKCE code_verifier cookie is available.
-      // The middleware passes /auth/* paths through without rewriting.
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`
+      // Callback goes to the main domain (sidequest.me) which is in Supabase's redirect allowlist.
+      // The callback route detects the missing PKCE cookie and bounces to my.sidequest.me.
+      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
