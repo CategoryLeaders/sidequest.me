@@ -43,27 +43,39 @@ export async function GET(request: Request) {
   const next = safeRedirectPath(requestUrl.searchParams.get('next'))
 
   if (code) {
-    // Check if the PKCE code_verifier cookie is present
+    // Diagnostic: log all cookies to understand PKCE state
     const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
+    const cookieNames = allCookies.map(c => c.name)
     const codeVerifierCookie = allCookies.find(c => c.name.includes('code-verifier'))
 
-    // PKCE fix: The code_verifier cookie is set on my.sidequest.me (where login happens)
-    // but Supabase redirects back to sidequest.me (the site URL). If we're on the main
-    // domain and the cookie is missing, bounce to my.sidequest.me/auth/callback where
-    // the cookie lives. The middleware passes /auth/* through without rewriting.
-    if (!codeVerifierCookie && !hostname.startsWith('my.') && (next === '/dashboard' || next.startsWith('/dashboard/'))) {
+    console.log('[auth/callback] hostname:', hostname, 'next:', next, 'code:', code.slice(0, 8) + '...')
+    console.log('[auth/callback] cookie count:', allCookies.length, 'names:', cookieNames.join(', '))
+    console.log('[auth/callback] code_verifier cookie:', codeVerifierCookie ? 'PRESENT (' + codeVerifierCookie.name + ')' : 'MISSING')
+
+    // PKCE fix: If code_verifier cookie is missing on main domain, bounce to my. subdomain
+    // where the login started and the cookie was set. No condition on `next` — any auth
+    // callback on the main domain without a code_verifier should bounce.
+    if (!codeVerifierCookie && !hostname.startsWith('my.')) {
       const bounceUrl = new URL(requestUrl.toString())
       bounceUrl.hostname = 'my.' + bounceUrl.hostname
+      // Ensure next param is preserved for redirect after exchange
+      if (!bounceUrl.searchParams.has('next')) {
+        bounceUrl.searchParams.set('next', '/dashboard')
+      }
       console.error('[auth/callback] code_verifier MISSING on main domain — bouncing to my. subdomain')
       return NextResponse.redirect(bounceUrl.toString())
     }
 
     const supabase = await createClient()
+
+    console.log('[auth/callback] calling exchangeCodeForSession...')
     const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
+      console.error('[auth/callback] exchangeCodeForSession FAILED:', error.message, '| status:', error.status, '| name:', error.name)
+    } else {
+      console.log('[auth/callback] exchangeCodeForSession SUCCESS, user:', sessionData?.user?.email)
     }
 
     if (!error && sessionData.user) {

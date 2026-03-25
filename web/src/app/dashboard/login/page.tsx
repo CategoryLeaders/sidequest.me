@@ -97,8 +97,9 @@ function DashboardLoginForm() {
 
     try {
       const supabase = createClient()
-      // Callback stays on my.sidequest.me so the PKCE code_verifier cookie is available
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`
+      // Callback goes to main domain (sidequest.me) which is in Supabase's redirect allowlist.
+      // The ?next=/dashboard param tells the callback to redirect to my.sidequest.me after exchange.
+      const redirectTo = `${getMainOrigin()}/auth/callback?next=${encodeURIComponent('/dashboard')}`
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
