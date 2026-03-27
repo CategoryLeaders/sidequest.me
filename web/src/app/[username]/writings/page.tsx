@@ -54,7 +54,7 @@ function CtxBadge({ co }: { co: CtxCompany }) {
   if (co.logo) {
     return (
       <span
-        className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-black/10 flex items-center justify-center"
+        className="flex-shrink-0 w-10 h-10 overflow-hidden border border-black/10 flex items-center justify-center"
         style={{ background: bg }}
         title={co.name}
       >
@@ -66,7 +66,7 @@ function CtxBadge({ co }: { co: CtxCompany }) {
 
   return (
     <span
-      className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold font-mono"
+      className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-white text-xs font-bold font-mono"
       style={{ background: bg }}
       title={co.name}
     >
@@ -78,8 +78,8 @@ function CtxBadge({ co }: { co: CtxCompany }) {
 function PersonalBadge() {
   return (
     <span
-      className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-      style={{ background: '#e5e7eb' }}
+      className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-lg"
+      style={{ background: 'rgba(26,26,26,0.1)' }}
       title="Personal writing"
     >
       ✏️
@@ -229,7 +229,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                   alt={activeCompany.name}
                   width={32}
                   height={32}
-                  className="rounded-sm border border-ink/10"
+                  className="border border-ink/10"
                 />
               )}
               <h1 className="text-3xl font-semibold tracking-tight">
@@ -296,8 +296,8 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
             const nextCtx = i < enriched.length - 1 ? enriched[i + 1].ctx : null
             const isLastInRun = nextCtx === null || ctx.runKey !== nextCtx.runKey
 
-            const connectorColour = ctx.primary?.brand_colour ?? '#d1d5db'
-            const borderColour = ctx.primary?.brand_colour ?? '#e5e7eb'
+            const connectorColour = ctx.primary?.brand_colour ?? 'var(--ink)'
+            const borderColour = ctx.primary?.brand_colour ?? 'rgba(26,26,26,0.15)'
             const excerpt = w.body_html ? excerptFromHtml(w.body_html, 160) : null
 
             return (
@@ -368,7 +368,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                       {ctx.secondaries.map((sec) => (
                         <span
                           key={sec.name}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-white"
+                          className="px-1.5 py-0.5 text-[10px] font-semibold text-white"
                           style={{ background: sec.brand_colour ?? '#6b7280' }}
                         >
                           {sec.logo_text ?? sec.name.slice(0, 2).toUpperCase()}
@@ -413,7 +413,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                       </div>
                       {/* Thumbnail */}
                       {w.image_url && (
-                        <div className="flex-shrink-0 w-[72px] h-12 rounded overflow-hidden border border-ink/10">
+                        <div className="flex-shrink-0 w-[72px] h-12 overflow-hidden border border-ink/10">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={w.image_url}

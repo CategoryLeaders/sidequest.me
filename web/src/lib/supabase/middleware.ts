@@ -13,6 +13,11 @@ const PUBLIC_EXCEPTIONS = [
   /^\/[^/]+\/settings\/theme\/style-guide$/,  // style guide is public
 ]
 
+// Public exceptions — matched before PROTECTED_PATTERNS to allow unauthenticated access
+const PUBLIC_EXCEPTIONS = [
+  /^\/[^/]+\/settings\/theme\/style-guide$/,  // style guide is public
+]
+
 // Auth routes — redirect to own profile if already logged in
 const AUTH_ROUTES = ['/login', '/signup']
 
