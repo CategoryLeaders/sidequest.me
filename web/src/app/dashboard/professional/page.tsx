@@ -24,7 +24,7 @@ export default async function ProfessionalPage() {
   }
 
   return (
-    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--cream, #faf8f3)' }}>
+    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--bg, #fffbe6)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h1

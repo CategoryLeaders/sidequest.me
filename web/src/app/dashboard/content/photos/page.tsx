@@ -33,7 +33,7 @@ export default async function PhotosPage() {
   const archiveCount = archivePosts.length;
 
   return (
-    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--cream, #faf8f3)' }}>
+    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--bg, #fffbe6)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h1
@@ -54,7 +54,7 @@ export default async function PhotosPage() {
         </div>
 
         {/* Upload form */}
-        <div className="bg-white p-8 border-3 border-ink mb-8" style={{ boxShadow: '3px 3px 0 var(--ink)' }}>
+        <div className="bg-[var(--bg-card)] p-8 border-3 border-ink mb-8" style={{ boxShadow: '3px 3px 0 var(--ink)' }}>
           <PhotoUpload />
         </div>
 

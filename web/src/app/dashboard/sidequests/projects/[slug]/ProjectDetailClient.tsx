@@ -174,7 +174,7 @@ export default function ProjectDetailClient({
   return (
     <main
       className="min-h-screen p-8"
-      style={{ backgroundColor: "var(--cream, #faf8f3)" }}
+      style={{ backgroundColor: "var(--bg, #fffbe6)" }}
     >
       <div className="max-w-3xl mx-auto">
         {/* Back link */}
@@ -256,7 +256,7 @@ export default function ProjectDetailClient({
 
         {/* Editable description fields */}
         <div
-          className="bg-white border-3 border-ink p-6 mb-8"
+          className="bg-[var(--bg-card)] border-3 border-ink p-6 mb-8"
           style={{ boxShadow: "3px 3px 0 var(--ink)" }}
         >
           <div className="space-y-5">
@@ -316,25 +316,25 @@ export default function ProjectDetailClient({
         <div className="flex flex-wrap gap-2 mb-8">
           <Link
             href={`/content/microblogs?project=${project.slug}`}
-            className="px-4 py-2 border-3 border-ink bg-white font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
+            className="px-4 py-2 border-3 border-ink bg-[var(--bg-card)] font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
           >
             💬 New Microblog
           </Link>
           <Link
             href={`/content/photos?project=${project.slug}`}
-            className="px-4 py-2 border-3 border-ink bg-white font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
+            className="px-4 py-2 border-3 border-ink bg-[var(--bg-card)] font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
           >
             📸 New Image
           </Link>
           <a
             href={`https://sidequest.me/${username}/admin/writings/new?project=${project.slug}`}
-            className="px-4 py-2 border-3 border-ink bg-white font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
+            className="px-4 py-2 border-3 border-ink bg-[var(--bg-card)] font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
           >
             📝 New Writing
           </a>
           <a
             href={`https://sidequest.me/${username}/projects/${project.slug}`}
-            className="px-4 py-2 border-3 border-ink bg-white font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
+            className="px-4 py-2 border-3 border-ink bg-[var(--bg-card)] font-mono text-[0.68rem] uppercase font-bold hover:bg-ink hover:text-white transition-colors no-underline"
           >
             🌍 View Public Page →
           </a>
@@ -366,7 +366,7 @@ export default function ProjectDetailClient({
               {stream.map((item) => (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className="border-3 border-ink bg-white p-4"
+                  className="border-3 border-ink bg-[var(--bg-card)] p-4"
                   style={{ boxShadow: "2px 2px 0 rgba(0,0,0,0.05)" }}
                 >
                   {/* Type badge */}

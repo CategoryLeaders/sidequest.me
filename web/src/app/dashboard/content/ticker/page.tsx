@@ -22,7 +22,7 @@ export default async function TickerPage() {
   const tickerItems = profile.ticker_items ?? [];
 
   return (
-    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--cream, #faf8f3)' }}>
+    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--bg, #fffbe6)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h1
@@ -37,7 +37,7 @@ export default async function TickerPage() {
         </div>
 
         <div
-          className="bg-white p-8 border-3 border-ink"
+          className="bg-[var(--bg-card)] p-8 border-3 border-ink"
           style={{
             boxShadow: '3px 3px 0 var(--ink)',
           }}

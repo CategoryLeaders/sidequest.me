@@ -146,7 +146,7 @@ function DashboardLoginForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={googleLoading}
-        className="w-full py-2.5 px-4 bg-white text-ink font-head font-[900] text-[0.82rem] uppercase border-3 border-ink hover:shadow-[3px_3px_0_var(--ink)] transition-shadow disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3"
+        className="w-full py-2.5 px-4 bg-[var(--bg-card)] text-ink font-head font-[900] text-[0.82rem] uppercase border-3 border-ink hover:shadow-[3px_3px_0_var(--ink)] transition-shadow disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -203,7 +203,7 @@ function DashboardLoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="w-full px-4 py-2.5 border-3 border-ink bg-white text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
+            className="w-full px-4 py-2.5 border-3 border-ink bg-[var(--bg-card)] text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
           />
         </div>
 
@@ -222,7 +222,7 @@ function DashboardLoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2.5 border-3 border-ink bg-white text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
+              className="w-full px-4 py-2.5 border-3 border-ink bg-[var(--bg-card)] text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
             />
           </div>
         )}

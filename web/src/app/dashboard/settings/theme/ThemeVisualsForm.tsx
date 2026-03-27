@@ -152,7 +152,7 @@ export default function ThemeVisualsForm({ profile }: ThemeVisualsFormProps) {
               height: 26,
               borderRadius: 13,
               border: '2px solid var(--ink)',
-              background: rotationEnabled ? 'var(--orange)' : '#ddd',
+              background: rotationEnabled ? 'var(--orange)' : 'var(--divider)',
               position: 'relative',
               transition: 'background 0.2s',
             }}
@@ -162,7 +162,7 @@ export default function ThemeVisualsForm({ profile }: ThemeVisualsFormProps) {
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                background: '#fff',
+                background: 'var(--bg-card)',
                 border: '2px solid var(--ink)',
                 position: 'absolute',
                 top: 2,

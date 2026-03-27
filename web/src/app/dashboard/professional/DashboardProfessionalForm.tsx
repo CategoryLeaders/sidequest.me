@@ -69,7 +69,7 @@ export default function DashboardProfessionalForm({ profile }: DashboardProfessi
   const labelClass = "block font-head font-bold text-[0.72rem] uppercase mb-2";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-0 bg-white p-8 border-3 border-ink" style={{ boxShadow: '3px 3px 0 var(--ink)' }}>
+    <form onSubmit={handleSubmit} className="space-y-0 bg-[var(--bg-card)] p-8 border-3 border-ink" style={{ boxShadow: '3px 3px 0 var(--ink)' }}>
       <p className="font-mono text-[0.78rem] opacity-60 leading-relaxed mb-8">
         These appear at the top of your Professional page.
       </p>

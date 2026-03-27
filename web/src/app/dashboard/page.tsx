@@ -126,7 +126,7 @@ function StatCard({ label, count, accentColor }: StatCardProps) {
 
   return (
     <div
-      className="bg-white border-black p-6"
+      className="bg-[var(--bg-card)] border-ink p-6"
       style={{
         borderWidth: '3px',
         boxShadow: '3px 3px 0px rgba(0, 0, 0, 0.1)',
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
   return (
     <main
       className="min-h-screen p-8"
-      style={{ backgroundColor: 'var(--cream, #faf8f3)' }}
+      style={{ backgroundColor: 'var(--bg, #fffbe6)' }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Welcome Section */}
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
 
         {/* Recent Activity Card */}
         <div
-          className="bg-white border-black p-8"
+          className="bg-[var(--bg-card)] border-ink p-8"
           style={{
             borderWidth: '3px',
             boxShadow: '5px 5px 0px rgba(0, 0, 0, 0.1)',
