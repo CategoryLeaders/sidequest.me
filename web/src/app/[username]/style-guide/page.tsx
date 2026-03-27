@@ -1,7 +1,7 @@
 /* ── Style Guide — living design system reference ── */
 
-import { notFound, redirect } from "next/navigation";
-import { getProfileByUsername, getCurrentUser } from "@/lib/profiles";
+import { notFound } from "next/navigation";
+import { getProfileByUsername } from "@/lib/profiles";
 import { StyleGuideClient } from "./StyleGuideClient";
 
 interface Props {
@@ -11,13 +11,8 @@ interface Props {
 export default async function StyleGuidePage({ params }: Props) {
   const { username } = await params;
 
-  const [profile, user] = await Promise.all([
-    getProfileByUsername(username),
-    getCurrentUser(),
-  ]);
-
+  const profile = await getProfileByUsername(username);
   if (!profile) notFound();
-  if (!user || user.id !== profile.id) redirect(`/${username}`);
 
   return (
     <main className="max-w-[1100px] mx-auto px-8 py-12">
