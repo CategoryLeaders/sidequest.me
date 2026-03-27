@@ -6,6 +6,7 @@ import type { Writing } from '@/lib/writings'
 import { excerptFromHtml, readTimeMinutes } from '@/lib/writings'
 import { tagBySlug, slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
+import { TagChip, MetadataLine } from '@/components/ui'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -105,7 +106,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
           {filterLabel ? `#${filterLabel}` : 'Writings'}
         </h1>
         {filterLabel && (
-          <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
+          <Link href={`/${username}/writings`} className="text-sm text-ink/40 hover:text-ink/70">
             ← All writings
           </Link>
         )}
@@ -117,7 +118,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
           name="q"
           defaultValue={q}
           placeholder="Search writings…"
-          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-gray-400 bg-bg-card"
+          className="w-full border-2 border-ink/[var(--opacity-muted)] px-4 py-2.5 text-sm font-mono outline-none focus:border-ink/40 bg-[var(--bg-card)]"
         />
       </form>
 
@@ -125,28 +126,24 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
       {siteTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-8">
           {siteTags.map((t) => (
-            <Link
+            <TagChip
               key={t.label}
+              label={t.label}
+              variant="muted"
+              active={filterLabel === t.label}
               href={
                 filterLabel === t.label
                   ? `/${username}/writings`
                   : `/${username}/writings/tags/${slugify(t.label)}`
               }
-              className={`px-3 py-1 rounded-full text-sm border transition-all ${
-                filterLabel === t.label
-                  ? 'border-black bg-black text-white'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
-              }`}
-            >
-              {t.label}
-            </Link>
+            />
           ))}
         </div>
       )}
 
       {/* Writing list */}
       {rows.length === 0 ? (
-        <p className="text-gray-400 py-12 text-center">
+        <p className="text-ink/40 py-12 text-center">
           {q ? `No results for "${q}"` : 'No writings yet.'}
         </p>
       ) : (
@@ -160,21 +157,25 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                 className={accentColour ? 'pl-4 border-l-3' : ''}
                 style={accentColour ? { borderLeftColor: accentColour } : undefined}
               >
-                <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                  {w.published_at && (
-                    <time dateTime={w.published_at}>
-                      {new Date(w.published_at).toLocaleDateString('en-GB', {
-                        day: 'numeric', month: 'long', year: 'numeric',
-                      })}
-                    </time>
-                  )}
-                  {w.word_count ? (
-                    <>
-                      <span>·</span>
-                      <span>{readTimeMinutes(w.word_count)} min read</span>
-                    </>
-                  ) : null}
-                </div>
+                <MetadataLine
+                  items={[
+                    ...(w.published_at
+                      ? [{
+                          label: (
+                            <time dateTime={w.published_at}>
+                              {new Date(w.published_at).toLocaleDateString('en-GB', {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                              })}
+                            </time>
+                          ),
+                        }]
+                      : []),
+                    ...(w.word_count
+                      ? [{ label: `${readTimeMinutes(w.word_count)} min read` }]
+                      : []),
+                  ]}
+                  className="mb-1"
+                />
                 <div className="flex items-start gap-3">
                   {linkedCos.length > 0 && (
                     <div className="flex -space-x-1 mt-1 shrink-0">
@@ -186,13 +187,13 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                             alt={co.name}
                             width={24}
                             height={24}
-                            className="rounded-sm border border-gray-100"
+                            className="rounded-sm border border-ink/10"
                             title={co.name}
                           />
                         ) : (
                           <span
                             key={co.name}
-                            className="w-6 h-6 rounded-sm border border-gray-100 flex items-center justify-center text-[10px] font-bold text-white"
+                            className="w-6 h-6 rounded-sm border border-ink/10 flex items-center justify-center text-[10px] font-bold text-white"
                             style={{ backgroundColor: co.brand_colour ?? '#6b7280' }}
                             title={co.name}
                           >
@@ -212,26 +213,24 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                       </Link>
                     </h2>
                     {w.body_html && (
-                      <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">
+                      <p className="text-ink/50 text-sm leading-relaxed line-clamp-3">
                         {excerptFromHtml(w.body_html, 250)}
                       </p>
                     )}
                     {w.tags && w.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-1.5 mt-3">
                         {w.tags.map((tag) => {
                           const siteTag = siteTags.find((st) => st.label === tag)
                           return (
-                            <Link
+                            <TagChip
                               key={tag}
+                              label={tag}
                               href={
                                 siteTag
                                   ? `/${username}/writings/tags/${slugify(tag)}`
                                   : `/${username}/writings?q=${encodeURIComponent(tag)}`
                               }
-                              className="text-xs text-gray-400 hover:text-gray-700"
-                            >
-                              #{tag}
-                            </Link>
+                            />
                           )
                         })}
                       </div>
@@ -246,22 +245,22 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex gap-3 mt-12 justify-center text-sm">
+        <div className="flex gap-3 mt-12 justify-center text-sm font-mono">
           {page > 1 && (
             <Link
               href={`/${username}/writings?page=${page - 1}${filterLabel ? `&tag=${tagSlug}` : ''}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:border-gray-400"
+              className="px-4 py-2 border-2 border-ink/[var(--opacity-muted)] hover:border-ink/40 transition-colors"
             >
               ← Previous
             </Link>
           )}
-          <span className="self-center text-gray-400">
+          <span className="self-center text-ink/40">
             {page} / {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={`/${username}/writings?page=${page + 1}${filterLabel ? `&tag=${tagSlug}` : ''}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:border-gray-400"
+              className="px-4 py-2 border-2 border-ink/[var(--opacity-muted)] hover:border-ink/40 transition-colors"
             >
               Next →
             </Link>
@@ -271,11 +270,11 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
       {/* Owner shortcut */}
       {isOwner && (
-        <div className="mt-12 pt-6 border-t border-gray-100 text-sm text-gray-400 flex gap-4">
-          <Link href={`/${username}/admin/writings`} className="hover:text-gray-700">
+        <div className="mt-12 pt-6 border-t border-ink/10 text-sm text-ink/40 font-mono flex gap-4">
+          <Link href={`/${username}/admin/writings`} className="hover:text-ink/70">
             Manage writings →
           </Link>
-          <Link href={`/${username}/admin/writings/new`} className="hover:text-gray-700">
+          <Link href={`/${username}/admin/writings/new`} className="hover:text-ink/70">
             + New post
           </Link>
         </div>

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Adventure, Waypoint } from '@/lib/adventures'
 import { STATUS_META, THEME_META } from '@/lib/adventures'
+import { MetadataLine } from '@/components/ui'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -70,7 +71,7 @@ export default async function AdventuresListPage({ params }: Props) {
               <Link
                 key={a.id}
                 href={`/${username}/adventures/${a.slug}`}
-                className={`border-3 border-ink bg-bg-card no-underline block transition-all hover:shadow-[4px_4px_0_var(--ink)] ${
+                className={`border-3 border-ink bg-[var(--bg-card)] no-underline block card-hover ${
                   isDraft ? 'opacity-60' : ''
                 }`}
               >
@@ -101,16 +102,13 @@ export default async function AdventuresListPage({ params }: Props) {
                     <p className="text-[0.82rem] opacity-60 leading-snug mb-3 line-clamp-2">{a.description}</p>
                   )}
 
-                  <div className="flex flex-wrap gap-3 font-mono text-[0.6rem] text-ink-muted">
-                    {a.location_name && <span>📍 {a.location_name}</span>}
-                    {routeNames.length > 1 && <span>🗺️ {routeNames.join(' → ')}</span>}
-                    {a.start_date && (
-                      <span>
-                        📅 {formatDate(a.start_date)}
-                        {a.end_date && ` — ${formatDate(a.end_date)}`}
-                      </span>
-                    )}
-                  </div>
+                  <MetadataLine
+                    items={[
+                      ...(a.location_name ? [{ icon: '📍', label: a.location_name }] : []),
+                      ...(routeNames.length > 1 ? [{ icon: '🗺️', label: routeNames.join(' → ') }] : []),
+                      ...(a.start_date ? [{ icon: '📅', label: `${formatDate(a.start_date)}${a.end_date ? ` — ${formatDate(a.end_date)}` : ''}` }] : []),
+                    ]}
+                  />
                 </div>
               </Link>
             )

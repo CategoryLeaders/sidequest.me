@@ -5,6 +5,7 @@ import { getProjectsForUser } from "@/lib/projects-data";
 import { countWritingsForEntities } from "@/lib/writing-links";
 import { getPublishedCrowdfundingProjects } from "@/lib/crowdfunding";
 import ProjectsTabs from "./ProjectsTabs";
+import { CardShell, TagChip } from "@/components/ui";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg"];
 
@@ -72,10 +73,12 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
           {projects.map((project, i) => {
             const wCount = writingCounts.get(project.id) ?? 0;
             return (
-              <div
+              <CardShell
                 key={project.id}
-                className="border-3 border-ink p-6 bg-bg-card card-hover"
-                style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+                variant="interactive"
+                rotation={parseFloat(rotations[i % rotations.length])}
+                className="!p-6"
+                as="div"
               >
                 <div className="flex justify-between items-start mb-3">
                   <h2 className="font-head font-bold text-[1.1rem] uppercase">
@@ -100,12 +103,11 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {project.stack.map((tech) => (
-                    <span
+                    <TagChip
                       key={tech}
-                      className="font-mono text-[0.6rem] px-2 py-0.5 border border-ink/20 opacity-50"
-                    >
-                      {tech}
-                    </span>
+                      label={tech}
+                      variant="muted"
+                    />
                   ))}
                 </div>
                 {wCount > 0 && (
@@ -118,7 +120,7 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
                     </Link>
                   </div>
                 )}
-              </div>
+              </CardShell>
             );
           })}
 

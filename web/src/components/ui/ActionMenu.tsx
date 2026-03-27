@@ -9,6 +9,10 @@ interface Props {
   onShare?: () => void;
   onPin?: () => void;
   isPinned?: boolean;
+  /** URL to copy when sharing — used from server components instead of onShare callback */
+  shareUrl?: string;
+  /** Href to navigate to for editing — used from server components instead of onEdit callback */
+  editHref?: string;
   className?: string;
 }
 
@@ -18,6 +22,8 @@ export function ActionMenu({
   onShare,
   onPin,
   isPinned,
+  shareUrl,
+  editHref,
   className = "",
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -50,8 +56,17 @@ export function ActionMenu({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open]);
 
-  const hasActions = onEdit || onDelete || onShare || onPin;
+  const hasActions = onEdit || onDelete || onShare || onPin || shareUrl || editHref;
   if (!hasActions) return null;
+
+  const handleShare = onShare ?? (shareUrl ? () => {
+    const fullUrl = shareUrl.startsWith('/') ? `${window.location.origin}${shareUrl}` : shareUrl;
+    navigator.clipboard.writeText(fullUrl);
+  } : undefined);
+
+  const handleEdit = onEdit ?? (editHref ? () => {
+    window.location.href = editHref;
+  } : undefined);
 
   return (
     <div className={`relative ${className}`} ref={menuRef}>
@@ -69,10 +84,10 @@ export function ActionMenu({
 
       {open && (
         <div className="absolute right-0 top-full mt-1 z-50 border-2 border-ink bg-[var(--bg-card)] min-w-[140px] shadow-[3px_3px_0_var(--ink)]">
-          {onShare && (
+          {handleShare && (
             <button
               onClick={() => {
-                onShare();
+                handleShare();
                 setOpen(false);
               }}
               className="w-full text-left px-3 py-2 text-[var(--text-sm)] font-mono hover:bg-ink/[0.06] transition-colors flex items-center gap-2"
@@ -91,10 +106,10 @@ export function ActionMenu({
               📌 {isPinned ? "Unpin" : "Pin"}
             </button>
           )}
-          {onEdit && (
+          {handleEdit && (
             <button
               onClick={() => {
-                onEdit();
+                handleEdit();
                 setOpen(false);
               }}
               className="w-full text-left px-3 py-2 text-[var(--text-sm)] font-mono hover:bg-ink/[0.06] transition-colors flex items-center gap-2"

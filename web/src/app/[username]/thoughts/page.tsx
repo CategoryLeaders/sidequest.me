@@ -13,6 +13,7 @@ import type { Bookmark, Quote, Question } from '@/lib/thoughts-types'
 import { MicroblogCard, BookmarkCard, QuoteCard, QuestionCard } from '@/components/microblog'
 import ThoughtsComposer from '@/components/thoughts/ThoughtsComposer'
 import SubscribeButton from '@/components/SubscribeButton'
+import { CardShell, TypeBadge, TagChip, MetadataLine } from '@/components/ui'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -245,25 +246,22 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
       {/* Tag filter chips */}
       {siteTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-8">
-          {siteTags.map((t, i) => {
+          {siteTags.map((t) => {
             const isActive = filterLabel === t.label
             return (
-              <Link
+              <TagChip
                 key={t.label}
+                label={t.label}
                 href={
                   isActive
                     ? `/${username}/thoughts`
                     : `/${username}/thoughts/tags/${slugify(t.label)}`
                 }
-                className={`sticker ${t.color} text-[0.65rem] !px-3 !py-1.5 !border-2 transition-all ${
-                  isActive ? 'ring-2 ring-ink ring-offset-2 scale-105' : 'opacity-70 hover:opacity-100'
-                }`}
-                style={{
-                  transform: isActive ? 'scale(1.05)' : `rotate(${tagRotations[i % tagRotations.length]})`,
-                }}
-              >
-                {t.label}
-              </Link>
+                variant="sticker"
+                color={t.color.replace('sticker-', '')}
+                active={isActive}
+                className={isActive ? '' : 'opacity-70 hover:opacity-100'}
+              />
             )
           })}
         </div>
@@ -344,9 +342,10 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
             })()
 
             return (
-              <article
+              <CardShell
                 key={`w-${w.id}`}
-                className="border-3 border-ink p-6 bg-[var(--bg-card)]"
+                variant="standard"
+                className="!p-6"
                 style={{ borderLeftWidth: 6, borderLeftColor: borderColor }}
               >
                 {/* Tags as sticker badges */}
@@ -356,24 +355,21 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                       const siteTag = siteTags.find((st) => st.label === tag)
                       const isSiteTag = !!siteTag
                       return (
-                        <Link
+                        <TagChip
                           key={tag}
+                          label={tag}
                           href={
                             isSiteTag
                               ? `/${username}/thoughts/tags/${slugify(tag)}`
                               : `/${username}/thoughts?q=${encodeURIComponent(tag)}`
                           }
-                          className={
-                            isSiteTag
-                              ? `sticker ${siteTag.color} text-[0.6rem] !px-2.5 !py-1 !border-2`
-                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono rounded-sm hover:border-ink/40 hover:text-ink/60 transition-colors'
-                          }
+                          variant={isSiteTag ? 'sticker' : 'default'}
+                          color={isSiteTag ? siteTag.color.replace('sticker-', '') : undefined}
+                          className={isSiteTag ? '' : 'rounded-sm'}
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,
                           }}
-                        >
-                          {isSiteTag ? tag : `#${tag}`}
-                        </Link>
+                        />
                       )
                     })}
                   </div>
@@ -381,12 +377,10 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
 
                 {/* Writing type badge */}
                 <div className="mb-2">
-                  <span className="sticker sticker-blue text-[0.55rem] !px-2 !py-0.5 !border-2">
-                    Writing
-                  </span>
+                  <TypeBadge type="writing" />
                 </div>
 
-                <h2 className="font-head font-bold text-[1.1rem] uppercase mb-2">
+                <h2 className="font-head font-bold text-[var(--text-lg)] uppercase mb-2">
                   <Link
                     href={`/${username}/writings/${w.slug}`}
                     className="text-ink no-underline hover:text-[var(--orange)] transition-colors"
@@ -407,29 +401,30 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                 </h2>
 
                 {excerpt && (
-                  <p className="text-[0.88rem] opacity-70 leading-snug mb-3 line-clamp-3">
+                  <p className="text-[var(--text-base)] opacity-70 leading-snug mb-3 line-clamp-3">
                     {excerpt}
                   </p>
                 )}
 
-                <div className="flex items-center gap-2 text-[0.6rem] font-mono opacity-40">
-                  {w.published_at && (
-                    <time dateTime={w.published_at}>
-                      {new Date(w.published_at).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </time>
-                  )}
-                  {readTime && (
-                    <>
-                      <span>&middot;</span>
-                      <span>{readTime} min read</span>
-                    </>
-                  )}
-                </div>
-              </article>
+                <MetadataLine
+                  items={[
+                    ...(w.published_at
+                      ? [{
+                          label: (
+                            <time dateTime={w.published_at}>
+                              {new Date(w.published_at).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </time>
+                          ),
+                        }]
+                      : []),
+                    ...(readTime ? [{ label: `${readTime} min read` }] : []),
+                  ]}
+                />
+              </CardShell>
             )
           })}
         </div>

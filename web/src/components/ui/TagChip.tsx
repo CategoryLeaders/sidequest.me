@@ -14,6 +14,7 @@ interface Props {
   /** Active/selected state */
   active?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const variantStyles: Record<Variant, { base: string; active: string }> = {
@@ -44,6 +45,7 @@ export function TagChip({
   color,
   active = false,
   className = "",
+  style,
 }: Props) {
   const styles = variantStyles[variant];
   const baseClass = active ? styles.active : styles.base;
@@ -53,11 +55,11 @@ export function TagChip({
 
   if (href) {
     return (
-      <Link href={href} className={`${fullClass} no-underline`}>
+      <Link href={href} className={`${fullClass} no-underline`} style={style}>
         {display}
       </Link>
     );
   }
 
-  return <span className={fullClass}>{display}</span>;
+  return <span className={fullClass} style={style}>{display}</span>;
 }

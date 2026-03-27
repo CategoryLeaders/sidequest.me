@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { posts as archivePosts } from "@/lib/photowall-data";
 import { photowallUrl } from "@/lib/cdn";
 import Image from "next/image";
+import { TagChip } from "@/components/ui";
 
 /** Unified post type used for both DB and archive photos */
 interface UnifiedPost {
@@ -449,9 +450,7 @@ function Lightbox({
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {post.tags.map((tag) => (
-                    <span key={tag} className="font-mono text-[0.62rem] border border-ink/30 px-2 py-0.5 opacity-60">
-                      #{tag}
-                    </span>
+                    <TagChip key={tag} label={tag} />
                   ))}
                 </div>
               )}

@@ -6,6 +6,11 @@ const PROTECTED_PATTERNS = [
   /^\/[^/]+\/settings(\/.*)?$/,  // /[username]/settings/*
 ]
 
+// Public exceptions — matched before PROTECTED_PATTERNS to allow unauthenticated access
+const PUBLIC_EXCEPTIONS = [
+  /^\/[^/]+\/settings\/theme\/style-guide$/,  // style guide is public
+]
+
 // Auth routes — redirect to own profile if already logged in
 const AUTH_ROUTES = ['/login', '/signup']
 
@@ -34,8 +39,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Protect routes that require authentication
-  const isProtected = PROTECTED_PATTERNS.some(p => p.test(pathname))
+  // Protect routes that require authentication (but allow public exceptions)
+  const isPublicException = PUBLIC_EXCEPTIONS.some(p => p.test(pathname))
+  const isProtected = !isPublicException && PROTECTED_PATTERNS.some(p => p.test(pathname))
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'

@@ -11,6 +11,7 @@ interface Props {
   rotation?: number;
   className?: string;
   as?: "article" | "div" | "section";
+  style?: React.CSSProperties;
 }
 
 const variantStyles: Record<Variant, string> = {
@@ -28,15 +29,17 @@ export function CardShell({
   rotation,
   className = "",
   as: Tag = "article",
+  style,
 }: Props) {
-  const rotateStyle = rotation
-    ? { transform: `rotate(${rotation}deg)` }
-    : undefined;
+  const mergedStyle: React.CSSProperties = {
+    ...style,
+    ...(rotation ? { transform: `rotate(${rotation}deg)` } : {}),
+  };
 
   return (
     <Tag
       className={`${variantStyles[variant]} relative ${className}`}
-      style={rotateStyle}
+      style={Object.keys(mergedStyle).length > 0 ? mergedStyle : undefined}
     >
       {children}
     </Tag>
