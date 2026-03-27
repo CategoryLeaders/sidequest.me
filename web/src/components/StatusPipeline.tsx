@@ -2,12 +2,12 @@
 
 /**
  * Status pipeline indicator for crowdfunding projects.
- * Shows 4 dots connected by lines with a highlighted label for the current stage.
- * Visually distinct from sticker/tag components.
+ * V2: 6 main stages (pre_launch → delivered) + branch statuses.
+ * Shows coloured dots connected by lines with a highlighted label.
  */
 
 import { useMemo } from "react";
-import { statusStep } from "@/lib/crowdfunding-utils";
+import { statusStep, MAIN_PIPELINE_STATUSES, statusHex } from "@/lib/crowdfunding-utils";
 
 interface StatusPipelineProps {
   status: string;
@@ -15,7 +15,7 @@ interface StatusPipelineProps {
   compact?: boolean;
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = MAIN_PIPELINE_STATUSES.length; // 6
 
 /** Random rotation between -5 and +5 degrees */
 function randomRotation(): string {
@@ -27,22 +27,24 @@ export default function StatusPipeline({ status, compact = false }: StatusPipeli
   const step = statusStep(status);
   const hlRotate = useMemo(() => randomRotation(), []);
 
+  const isBranch = step.step === -1;
   const elements: React.ReactNode[] = [];
 
   for (let i = 0; i < TOTAL_STEPS; i++) {
-    // Add connecting line before dots 1-3
+    // Add connecting line before dots 1-5
     if (i > 0) {
+      const lineDone = !isBranch && i <= step.step;
       elements.push(
         <div
           key={`line-${i}`}
-          className={`pipeline-line ${i <= step.step ? "pipeline-line-done" : ""}`}
+          className={`pipeline-line ${lineDone ? "pipeline-line-done" : ""}`}
         />
       );
     }
 
     // Dot
-    const isDone = i < step.step;
-    const isCurrent = i === step.step;
+    const isDone = !isBranch && i < step.step;
+    const isCurrent = !isBranch && i === step.step;
     elements.push(
       <div
         key={`dot-${i}`}

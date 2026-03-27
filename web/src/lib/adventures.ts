@@ -78,6 +78,7 @@ export interface PhotoItem {
   caption?: string
   width?: number
   height?: number
+  featured?: boolean
 }
 
 export const THEME_META: Record<LayoutTheme, { label: string; description: string; icon: string; bestFor: string }> = {

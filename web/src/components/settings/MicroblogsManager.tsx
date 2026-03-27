@@ -11,7 +11,9 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
   const [microblogs, setMicroblogs] = useState<MicroblogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [postType, setPostType] = useState<"standard" | "link">("standard");
   const [body, setBody] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
   const [locationName, setLocationName] = useState("");
   const [photos, setPhotos] = useState<{ url: string }[]>([]);
   const [posting, setPosting] = useState(false);
@@ -55,7 +57,9 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          post_type: postType,
           body: body.trim(),
+          link_url: postType === "link" ? linkUrl.trim() || null : null,
           media: photos.map((p) => ({ url: p.url, type: "image" })),
           location_name: locationName.trim() || null,
         }),
@@ -66,8 +70,10 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
         return;
       }
       setBody("");
+      setLinkUrl("");
       setLocationName("");
       setPhotos([]);
+      setPostType("standard");
       setComposerOpen(false);
       // Refresh list
       const listRes = await fetch("/api/microblogs");
@@ -114,6 +120,32 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
       {/* Composer */}
       {composerOpen && (
         <div className="mb-6 border-3 border-ink p-4 bg-bg-card">
+          {/* Post type selector */}
+          <div className="flex gap-2 mb-3">
+            {(["standard", "link"] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setPostType(type)}
+                className={`font-mono text-[0.6rem] font-bold uppercase px-2.5 py-1 border-2 transition-all cursor-pointer ${
+                  postType === type ? "border-ink bg-ink text-bg" : "border-ink/25 hover:border-ink/50"
+                }`}
+              >
+                {type === "standard" ? "✏️ Standard" : "🔗 Link"}
+              </button>
+            ))}
+          </div>
+
+          {/* Link URL input */}
+          {postType === "link" && (
+            <input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://... (URL)"
+              className="w-full px-3 py-2 border-3 border-ink bg-bg font-mono text-[0.8rem] focus:outline-none focus:shadow-[3px_3px_0_var(--ink)] transition-shadow mb-3"
+            />
+          )}
+
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -183,8 +215,10 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
               onClick={() => {
                 setComposerOpen(false);
                 setBody("");
+                setLinkUrl("");
                 setPhotos([]);
                 setLocationName("");
+                setPostType("standard");
               }}
               className="font-mono text-[0.68rem] text-ink-muted hover:text-ink cursor-pointer transition-colors"
             >

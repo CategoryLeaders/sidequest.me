@@ -34,6 +34,13 @@ export interface WhatsNewItem {
   badgeLabel: string;
   icon: string;
   imageUrl?: string;
+  // Type-specific optional fields
+  domain?: string;        // bookmarks
+  faviconUrl?: string;    // bookmarks
+  readingTime?: string;   // writings ("4 min read")
+  projectStatus?: string; // projects
+  resolved?: boolean;     // questions
+  reviewRating?: number | null;  // reviews
 }
 
 /**
@@ -150,6 +157,35 @@ export async function getWhatsNewFeed(
     })());
   }
 
+  if (groups["crowdfunding_reviews"]?.length) {
+    fetchers.push((async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("crowdfunding_reviews")
+        .select("id, project_id, rating, title, body")
+        .in("id", groups["crowdfunding_reviews"]);
+      contentMap["crowdfunding_reviews"] = {};
+      for (const row of data ?? []) {
+        contentMap["crowdfunding_reviews"][row.id] = row;
+      }
+      // Also fetch project titles for display
+      if (data?.length) {
+        const projectIds = [...new Set(data.map((r: any) => r.project_id))];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: projects } = await (supabase as any)
+          .from("crowdfunding_projects")
+          .select("id, title, short_name, slug")
+          .in("id", projectIds);
+        for (const row of data ?? []) {
+          const proj = projects?.find((p: any) => p.id === row.project_id);
+          if (proj) {
+            contentMap["crowdfunding_reviews"][row.id]._project = proj;
+          }
+        }
+      }
+    })());
+  }
+
   await Promise.all(fetchers);
 
   // ── Hydrate events into WhatsNewItems ──────────────────────────────────
@@ -194,6 +230,8 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
     case "writing_published": {
       const title = content?.title ?? "Untitled";
       const slug = content?.slug ?? event.object_id;
+      const wordCount: number = content?.word_count ?? 0;
+      const readingTime = wordCount > 0 ? `${Math.ceil(wordCount / 200)} min read` : undefined;
       return {
         ...base,
         title,
@@ -202,6 +240,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-blue",
         badgeLabel: "Writing",
         icon: "📝",
+        readingTime,
       };
     }
 
@@ -214,6 +253,8 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-green",
         badgeLabel: "Bookmark",
         icon: "🔖",
+        domain: content?.og_domain,
+        faviconUrl: content?.og_favicon_url,
       };
     }
 
@@ -241,6 +282,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: resolved ? "badge-green" : "badge-yellow",
         badgeLabel: resolved ? "Resolved" : "Question",
         icon: "❓",
+        resolved: !!resolved,
       };
     }
 
@@ -254,6 +296,7 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-orange",
         badgeLabel: event.event_type === "project_created" ? "New Project" : "Project Update",
         icon: "🚀",
+        projectStatus: content?.status,
       };
     }
 
@@ -290,6 +333,23 @@ function hydrateEvent(event: FeedEventRow, content: any, username: string): What
         badge: "badge-lilac",
         badgeLabel: "Profile",
         icon: "👤",
+      };
+    }
+
+    case "review_published": {
+      const proj = content?._project;
+      const projectName = proj?.short_name || proj?.title || "a project";
+      const projectSlug = proj?.slug ?? "";
+      const bodySnippet = (content?.body ?? "").slice(0, 100);
+      return {
+        ...base,
+        title: content?.title || `Review of ${projectName}`,
+        description: bodySnippet + (bodySnippet.length >= 100 ? "..." : ""),
+        link: projectSlug ? `/${username}/backed/${projectSlug}` : `/${username}/projects?tab=backed`,
+        badge: "badge-pink",
+        badgeLabel: "Review",
+        icon: "⭐",
+        reviewRating: content?.rating ?? null,
       };
     }
 

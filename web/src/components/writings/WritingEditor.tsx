@@ -78,7 +78,10 @@ export default function WritingEditor({
     editable: !readOnly,
     onUpdate({ editor }) {
       const json = editor.getJSON()
-      const html = generateHTML(json, EDITOR_EXTENSIONS)
+      // Use editor.getHTML() rather than generateHTML() — the live editor instance
+      // has all StarterKit sub-extensions (hardBreak, etc.) correctly registered,
+      // whereas generateHTML() with StarterKit as a bundle can silently drop nodes.
+      const html = editor.getHTML()
       const words = editor.storage.characterCount.words() as number
       onChange(json, html, words)
     },

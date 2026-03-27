@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { publishMicroblogToFeed } from '@/lib/feed-events'
 
 // GET /api/microblogs — list current user's microblogs
 export async function GET() {
@@ -8,9 +9,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('microblog_posts')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('profile_id', user.id)
     .order('published_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -24,7 +25,10 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json() as {
-    body: string
+    post_type?: string
+    title?: string
+    changelog_items?: { text: string; image?: { url: string; storage_path?: string } }[]
+    body?: string
     body_html?: string
     media?: { url: string; type?: string; caption?: string }[]
     location_name?: string
@@ -32,23 +36,46 @@ export async function POST(request: Request) {
     status?: string
     published_at?: string
     links?: { entity_type: string; entity_id: string }[]
+    context_type?: string
+    context_id?: string
   }
 
-  if (!body.body?.trim()) {
-    return NextResponse.json({ error: 'Body is required' }, { status: 400 })
+  const postType = body.post_type || 'standard'
+
+  if (postType === 'changelog') {
+    if (!body.title?.trim()) {
+      return NextResponse.json({ error: 'Title is required for changelog posts' }, { status: 400 })
+    }
+    if (!body.changelog_items || body.changelog_items.length === 0) {
+      return NextResponse.json({ error: 'At least one change item is required' }, { status: 400 })
+    }
+  } else {
+    if (!body.body?.trim()) {
+      return NextResponse.json({ error: 'Body is required' }, { status: 400 })
+    }
   }
+
+  // Build plain-text body from changelog items for search/fallback
+  const bodyText = postType === 'changelog'
+    ? `${body.title}\n\n${(body.changelog_items || []).map(i => `• ${i.text}`).join('\n')}`
+    : (body.body || '').trim()
 
   const { data, error } = await (supabase as any)
-    .from('microblogs')
+    .from('microblog_posts')
     .insert({
-      user_id: user.id,
-      body: body.body.trim(),
+      profile_id: user.id,
+      post_type: postType,
+      title: body.title?.trim() || null,
+      changelog_items: body.changelog_items || null,
+      body: bodyText,
       body_html: body.body_html || null,
-      media: body.media || [],
+      images: body.media || [],
       location_name: body.location_name?.trim() || null,
       tags: body.tags || [],
       status: body.status || 'published',
       published_at: body.published_at || new Date().toISOString(),
+      context_type: body.context_type || null,
+      context_id: body.context_id || null,
     })
     .select('id')
     .single()
@@ -63,6 +90,22 @@ export async function POST(request: Request) {
       entity_id: l.entity_id,
     }))
     await (supabase as any).from('microblog_links').insert(linkRows)
+  }
+
+  // Publish to feed_events so the post appears in What's New
+  const postStatus = body.status || 'published'
+  if (postStatus === 'published' && data?.id) {
+    try {
+      await publishMicroblogToFeed(
+        user.id,
+        data.id,
+        'public',
+        body.published_at || new Date().toISOString(),
+      )
+    } catch (feedErr) {
+      // Non-fatal — log but don't fail the post creation
+      console.error('[microblogs] feed_event insert failed:', feedErr)
+    }
   }
 
   return NextResponse.json(data, { status: 201 })

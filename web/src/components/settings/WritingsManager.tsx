@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { readTimeMinutes } from "@/lib/writings";
 
+interface WritingLink {
+  entity_type: string;
+  entity_id: string;
+  is_primary: boolean;
+}
+
 interface WritingRow {
   id: string;
   title: string;
@@ -13,7 +19,24 @@ interface WritingRow {
   word_count: number;
   published_at: string | null;
   updated_at: string;
+  writing_links?: WritingLink[];
 }
+
+const ENTITY_EMOJI: Record<string, string> = {
+  adventure: "🗺",
+  crowdfunding: "💰",
+  project: "⚙️",
+  company: "🏢",
+  company_role: "💼",
+};
+
+const ENTITY_LABEL: Record<string, string> = {
+  adventure: "Adventure",
+  crowdfunding: "Backed project",
+  project: "Project",
+  company: "Company",
+  company_role: "Role",
+};
 
 interface WritingsManagerProps {
   username: string;
@@ -55,7 +78,7 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
           {published.length} published · {drafts.length} drafts
         </p>
         <Link
-          href={`/${username}/admin/writings/new`}
+          href={`https://sidequest.me/${username}/admin/writings/new`}
           className="px-4 py-1.5 border-3 border-ink bg-bg-card font-head font-bold text-[0.68rem] uppercase hover:bg-ink hover:text-bg transition-colors no-underline"
         >
           + New post
@@ -94,7 +117,7 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
             <div key={w.id} className="py-3 flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/${username}/admin/writings/${w.slug}`}
+                  href={`https://sidequest.me/${username}/admin/writings/${w.slug}`}
                   className="font-head font-bold text-[0.82rem] text-ink hover:text-orange no-underline line-clamp-1 transition-colors"
                 >
                   {w.title}
@@ -105,9 +128,37 @@ export default function WritingsManager({ username }: WritingsManagerProps) {
                     ? new Date(w.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                     : `Updated ${new Date(w.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
                 </p>
+
+                {/* Tags */}
+                {w.tags && w.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {w.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-mono text-[0.55rem] px-1.5 py-0.5 border border-ink/20 opacity-50 bg-ink/[0.03]"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Related objects */}
+                {w.writing_links && w.writing_links.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {w.writing_links.map((link, i) => (
+                      <span
+                        key={`${link.entity_type}-${link.entity_id}-${i}`}
+                        className="font-mono text-[0.55rem] px-1.5 py-0.5 border border-[var(--orange)]/30 text-[var(--orange)]/60 bg-[var(--orange)]/[0.05]"
+                      >
+                        {ENTITY_EMOJI[link.entity_type] ?? "🔗"} {ENTITY_LABEL[link.entity_type] ?? link.entity_type}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <Link
-                href={`/${username}/admin/writings/${w.slug}`}
+                href={`https://sidequest.me/${username}/admin/writings/${w.slug}`}
                 className="font-mono text-[0.6rem] text-ink-muted hover:text-ink px-2 py-1 border-2 border-ink/20 hover:border-ink/50 transition-colors no-underline flex-shrink-0"
               >
                 Edit

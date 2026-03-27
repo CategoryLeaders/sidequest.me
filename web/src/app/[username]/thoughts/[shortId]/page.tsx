@@ -68,10 +68,18 @@ export default async function MicroblogPostPage({ params }: Props) {
 
       <article className="border-3 border-ink p-6 bg-[var(--bg-card)]">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="sticker sticker-orange text-[0.55rem] !px-2 !py-0.5 !border-2">
-            Microblog
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <span className="font-mono text-[0.55rem] font-bold uppercase px-2 py-0.5 border border-[var(--orange)]/40 text-[var(--orange)] bg-[var(--orange)]/8">
+            {(post as any).post_type === "changelog" ? "Changelog" : "Microblog"}
           </span>
+          {(post as any).context_type === "adventure" && (post as any).context_id && (
+            <Link
+              href={`/${username}/adventures/${(post as any).context_id}`}
+              className="font-mono text-[0.55rem] px-2 py-0.5 border border-[#2a7a4a]/40 text-[#5aaa7e] bg-[#2a7a4a]/8 no-underline hover:opacity-70"
+            >
+              🗺 Adventure
+            </Link>
+          )}
           {post.source !== "native" && (
             <span className="text-[0.55rem] font-mono opacity-30">
               via{" "}
@@ -85,8 +93,29 @@ export default async function MicroblogPostPage({ params }: Props) {
           )}
         </div>
 
-        {/* Body */}
-        {post.body_html ? (
+        {/* Body — changelog posts render structured items with screenshots */}
+        {(post as any).post_type === 'changelog' && (post as any).changelog_items?.length > 0 ? (
+          <ul className="space-y-4 mb-4 list-none p-0">
+            {((post as any).changelog_items as { text: string; image?: { url: string } }[]).map((item, idx) => (
+              <li key={idx} className="flex gap-2.5">
+                <span className="text-[var(--orange)] font-mono text-[0.9rem] mt-0.5 shrink-0">•</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[0.95rem] leading-relaxed">{item.text}</p>
+                  {item.image?.url && (
+                    <div className="mt-2 border-2 border-ink/10 overflow-hidden inline-block max-w-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.image.url}
+                        alt=""
+                        className="max-h-80 max-w-full object-contain block"
+                      />
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : post.body_html ? (
           <div
             className="text-[1rem] leading-relaxed mb-4 prose prose-a:text-[var(--orange)] prose-a:underline"
             dangerouslySetInnerHTML={{ __html: post.body_html }}
@@ -167,9 +196,9 @@ export default async function MicroblogPostPage({ params }: Props) {
         )}
 
         {/* Paired writing */}
-        {post.paired_writing_id && (
+        {post.paired_writing_id && (post as any).paired_writing_slug && (
           <Link
-            href={`/${username}/writings/${post.paired_writing_id}`}
+            href={`/${username}/writings/${(post as any).paired_writing_slug}`}
             className="text-[0.85rem] text-[var(--orange)] font-mono mb-4 block hover:underline"
           >
             Read the full article →

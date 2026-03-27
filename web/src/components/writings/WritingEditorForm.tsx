@@ -27,6 +27,7 @@ export interface LinkableEntities {
 export interface WritingLinkRef {
   entity_type: string
   entity_id: string
+  is_primary?: boolean
 }
 
 interface WritingEditorFormProps {
@@ -113,14 +114,39 @@ export default function WritingEditorForm({
   const toggleLink = (entityType: string, entityId: string) => {
     setLinks((prev) => {
       const exists = prev.some((l) => l.entity_type === entityType && l.entity_id === entityId)
-      if (exists) return prev.filter((l) => !(l.entity_type === entityType && l.entity_id === entityId))
-      return [...prev, { entity_type: entityType, entity_id: entityId }]
+      if (exists) {
+        const next = prev.filter((l) => !(l.entity_type === entityType && l.entity_id === entityId))
+        // If we removed the primary, promote the first remaining of same type
+        const removedWasPrimary = prev.find((l) => l.entity_type === entityType && l.entity_id === entityId)?.is_primary
+        if (removedWasPrimary) {
+          const firstRemaining = next.find((l) => l.entity_type === entityType)
+          if (firstRemaining) firstRemaining.is_primary = true
+        }
+        return next
+      }
+      // New link: mark as primary if it's the first of its type
+      const alreadyHasPrimary = prev.some((l) => l.entity_type === entityType && l.is_primary)
+      return [...prev, { entity_type: entityType, entity_id: entityId, is_primary: !alreadyHasPrimary }]
     })
     setSaved(false)
   }
 
   const isLinked = (entityType: string, entityId: string) =>
     links.some((l) => l.entity_type === entityType && l.entity_id === entityId)
+
+  const isPrimary = (entityType: string, entityId: string) =>
+    links.some((l) => l.entity_type === entityType && l.entity_id === entityId && l.is_primary)
+
+  const setPrimaryLink = (entityType: string, entityId: string) => {
+    setLinks((prev) => prev.map((l) =>
+      l.entity_type === entityType
+        ? { ...l, is_primary: l.entity_id === entityId }
+        : l
+    ))
+    setSaved(false)
+  }
+
+  const linkedCompanies = links.filter((l) => l.entity_type === 'company')
 
   const handleImageUpload = async (file: File): Promise<string> => {
     const form = new FormData()
@@ -417,6 +443,33 @@ export default function WritingEditorForm({
                   </button>
                 ))}
               </div>
+              {/* Primary selector — only shown when 2+ companies are linked */}
+              {linkedCompanies.length >= 2 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-gray-400">Primary context:</span>
+                  {linkableEntities!.companies
+                    .filter((c) => isLinked('company', c.id))
+                    .map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setPrimaryLink('company', c.id)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-all ${
+                          isPrimary('company', c.id)
+                            ? 'text-white font-medium'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                        }`}
+                        style={isPrimary('company', c.id)
+                          ? { background: c.brandColour ?? '#000', borderColor: c.brandColour ?? '#000' }
+                          : undefined
+                        }
+                      >
+                        {isPrimary('company', c.id) ? '★' : '☆'} {c.name}
+                      </button>
+                    ))
+                  }
+                </div>
+              )}
             </div>
           )}
 

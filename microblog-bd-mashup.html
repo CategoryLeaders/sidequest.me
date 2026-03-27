@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thoughtstream Card — B+D Mashup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0ede3; color: #1a1a1a; padding: 40px 20px 120px; }
+
+  h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; line-height: 1.6; max-width: 640px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; border-bottom: 3px solid #1a1a1a; flex-wrap: wrap; margin-bottom: 0; }
+  .tab { padding: 10px 18px; font-size: 12px; font-weight: 600; cursor: pointer; border: 2px solid transparent; border-bottom: none; margin-bottom: -3px; background: transparent; color: #888; transition: all 0.15s; letter-spacing: 0.04em; text-transform: uppercase; font-family: inherit; }
+  .tab.active { background: #1a1a1a; color: #f0ede3; border-color: #1a1a1a; }
+  .tab:hover:not(.active) { color: #1a1a1a; }
+  .panel { display: none; padding-top: 32px; }
+  .panel.active { display: block; }
+
+  .desc { background: white; border: 1.5px solid #e0ddd5; border-radius: 6px; padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.7; color: #555; max-width: 640px; }
+  .desc strong { color: #1a1a1a; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+  .pro { color: #16a34a; font-size: 12px; }
+  .con { color: #dc2626; font-size: 12px; }
+
+  .feed { max-width: 640px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── Image placeholders ── */
+  .img-ph { width: 100%; position: relative; overflow: hidden; }
+  .img-ph.landscape { aspect-ratio: 4/3; }
+  .img-ph.wide { aspect-ratio: 16/9; }
+  .img-ph.portrait { aspect-ratio: 3/4; }
+  .img-ph.square { aspect-ratio: 1/1; }
+  .img-ph.hove { background: linear-gradient(160deg, #ff9a3c 0%, #ffd066 45%, #ffb347 70%, #c0392b 100%); }
+  .img-ph.iceland1 { background: linear-gradient(180deg, #6bb5d6 0%, #a8d5e2 35%, #c5e8d0 60%, #4a9e7a 100%); }
+  .img-ph.iceland2 { background: linear-gradient(160deg, #4a7fcb 0%, #7ec8e3 40%, #d6eaf8 70%, #b8d4e8 100%); }
+  .img-ph.iceland3 { background: linear-gradient(200deg, #2c3e50 0%, #3d7a8a 40%, #85c1e9 70%, #d6eaf8 100%); }
+  .img-ph.pub { background: linear-gradient(160deg, #5d4037 0%, #8d6e63 40%, #a1887f 70%, #d7ccc8 100%); }
+  .img-ph.norwegen { background: linear-gradient(180deg, #2d5016 0%, #4a7a28 30%, #87ceeb 70%, #c8e6f5 100%); }
+  .img-ph.desert { background: linear-gradient(160deg, #c8a96e 0%, #e8c97a 40%, #f0d89a 70%, #d4a855 100%); }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     VARIANT BD-1 — Context banner on top (B), dark date strip under images (D)
+     No avatar. Images lead when present. Banner only when context exists.
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .bd1 .card { border: 3px solid #1a1a1a; box-shadow: 4px 4px 0 #1a1a1a; overflow: hidden; background: white; }
+
+  /* Context banner (from B) */
+  .bd1 .ctx-banner { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; text-decoration: none; border-bottom: 2.5px solid #1a1a1a; transition: opacity 0.15s; }
+  .bd1 .ctx-banner:hover { opacity: 0.85; }
+  .bd1 .ctx-banner.adventure { background: #1a3d2e; color: #a8d5a2; }
+  .bd1 .ctx-banner.project { background: #1a2840; color: #a8c4e0; }
+  .bd1 .ctx-banner-icon { font-size: 12px; }
+  .bd1 .ctx-banner-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; font-family: monospace; opacity: 0.6; }
+  .bd1 .ctx-banner-name { font-size: 13px; font-weight: 700; margin-left: 2px; }
+  .bd1 .ctx-banner-arr { margin-left: auto; font-size: 13px; opacity: 0.6; }
+
+  /* Hero image area (from D) */
+  .bd1 .card-hero .img-ph.wide { height: 240px; aspect-ratio: unset; }
+  .bd1 .card-hero-grid { display: grid; gap: 3px; }
+  .bd1 .card-hero-grid.n2 { grid-template-columns: 1fr 1fr; }
+  .bd1 .card-hero-grid.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .bd1 .card-hero-grid.n3 .img-ph:first-child { grid-row: 1/3; }
+  .bd1 .card-hero-grid .img-ph { height: 160px; }
+  .bd1 .card-hero-grid.n3 .img-ph:not(:first-child) { height: 78px; }
+
+  /* Date strip under images (from D) */
+  .bd1 .date-strip { background: #1a1a1a; color: #f0ede3; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 16px; font-size: 11px; font-family: monospace; }
+  .bd1 .date-strip .loc { color: #aaa; display: flex; align-items: center; gap: 3px; }
+  .bd1 .date-strip .src { color: #666; margin-left: auto; }
+  .bd1 .date-strip .sep { color: #444; }
+
+  /* Body + footer area */
+  .bd1 .card-body-area { padding: 16px 18px; }
+  .bd1 .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 14px; }
+  .bd1 .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .bd1 .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 14px; cursor: pointer; display: block; text-decoration: none; }
+  .bd1 .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08); }
+  .bd1 .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bd1 .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .bd1 .card-actions { display: flex; gap: 10px; }
+  .bd1 .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .bd1 .card-actions .action:hover { color: #888; }
+  /* Text-only (no image) card gets simple date header */
+  .bd1 .text-date { padding: 10px 16px 0; font-size: 11px; font-family: monospace; color: #bbb; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-bottom: 1.5px solid rgba(26,26,26,0.06); padding-bottom: 10px; }
+  .bd1 .text-date .loc { color: #b5a888; }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     VARIANT BD-2 — Image-first (D) + context as coloured left border + inline chip (B)
+     Left border colour changes by context type. No separate banner — just a chip.
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .bd2 .card { border: 3px solid #1a1a1a; box-shadow: 4px 4px 0 #1a1a1a; overflow: hidden; background: white; border-left-width: 6px; }
+  .bd2 .card.ctx-adventure { border-left-color: #2a7a4a; }
+  .bd2 .card.ctx-project { border-left-color: #2a4a7a; }
+  .bd2 .card.ctx-none { border-left-color: #1a1a1a; }
+
+  /* Hero image */
+  .bd2 .card-hero .img-ph.wide { height: 240px; aspect-ratio: unset; }
+  .bd2 .card-hero-grid { display: grid; gap: 3px; }
+  .bd2 .card-hero-grid.n2 { grid-template-columns: 1fr 1fr; }
+  .bd2 .card-hero-grid.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .bd2 .card-hero-grid.n3 .img-ph:first-child { grid-row: 1/3; }
+  .bd2 .card-hero-grid .img-ph { height: 160px; }
+  .bd2 .card-hero-grid.n3 .img-ph:not(:first-child) { height: 78px; }
+
+  /* Date strip */
+  .bd2 .date-strip { background: #1a1a1a; color: #f0ede3; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 14px; font-size: 11px; font-family: monospace; }
+  .bd2 .date-strip .loc { color: #aaa; }
+  .bd2 .date-strip .src { color: #666; margin-left: auto; }
+  .bd2 .date-strip .sep { color: #444; }
+
+  /* Context chip (inline, under date strip) */
+  .bd2 .ctx-chip-row { padding: 8px 14px 0; }
+  .bd2 .ctx-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 8px; border: 2px solid; cursor: pointer; text-decoration: none; border-radius: 2px; transition: background 0.15s; }
+  .bd2 .ctx-chip.adventure { border-color: #2a7a4a; color: #2a7a4a; background: #f0f8f3; }
+  .bd2 .ctx-chip.adventure:hover { background: #dff0e8; }
+  .bd2 .ctx-chip.project { border-color: #2a4a7a; color: #2a4a7a; background: #f0f3f8; }
+  .bd2 .ctx-chip.project:hover { background: #dfe6f0; }
+
+  /* Body + footer */
+  .bd2 .card-body-area { padding: 14px 14px 14px; }
+  .bd2 .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 12px; }
+  .bd2 .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .bd2 .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 12px; cursor: pointer; display: block; text-decoration: none; }
+  .bd2 .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08); }
+  .bd2 .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bd2 .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .bd2 .card-actions { display: flex; gap: 10px; }
+  .bd2 .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .bd2 .text-date { padding: 10px 14px 8px; font-size: 11px; font-family: monospace; color: #bbb; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-bottom: 1.5px solid rgba(26,26,26,0.06); }
+  .bd2 .text-date .loc { color: #b5a888; }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     VARIANT BD-3 — Tight context banner (B, thinner) + magazine image (D)
+     Banner is more compact: icon + name inline, no label row, no bottom border
+     Dark date strip on images. Text-only: tiny date + inline context chip.
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .bd3 .card { border: 3px solid #1a1a1a; box-shadow: 4px 4px 0 #1a1a1a; overflow: hidden; background: white; }
+
+  /* Thin accent line + inline context label */
+  .bd3 .ctx-bar { display: flex; align-items: center; gap: 8px; padding: 5px 14px; border-bottom: 1px solid rgba(26,26,26,0.1); font-size: 11px; font-family: monospace; }
+  .bd3 .ctx-bar.adventure { background: rgba(42,122,74,0.06); border-left: 4px solid #2a7a4a; }
+  .bd3 .ctx-bar.project { background: rgba(42,74,122,0.06); border-left: 4px solid #2a4a7a; }
+  .bd3 .ctx-bar .icon { font-size: 11px; }
+  .bd3 .ctx-bar .type-label { color: #999; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .bd3 .ctx-bar a { color: #1a1a1a; font-weight: 700; font-size: 12px; text-decoration: none; }
+  .bd3 .ctx-bar a:hover { text-decoration: underline; }
+  .bd3 .ctx-bar .arr { margin-left: 3px; color: #ff6b35; font-size: 11px; }
+
+  /* Hero image */
+  .bd3 .card-hero .img-ph.wide { height: 240px; aspect-ratio: unset; }
+  .bd3 .card-hero-grid { display: grid; gap: 3px; }
+  .bd3 .card-hero-grid.n2 { grid-template-columns: 1fr 1fr; }
+  .bd3 .card-hero-grid.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+  .bd3 .card-hero-grid.n3 .img-ph:first-child { grid-row: 1/3; }
+  .bd3 .card-hero-grid .img-ph { height: 160px; }
+  .bd3 .card-hero-grid.n3 .img-ph:not(:first-child) { height: 78px; }
+
+  /* Date strip */
+  .bd3 .date-strip { background: rgba(26,26,26,0.85); color: #f0ede3; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px; font-size: 11px; font-family: monospace; }
+  .bd3 .date-strip .loc { color: #bbb; }
+  .bd3 .date-strip .src { color: #888; margin-left: auto; font-size: 10px; }
+  .bd3 .date-strip .sep { color: #555; }
+
+  /* Body */
+  .bd3 .card-body-area { padding: 16px 16px 14px; }
+  .bd3 .card-body { font-size: 15px; line-height: 1.65; margin-bottom: 12px; }
+  .bd3 .card-body.truncated { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .bd3 .read-more { font-size: 12px; color: #ff6b35; font-family: monospace; margin-bottom: 12px; cursor: pointer; display: block; text-decoration: none; }
+  .bd3 .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1.5px solid rgba(26,26,26,0.08); }
+  .bd3 .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bd3 .card-tags span { font-size: 10px; color: #aaa; background: #f0ede3; padding: 1px 6px; font-family: monospace; }
+  .bd3 .card-actions { display: flex; gap: 10px; }
+  .bd3 .card-actions .action { font-size: 11px; color: #ccc; cursor: pointer; font-family: monospace; }
+  .bd3 .text-date { padding: 10px 16px 8px; font-size: 11px; font-family: monospace; color: #bbb; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-bottom: 1.5px solid rgba(26,26,26,0.06); }
+  .bd3 .text-date .loc { color: #b5a888; }
+
+  /* ── Feedback panel ── */
+  .feedback-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; color: #f0ede3; border-top: 3px solid #f0ede3; z-index: 100; height: 48px; overflow: hidden; transition: height 0.2s ease; }
+  .feedback-panel.open { height: auto; max-height: 85vh; overflow-y: auto; }
+  .feedback-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; cursor: pointer; user-select: none; }
+  .feedback-toggle-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .feedback-toggle-hint { font-size: 11px; color: #888; }
+  .feedback-body { padding: 20px 24px; max-width: 780px; }
+  .feedback-section { margin-bottom: 20px; }
+  .feedback-section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  .feedback-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .feedback-check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .feedback-check input { accent-color: #f0ede3; width: 13px; height: 13px; cursor: pointer; }
+  .feedback-check span { font-size: 12px; }
+  .option-vote { display: flex; gap: 8px; flex-wrap: wrap; }
+  .vote-btn { background: #2a2a2a; border: 1.5px solid #444; color: #888; font-family: inherit; font-size: 11px; font-weight: 600; padding: 6px 14px; cursor: pointer; border-radius: 2px; letter-spacing: 0.04em; transition: all 0.15s; }
+  .vote-btn:hover { border-color: #888; color: #f0ede3; }
+  .vote-btn.selected { background: #f0ede3; color: #1a1a1a; border-color: #f0ede3; }
+  .feedback-text { width: 100%; background: #2a2a2a; border: 1px solid #444; color: #f0ede3; font-family: inherit; font-size: 13px; padding: 10px 12px; border-radius: 3px; resize: vertical; min-height: 60px; outline: none; line-height: 1.5; }
+  .feedback-text::placeholder { color: #555; }
+  .feedback-text:focus { border-color: #888; }
+  .feedback-actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .copy-btn { background: #f0ede3; color: #1a1a1a; border: none; font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: 2px; transition: background 0.15s; }
+  .copy-btn:hover { background: #e0ddd5; }
+  .copy-btn.copied { background: #4ade80; }
+  .clear-btn { background: none; color: #666; border: none; font-family: inherit; font-size: 11px; cursor: pointer; }
+  .clear-btn:hover { color: #f0ede3; }
+  .prompt-preview { background: #111; border: 1px solid #2a2a2a; padding: 14px; font-size: 12px; color: #aaa; line-height: 1.6; font-family: 'SF Mono', 'Menlo', monospace; white-space: pre-wrap; margin-top: 16px; display: none; border-radius: 3px; }
+  .prompt-preview.visible { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Thoughtstream Card — B+D Mashup</h1>
+<p class="subtitle">Three ways to blend B's context-first anchoring with D's image-as-hero treatment. Pick the variant you prefer and generate an implementation prompt.</p>
+
+<div class="tabs">
+  <button class="tab active" data-panel="bd1">BD-1 — Full Banner + Dark Strip</button>
+  <button class="tab" data-panel="bd2">BD-2 — Thick Left Border + Chip</button>
+  <button class="tab" data-panel="bd3">BD-3 — Thin Bar + Magazine</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PANEL BD-1 ═══ -->
+<div id="panel-bd1" class="panel active">
+  <div class="desc">
+    <strong>BD-1 — Full Context Banner + Dark Date Strip</strong>
+    When a post has context (adventure/project): full-width dark banner at the top exactly as in option B — you can't miss the adventure link. Images below it lead with a dark date+location strip underneath (from D). Text-only posts get a simple compact date header. Body always appears after the image area.
+    <br><br>
+    <span class="pro">✓ Adventure link is unmissable — full-width, high-contrast.</span><br>
+    <span class="pro">✓ Date is clearly legible — dark strip, not buried in footer.</span><br>
+    <span class="pro">✓ Text-only posts stay lightweight without a heavy empty banner.</span><br>
+    <span class="con">✗ Two dark/heavy elements (banner + date strip) in succession may feel dense.</span>
+  </div>
+  <div class="feed bd1">
+
+    <!-- Post: text only, no context -->
+    <article class="card">
+      <div class="text-date">
+        <span>14 Feb 2018</span><span>·</span><span>5 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Just a Nobody.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span><span class="action">permalink</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: 1 image + location, no context -->
+    <article class="card">
+      <div class="card-hero">
+        <div class="img-ph wide hove"></div>
+        <div class="date-strip">
+          <span>22 Jul 2023</span><span class="sep">·</span><span>2 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Hove Seafront, Hove</span><span class="src">via Facebook</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything. Couldn't not stop.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: adventure banner + 3 images -->
+    <article class="card">
+      <a href="#" class="ctx-banner adventure">
+        <span class="ctx-banner-icon">🗺</span>
+        <span class="ctx-banner-label">Adventure</span>
+        <span class="ctx-banner-name">Iceland Ring Road 2022</span>
+        <span class="ctx-banner-arr">→</span>
+      </a>
+      <div class="card-hero">
+        <div class="card-hero-grid n3">
+          <div class="img-ph iceland1"></div>
+          <div class="img-ph iceland2"></div>
+          <div class="img-ph iceland3"></div>
+        </div>
+        <div class="date-strip">
+          <span>15 Jun 2022</span><span class="sep">·</span><span>3 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Jökulsárlón, Iceland</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: adventure banner, text only (no images) -->
+    <article class="card">
+      <a href="#" class="ctx-banner project">
+        <span class="ctx-banner-icon">⚙️</span>
+        <span class="ctx-banner-label">Project</span>
+        <span class="ctx-banner-name">SideQuest.me Rebuild</span>
+        <span class="ctx-banner-arr">→</span>
+      </a>
+      <div class="text-date">
+        <span>5 Mar 2026</span><span>·</span><span>2 weeks ago</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#build-in-public</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: long text, truncated -->
+    <article class="card">
+      <div class="text-date">
+        <span>3 Nov 2021</span><span>·</span><span>4 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. It's usually applied to teenagers, but I think it happens to adults all the time. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse.</p>
+        <a href="#" class="read-more">Read more →</a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#psychology</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: 2 images, no context -->
+    <article class="card">
+      <div class="card-hero">
+        <div class="card-hero-grid n2">
+          <div class="img-ph landscape pub"></div>
+          <div class="img-ph landscape norwegen"></div>
+        </div>
+        <div class="date-strip">
+          <span>12 Dec 2022</span><span class="sep">·</span><span>3 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 The Black Boy, Winchester</span><span class="src">via Facebook</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Pre-Christmas catch-up at one of the best pubs in Hampshire. Some traditions survive everything.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PANEL BD-2 ═══ -->
+<div id="panel-bd2" class="panel">
+  <div class="desc">
+    <strong>BD-2 — Thick Left Border + Context Chip</strong>
+    Context shown as a thick coloured left border (green = adventure, navy = project) plus a clickable chip that appears just below the image's date strip. Less aggressive than a full banner — the border is a subtle persistent signal. Images still lead full-width (D). The chip gives a clear clickable element for context navigation without taking up a whole row.
+    <br><br>
+    <span class="pro">✓ Colour-coded border lets you scan the feed at a glance by context type.</span><br>
+    <span class="pro">✓ Context chip is clearly clickable without the visual weight of a full banner.</span><br>
+    <span class="pro">✓ Consistent layout — border appears even for text-only posts with context.</span><br>
+    <span class="con">✗ Context chip is below the fold if the image is tall — might miss it.</span>
+  </div>
+  <div class="feed bd2">
+
+    <!-- Post: text only, no context -->
+    <article class="card ctx-none">
+      <div class="text-date">
+        <span>14 Feb 2018</span><span>·</span><span>5 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Just a Nobody.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span><span class="action">permalink</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: 1 image + location, no context -->
+    <article class="card ctx-none">
+      <div class="card-hero">
+        <div class="img-ph wide hove"></div>
+        <div class="date-strip">
+          <span>22 Jul 2023</span><span class="sep">·</span><span>2 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Hove Seafront, Hove</span><span class="src">via Facebook</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: adventure border + 3 images + chip -->
+    <article class="card ctx-adventure">
+      <div class="card-hero">
+        <div class="card-hero-grid n3">
+          <div class="img-ph iceland1"></div>
+          <div class="img-ph iceland2"></div>
+          <div class="img-ph iceland3"></div>
+        </div>
+        <div class="date-strip">
+          <span>15 Jun 2022</span><span class="sep">·</span><span>3 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Jökulsárlón, Iceland</span>
+        </div>
+      </div>
+      <div class="ctx-chip-row">
+        <a href="#" class="ctx-chip adventure">🗺 Iceland Ring Road 2022 →</a>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: project border, text only, chip above body -->
+    <article class="card ctx-project">
+      <div class="text-date">
+        <span>5 Mar 2026</span><span>·</span><span>2 weeks ago</span>
+      </div>
+      <div class="ctx-chip-row" style="padding-top: 10px;">
+        <a href="#" class="ctx-chip project">⚙️ SideQuest.me Rebuild →</a>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#build-in-public</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: long text, truncated -->
+    <article class="card ctx-none">
+      <div class="text-date">
+        <span>3 Nov 2021</span><span>·</span><span>4 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs and attract a tribe that mirrors them back.</p>
+        <a href="#" class="read-more">Read more →</a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#psychology</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: 2 images, adventure -->
+    <article class="card ctx-adventure">
+      <div class="card-hero">
+        <div class="card-hero-grid n2">
+          <div class="img-ph landscape norwegen"></div>
+          <div class="img-ph landscape desert"></div>
+        </div>
+        <div class="date-strip">
+          <span>18 Aug 2023</span><span class="sep">·</span><span>2 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Nowhere Festival, Spain</span>
+        </div>
+      </div>
+      <div class="ctx-chip-row">
+        <a href="#" class="ctx-chip adventure">🏕 Nowhere Festival 2023 →</a>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Week 2 and the dust has become a lifestyle. Also I have opinions about desert architecture now.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#nowhere</span><span>#festival</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PANEL BD-3 ═══ -->
+<div id="panel-bd3" class="panel">
+  <div class="desc">
+    <strong>BD-3 — Thin Accent Bar + Magazine</strong>
+    The most restrained version. When context is present, a thin coloured left strip + pale tinted row shows the adventure/project name as a small inline link — not a full banner, not a chip bubble. Magazine-style images with a semi-transparent date strip overlay. Text-only posts just get a simple date header.
+    <br><br>
+    <span class="pro">✓ Context is present and clickable but not visually loud.</span><br>
+    <span class="pro">✓ Semi-transparent date strip keeps the image feeling uninterrupted.</span><br>
+    <span class="pro">✓ Most consistent layout between text and image posts.</span><br>
+    <span class="con">✗ Context link is subtle — might be overlooked by visitors.</span><br>
+    <span class="con">✗ Less brutalist than the full-border BD-1 — softer feel overall.</span>
+  </div>
+  <div class="feed bd3">
+
+    <!-- Post: text only, no context -->
+    <article class="card">
+      <div class="text-date">
+        <span>14 Feb 2018</span><span>·</span><span>5 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Just a Nobody.</p>
+        <div class="card-footer">
+          <div class="card-tags"></div>
+          <div class="card-actions"><span class="action">🔗</span><span class="action">permalink</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: 1 image + location, no context -->
+    <article class="card">
+      <div class="card-hero">
+        <div class="img-ph wide hove"></div>
+        <div class="date-strip">
+          <span>22 Jul 2023</span><span class="sep">·</span><span>2 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Hove Seafront, Hove</span><span class="src">via Facebook</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Hove seafront this evening. That golden hour when the whole sky goes amber and you forget you're thirty minutes from anything.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#photography</span><span>#golden-hour</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: adventure thin bar + 3 images -->
+    <article class="card">
+      <div class="ctx-bar adventure">
+        <span class="icon">🗺</span>
+        <span class="type-label">Adventure</span>
+        <a href="#">Iceland Ring Road 2022<span class="arr">→</span></a>
+      </div>
+      <div class="card-hero">
+        <div class="card-hero-grid n3">
+          <div class="img-ph iceland1"></div>
+          <div class="img-ph iceland2"></div>
+          <div class="img-ph iceland3"></div>
+        </div>
+        <div class="date-strip">
+          <span>15 Jun 2022</span><span class="sep">·</span><span>3 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Jökulsárlón, Iceland</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Day 3 of the ring road — Jökulsárlón glacier lagoon at 2am. The light barely dips. Icebergs glow blue-white against the black sand.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#iceland</span><span>#roadtrip</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: project thin bar, text only -->
+    <article class="card">
+      <div class="ctx-bar project">
+        <span class="icon">⚙️</span>
+        <span class="type-label">Project</span>
+        <a href="#">SideQuest.me Rebuild<span class="arr">→</span></a>
+      </div>
+      <div class="text-date">
+        <span>5 Mar 2026</span><span>·</span><span>2 weeks ago</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Launched the new thoughtstream. It's rough around the edges but it's live and it's mine.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#build-in-public</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: long text, truncated -->
+    <article class="card">
+      <div class="text-date">
+        <span>3 Nov 2021</span><span>·</span><span>4 years ago</span><span>·</span><span>via Facebook</span>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body truncated">There's a concept called "identity foreclosure" — committing to an identity before you've had time to explore who you actually are. We pick a lane — career, politics, personality type — and then spend enormous energy defending that lane rather than questioning it. The internet makes this worse. You build a brand around your beliefs and attract a tribe that mirrors them back.</p>
+        <a href="#" class="read-more">Read more →</a>
+        <div class="card-footer">
+          <div class="card-tags"><span>#psychology</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post: adventure bar + 2 images -->
+    <article class="card">
+      <div class="ctx-bar adventure">
+        <span class="icon">🏕</span>
+        <span class="type-label">Adventure</span>
+        <a href="#">Nowhere Festival 2023<span class="arr">→</span></a>
+      </div>
+      <div class="card-hero">
+        <div class="card-hero-grid n2">
+          <div class="img-ph landscape norwegen"></div>
+          <div class="img-ph landscape desert"></div>
+        </div>
+        <div class="date-strip">
+          <span>18 Aug 2023</span><span class="sep">·</span><span>2 years ago</span><span class="sep">·</span>
+          <span class="loc">📍 Nowhere Festival, Spain</span>
+        </div>
+      </div>
+      <div class="card-body-area">
+        <p class="card-body">Week 2 and the dust has become a lifestyle. Also I have opinions about desert architecture now.</p>
+        <div class="card-footer">
+          <div class="card-tags"><span>#nowhere</span></div>
+          <div class="card-actions"><span class="action">🔗</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ FEEDBACK PANEL ═══ -->
+<div class="feedback-panel" id="feedbackPanel">
+  <div class="feedback-toggle" id="feedbackToggle">
+    <span class="feedback-toggle-label">✦ Generate Implementation Prompt</span>
+    <span class="feedback-toggle-hint" id="toggleHint">Click to open ↑</span>
+  </div>
+  <div class="feedback-body">
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Preferred variant</div>
+      <div class="option-vote" id="optionVotes">
+        <button class="vote-btn" data-opt="BD-1">BD-1 — Full Banner + Dark Strip</button>
+        <button class="vote-btn" data-opt="BD-2">BD-2 — Left Border + Chip</button>
+        <button class="vote-btn" data-opt="BD-3">BD-3 — Thin Bar + Magazine</button>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Context treatment — keep or change?</div>
+      <div class="feedback-checks" id="ctxChecks">
+        <label class="feedback-check"><input type="checkbox" value="full-banner"> <span>Keep the full-width dark banner for adventure/project context</span></label>
+        <label class="feedback-check"><input type="checkbox" value="left-border"> <span>Keep the thick coloured left border as a visual signal</span></label>
+        <label class="feedback-check"><input type="checkbox" value="thin-bar"> <span>Keep the thin accent bar — less aggressive</span></label>
+        <label class="feedback-check"><input type="checkbox" value="chip-below"> <span>Context chip below the image (not in a banner)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="chip-inline"> <span>Context as an inline clickable link (not a separate element)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="no-ctx-text"> <span>Remove context from text-only posts (too noisy)</span></label>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Image treatment — keep or change?</div>
+      <div class="feedback-checks" id="imgChecks">
+        <label class="feedback-check"><input type="checkbox" value="full-bleed"> <span>Full-width images with no side borders</span></label>
+        <label class="feedback-check"><input type="checkbox" value="bordered-images"> <span>Keep 3px border around image area</span></label>
+        <label class="feedback-check"><input type="checkbox" value="dark-strip-good"> <span>Dark date strip under images is good</span></label>
+        <label class="feedback-check"><input type="checkbox" value="dark-strip-bad"> <span>Dark date strip is too heavy — prefer subtle text</span></label>
+        <label class="feedback-check"><input type="checkbox" value="3-grid-asymmetric"> <span>Keep the 2-big + 2-small asymmetric grid for 3 images</span></label>
+        <label class="feedback-check"><input type="checkbox" value="equal-grid"> <span>Use equal-column grid for all image counts</span></label>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Text-only posts</div>
+      <div class="feedback-checks" id="textChecks">
+        <label class="feedback-check"><input type="checkbox" value="text-date-top"> <span>Date at top in a header row (current)</span></label>
+        <label class="feedback-check"><input type="checkbox" value="text-date-footer"> <span>Move date to footer for text-only posts</span></label>
+        <label class="feedback-check"><input type="checkbox" value="text-border"> <span>Give text-only cards a coloured left border like writings</span></label>
+        <label class="feedback-check"><input type="checkbox" value="text-bigger-body"> <span>Make body text larger on text-only posts (they ARE the content)</span></label>
+      </div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-section-title">Free-form notes — describe your ideal</div>
+      <textarea class="feedback-text" id="freeformNotes" placeholder="e.g. 'I like BD-1 but the double dark (banner + strip) is too heavy — maybe the banner should be lighter? And for text-only posts I want the context link but subtler...'"></textarea>
+    </div>
+
+    <div class="feedback-actions">
+      <button class="copy-btn" id="copyBtn">Copy Implementation Prompt</button>
+      <button class="clear-btn" id="clearBtn">Clear</button>
+    </div>
+    <pre class="prompt-preview" id="promptPreview"></pre>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  const panel = document.getElementById('feedbackPanel');
+  const toggle = document.getElementById('feedbackToggle');
+  const hint = document.getElementById('toggleHint');
+  toggle.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    hint.textContent = panel.classList.contains('open') ? 'Click to close ↓' : 'Click to open ↑';
+  });
+
+  document.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => btn.classList.toggle('selected'));
+  });
+
+  function buildPrompt() {
+    const selectedOpts = [...document.querySelectorAll('.vote-btn.selected')].map(b => b.dataset.opt);
+    const ctx = [...document.querySelectorAll('#ctxChecks input:checked')].map(i => i.value);
+    const img = [...document.querySelectorAll('#imgChecks input:checked')].map(i => i.value);
+    const txt = [...document.querySelectorAll('#textChecks input:checked')].map(i => i.value);
+    const notes = document.getElementById('freeformNotes').value.trim();
+
+    const ctxLabels = {
+      'full-banner': 'full-width dark banner for adventure/project context (from BD-1)',
+      'left-border': 'thick coloured left border as a persistent visual signal (from BD-2)',
+      'thin-bar': 'thin coloured accent bar with inline link (from BD-3)',
+      'chip-below': 'context chip appearing below the image date strip',
+      'chip-inline': 'context as a small inline clickable link integrated into the layout',
+      'no-ctx-text': 'no context indicator on text-only posts (keep it for image posts only)',
+    };
+    const imgLabels = {
+      'full-bleed': 'full-bleed images with no side padding (edge-to-edge within card border)',
+      'bordered-images': '3px ink border wrapping around the image area',
+      'dark-strip-good': 'dark (black/charcoal) date strip underneath images — keep it',
+      'dark-strip-bad': 'subtle date treatment — not a heavy dark strip',
+      'asymmetric-grid': 'asymmetric grid for 3 images (one large + two small)',
+      'equal-grid': 'equal-column grid for all multi-image posts',
+    };
+    const txtLabels = {
+      'text-date-top': 'date in a header row at the top of text-only cards',
+      'text-date-footer': 'date in the footer for text-only posts',
+      'text-border': 'coloured left border on text-only cards (consistent with writings list)',
+      'text-bigger-body': 'slightly larger body text on text-only posts for emphasis',
+    };
+
+    let prompt = 'Please implement the final MicroblogCard component for SideQuest.me\'s thoughtstream feed.\n\n';
+    prompt += 'This is a B+D mashup design. The base approach:\n';
+    prompt += '- Images lead the card (full-width hero, D-style)\n';
+    prompt += '- Dark date+location strip sits directly under the image(s)\n';
+    prompt += '- Adventure/project context has a dedicated visual treatment at the top of the card\n';
+    prompt += '- Body text follows the image area\n';
+    prompt += '- No "Microblog" sticker (redundant on the thoughts feed)\n';
+    prompt += '- Long posts truncate at 4 lines with "Read more →"\n';
+    prompt += '- Source ("via Facebook") appears only in the date strip, subtle\n\n';
+
+    if (selectedOpts.length > 0) {
+      prompt += `Closest to variant(s): ${selectedOpts.join(', ')}\n\n`;
+    }
+
+    if (ctx.length > 0) {
+      prompt += 'Context (adventure/project) treatment:\n';
+      ctx.forEach(c => prompt += `- ${ctxLabels[c] || c}\n`);
+      prompt += '\n';
+    }
+
+    if (img.length > 0) {
+      prompt += 'Image treatment:\n';
+      img.forEach(i => prompt += `- ${imgLabels[i] || i}\n`);
+      prompt += '\n';
+    }
+
+    if (txt.length > 0) {
+      prompt += 'Text-only posts:\n';
+      txt.forEach(t => prompt += `- ${txtLabels[t] || t}\n`);
+      prompt += '\n';
+    }
+
+    if (notes) {
+      prompt += `Additional design notes:\n${notes}\n\n`;
+    }
+
+    prompt += 'Technical requirements:\n';
+    prompt += '- File: web/src/components/microblog/MicroblogCard.tsx\n';
+    prompt += '- Type: MicroblogPostWithCounts (from @/lib/microblogs)\n';
+    prompt += '- Stack: React + TypeScript + Tailwind CSS v4\n';
+    prompt += '- Design system: SideQuest.me brutalist — 3px solid ink borders, 4px offset box-shadow, #ff6b35 orange accent, #1a1a1a ink, #fffbe6 warm background, bg-[var(--bg-card)] for card fill\n';
+    prompt += '- Image grid: 1 = full-width 16:9; 2 = 50/50 side-by-side; 3 = 2-wide + 2-small asymmetric; 4+ = 2-wide + 2-small + "+N more" overlay\n';
+    prompt += '- Adventure context: post.context_type === "adventure" and post.context_id — link to /{username}/adventures/{context_id}\n';
+    prompt += '- Project context: post.context_type === "project" — link to /{username}/projects/{context_id}\n';
+    prompt += '- Permalink: /{username}/thoughts/{post.short_id}\n';
+
+    return prompt;
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function() {
+    const prompt = buildPrompt();
+    document.getElementById('promptPreview').textContent = prompt;
+    document.getElementById('promptPreview').classList.add('visible');
+    navigator.clipboard.writeText(prompt).then(() => {
+      this.textContent = 'Copied!';
+      this.classList.add('copied');
+      setTimeout(() => { this.textContent = 'Copy Implementation Prompt'; this.classList.remove('copied'); }, 2000);
+    });
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('input[type=checkbox]').forEach(i => i.checked = false);
+    document.getElementById('freeformNotes').value = '';
+    document.getElementById('promptPreview').textContent = '';
+    document.getElementById('promptPreview').classList.remove('visible');
+  });
+</script>
+</body>
+</html>

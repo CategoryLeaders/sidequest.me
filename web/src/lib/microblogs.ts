@@ -10,7 +10,8 @@ export type MicroblogSource =
   | "native"
   | "facebook_import"
   | "telegram_channel_import"
-  | "telegram_group_import";
+  | "telegram_group_import"
+  | "adventure_import";
 
 export interface MicroblogImage {
   url: string;
@@ -18,6 +19,8 @@ export interface MicroblogImage {
   height: number;
   alt_text?: string;
   storage_path?: string;
+  /** Marks this image as the featured/hero image for the post */
+  starred?: boolean;
 }
 
 export interface LinkPreview {
@@ -27,10 +30,20 @@ export interface LinkPreview {
   domain: string;
 }
 
+export type MicroblogPostType = 'standard' | 'changelog';
+
+export interface ChangelogItem {
+  text: string;
+  image?: { url: string; storage_path?: string };
+}
+
 export interface MicroblogPost {
   id: string;
   profile_id: string;
   short_id: string;
+  post_type: MicroblogPostType;
+  title: string | null;
+  changelog_items: ChangelogItem[] | null;
   body: string;
   body_html: string | null;
   images: MicroblogImage[];
@@ -47,6 +60,10 @@ export interface MicroblogPost {
   source_url: string | null;
   source_created_at: string | null;
   paired_writing_id: string | null;
+  context_type: 'adventure' | 'project' | 'writing' | 'job_role' | null;
+  context_id: string | null;
+  location_name: string | null;
+  chapter_index: number | null;
   edited_at: string | null;
   published_at: string | null;
   scheduled_at: string | null;
@@ -97,9 +114,38 @@ export interface ReactionCount {
 export interface MicroblogPostWithCounts extends MicroblogPost {
   reaction_counts: ReactionCount[];
   comment_count: number;
+  paired_writing_slug: string | null;
 }
 
-// ─── Short ID Generation ────────────────────────────────────────────────────
+// ─── External API Types ─────────────────────────────────────────────────
+
+export interface MicroblogApiItem {
+  id: string
+  short_id: string
+  post_type: MicroblogPostType
+  title: string | null
+  changelog_items: ChangelogItem[] | null
+  body: string
+  tags: string[]
+  images: MicroblogImage[]
+  published_at: string
+  location_name: string | null
+  body_html?: string // only included when ?fields=body
+}
+
+export interface MicroblogApiMeta {
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+export interface MicroblogApiResponse {
+  data: MicroblogApiItem[]
+  meta: MicroblogApiMeta
+}
+
+// ─── Short ID Generation ────────────────────────────────────────────────
 
 const SHORT_ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const SHORT_ID_LENGTH = 4;
@@ -114,7 +160,7 @@ export function generateShortId(): string {
   return result;
 }
 
-// ─── Data Fetching (Server) ─────────────────────────────────────────────────
+// ─── Data Fetching (Server) ─────────────────────────────────────────────
 
 /**
  * Fetch published microblog posts for a profile's public feed.
@@ -130,7 +176,7 @@ export async function getPublishedPosts(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase as any)
     .from("microblog_posts")
-    .select("*")
+    .select("*, paired_writing:writings!paired_writing_id(slug)")
     .eq("profile_id", profileId)
     .eq("status", "published")
     .eq("visibility", "public")
@@ -147,7 +193,7 @@ export async function getPublishedPosts(
 
   // Fetch reaction counts and comment counts in parallel
   const postsWithCounts = await Promise.all(
-    (posts as MicroblogPost[]).map(async (post) => {
+    (posts as (MicroblogPost & { paired_writing: { slug: string } | null })[]).map(async (post) => {
       const [reactionCounts, commentCount] = await Promise.all([
         getReactionCounts(post.id),
         getCommentCount(post.id),
@@ -158,6 +204,7 @@ export async function getPublishedPosts(
         link_preview: post.link_preview as LinkPreview | null,
         reaction_counts: reactionCounts,
         comment_count: commentCount,
+        paired_writing_slug: post.paired_writing?.slug ?? null,
       };
     })
   );
@@ -200,14 +247,14 @@ export async function getPostByShortId(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from("microblog_posts")
-    .select("*")
+    .select("*, paired_writing:writings!paired_writing_id(slug)")
     .eq("profile_id", profileId)
     .eq("short_id", shortId)
     .single();
 
   if (error || !data) return null;
 
-  const post = data as MicroblogPost;
+  const post = data as MicroblogPost & { paired_writing: { slug: string } | null };
   const [reactionCounts, commentCount] = await Promise.all([
     getReactionCounts(post.id),
     getCommentCount(post.id),
@@ -219,6 +266,7 @@ export async function getPostByShortId(
     link_preview: post.link_preview as LinkPreview | null,
     reaction_counts: reactionCounts,
     comment_count: commentCount,
+    paired_writing_slug: post.paired_writing?.slug ?? null,
   };
 }
 
@@ -248,7 +296,7 @@ export async function getPostComments(
   );
 }
 
-// ─── Aggregation Helpers ────────────────────────────────────────────────────
+// ─── Aggregation Helpers ────────────────────────────────────────────────
 
 async function getReactionCounts(postId: string): Promise<ReactionCount[]> {
   const supabase = await createClient();
@@ -284,7 +332,7 @@ async function getCommentCount(postId: string): Promise<number> {
   return count ?? 0;
 }
 
-// ─── Display Helpers ────────────────────────────────────────────────────────
+// ─── Display Helpers ────────────────────────────────────────────────────
 
 /** Display timestamp for a post (uses source_created_at for imports) */
 export function getPostDate(post: MicroblogPost): string {

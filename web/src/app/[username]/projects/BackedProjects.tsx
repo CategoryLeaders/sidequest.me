@@ -2,134 +2,206 @@
 
 /**
  * Client component for the "Backed" sub-tab on the Projects page.
- * Renders a filterable grid of crowdfunding project cards.
+ * V2: TubeMapFilter, lightbox on card click, countdown badges.
+ * [SQ.S-W-2603-0073] [SQ.S-W-2603-0074]
  */
 
 import { useState } from "react";
 import Link from "next/link";
-import type { CrowdfundingProject } from "@/lib/crowdfunding-utils";
-import { formatPledge, CROWDFUNDING_STATUSES } from "@/lib/crowdfunding-utils";
+import { useRouter } from "next/navigation";
+import type { CrowdfundingProject, CrowdfundingStatus } from "@/lib/crowdfunding-utils";
+import { formatPledge, parseDeliveryDeadline, normalizeStatus, statusHex } from "@/lib/crowdfunding-utils";
 import StatusPipeline from "@/components/StatusPipeline";
+import TubeMapFilter from "@/components/TubeMapFilter";
+import CountdownBadge from "@/components/crowdfunding/CountdownBadge";
+import CalendarView from "@/components/crowdfunding/CalendarView";
+import StarRating from "@/components/crowdfunding/StarRating";
+import { ContentActions } from "@/components/shared/ContentActions";
+import type { Tables } from "@/types/database";
+
+type ViewMode = "grid" | "calendar";
 
 const rotations = ["-0.3deg", "0.4deg", "-0.2deg", "0.5deg", "-0.4deg", "0.3deg"];
 
-type StatusFilter = "all" | "crowdfunding" | "in_production" | "shipping" | "received";
+type FilterValue = "all" | CrowdfundingStatus;
 
 interface BackedProjectsProps {
   projects: CrowdfundingProject[];
   username: string;
   writingCounts: Record<string, number>;
+  /** Map of projectId → rating (null if review exists but no rating) */
+  reviewRatings?: Record<string, number | null>;
+  /** Map of projectId → full review object */
+  reviews?: Record<string, Tables<"crowdfunding_reviews">>;
+  /** True when the authenticated user owns this profile */
+  isOwner?: boolean;
 }
 
-export default function BackedProjects({ projects, username, writingCounts }: BackedProjectsProps) {
-  const [filter, setFilter] = useState<StatusFilter>("all");
+export default function BackedProjects({ projects, username, writingCounts, reviewRatings = {}, reviews = {}, isOwner = false }: BackedProjectsProps) {
+  const [filter, setFilter] = useState<FilterValue>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
-  const filtered = filter === "all"
+  const statusFiltered = filter === "all"
     ? projects
-    : projects.filter((p) => {
-        // Map legacy statuses to new equivalents for filtering
-        const mapped = p.status === "active" ? "crowdfunding"
-          : p.status === "delivered" ? "received"
-          : p.status === "shipped" ? "shipping"
-          : p.status;
-        return mapped === filter;
-      });
+    : projects.filter((p) => normalizeStatus(p.status) === filter);
 
-  // Count including legacy status mappings
-  const statusBucket = (s: string) =>
-    s === "active" ? "crowdfunding"
-    : s === "delivered" ? "received"
-    : s === "shipped" ? "shipping"
-    : s;
-
-  const counts = {
-    all: projects.length,
-    crowdfunding: projects.filter((p) => statusBucket(p.status) === "crowdfunding").length,
-    in_production: projects.filter((p) => statusBucket(p.status) === "in_production").length,
-    shipping: projects.filter((p) => statusBucket(p.status) === "shipping").length,
-    received: projects.filter((p) => statusBucket(p.status) === "received").length,
-  };
-
-  const filters: { key: StatusFilter; label: string }[] = [
-    { key: "all", label: "All" },
-    ...(counts.crowdfunding > 0 ? [{ key: "crowdfunding" as StatusFilter, label: "Crowdfunding" }] : []),
-    ...(counts.in_production > 0 ? [{ key: "in_production" as StatusFilter, label: "In Production" }] : []),
-    ...(counts.shipping > 0 ? [{ key: "shipping" as StatusFilter, label: "Shipping" }] : []),
-    ...(counts.received > 0 ? [{ key: "received" as StatusFilter, label: "Received" }] : []),
-  ];
+  const filtered = search.trim()
+    ? statusFiltered.filter((p) => {
+        const q = search.toLowerCase();
+        return (
+          p.title.toLowerCase().includes(q) ||
+          ((p as any).short_name ?? "").toLowerCase().includes(q) ||
+          ((p as any).tagline ?? "").toLowerCase().includes(q) ||
+          (p.tags ?? []).some((t) => t.toLowerCase().includes(q))
+        );
+      })
+    : statusFiltered;
 
   return (
     <>
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {filters.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`font-mono text-[0.65rem] px-3 py-1 border-2 border-ink cursor-pointer transition-all ${
-              filter === f.key
-                ? "bg-ink text-bg font-bold"
-                : "bg-bg-card hover:bg-ink/5"
-            }`}
-            style={{ transform: "rotate(-0.3deg)" }}
-          >
-            {f.label} ({counts[f.key]})
-          </button>
-        ))}
+      {/* Tube Map Filter + View Toggle */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <TubeMapFilter
+            projects={projects}
+            activeFilter={filter}
+            onFilterChange={setFilter}
+          />
+        </div>
+        <div className="flex gap-1 flex-shrink-0 mt-1">
+          {(["grid", "calendar"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`font-mono text-[0.55rem] uppercase px-2.5 py-1 border-2 cursor-pointer transition-all ${
+                viewMode === mode
+                  ? "border-ink bg-ink text-bg font-bold"
+                  : "border-ink/20 hover:border-ink/40 bg-transparent"
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Search bar */}
+      <div className="mt-3">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search projects…"
+          className="w-full px-3 py-2 border-2 border-ink/20 bg-bg-card font-mono text-[0.75rem] focus:outline-none focus:border-ink/50 transition-colors placeholder:opacity-40"
+        />
+      </div>
+
+      {/* Calendar View */}
+      {viewMode === "calendar" && (
+        <CalendarView
+          projects={filtered}
+          onProjectClick={(p) => router.push(`/${username}/backed/${p.slug}`)}
+        />
+      )}
+
+      {/* Grid View */}
+      {viewMode === "grid" && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((project, i) => {
           const wCount = writingCounts[project.id] ?? 0;
+
+          // Countdown logic (normalise: "live" is a legacy alias for "crowdfunding")
+          const showCampaignCountdown = normalizeStatus(project.status) === "crowdfunding" && project.deadline;
+          const deliveryDeadline = project.est_delivery
+            ? parseDeliveryDeadline(project.est_delivery)
+            : null;
+          const showDeliveryCountdown =
+            (project.status === "in_production" || project.status === "shipped") &&
+            deliveryDeadline &&
+            deliveryDeadline.getTime() > Date.now();
+
           return (
             <div
               key={project.id}
-              className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col"
+              className="border-3 border-ink p-5 bg-bg-card card-hover flex flex-col cursor-pointer"
               style={{ transform: `rotate(${rotations[i % rotations.length]})` }}
+              onClick={() => router.push(`/${username}/backed/${project.slug}`)}
             >
-              {/* Image placeholder */}
-              {project.image_url ? (
-                <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
-                  <img
-                    src={project.image_url}
-                    alt={project.title}
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-20 mb-3 bg-ink/5 flex items-center justify-center border-2 border-ink/10">
-                  <span className="font-mono text-[0.6rem] opacity-30 uppercase">
-                    {project.platform}
-                  </span>
-                </div>
-              )}
-
-              {/* Header: short_name + tagline */}
-              <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight mb-0.5">
-                {project.external_url ? (
-                  <a
-                    href={project.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="no-underline hover:text-orange transition-colors"
-                  >
-                    {(project as any).short_name || project.title}
-                  </a>
+              {/* Image with countdown badge */}
+              <div className="relative">
+                {project.image_url ? (
+                  <div className="w-full mb-3 border-2 border-ink/10 bg-ink/5 flex items-center justify-center">
+                    <img
+                      src={project.image_url}
+                      alt={project.title}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
                 ) : (
-                  (project as any).short_name || project.title
+                  <div className="w-full h-20 mb-3 bg-ink/5 flex items-center justify-center border-2 border-ink/10">
+                    <span className="font-mono text-[0.6rem] opacity-30 uppercase">
+                      {project.platform}
+                    </span>
+                  </div>
                 )}
-              </h3>
+
+                {/* Campaign countdown badge overlay */}
+                {showCampaignCountdown && (
+                  <CountdownBadge
+                    deadline={project.deadline!}
+                    label="Ends in"
+                    color={statusHex(normalizeStatus(project.status))}
+                  />
+                )}
+
+                {/* Delivery countdown badge overlay */}
+                {showDeliveryCountdown && deliveryDeadline && (
+                  <CountdownBadge
+                    deadline={deliveryDeadline.toISOString()}
+                    label="Due"
+                    color={statusHex(normalizeStatus(project.status))}
+                  />
+                )}
+              </div>
+
+              {/* Header */}
+              <div className="flex items-start justify-between gap-1 mb-0.5">
+                <h3 className="font-head font-bold text-[0.9rem] uppercase leading-tight">
+                  {(project as any).short_name || project.title}
+                </h3>
+                {isOwner && (
+                  <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 -mt-1 -mr-1">
+                    <ContentActions
+                      contentType="crowdfunding_project"
+                      contentId={project.id}
+                      editData={{
+                        title: project.title,
+                        description: project.description ?? "",
+                        status: project.status,
+                        est_delivery: project.est_delivery ?? "",
+                        reward_tier: project.reward_tier ?? "",
+                        show_pledge_amount: project.show_pledge_amount ?? false,
+                        external_url: project.external_url ?? "",
+                        tags: project.tags ?? [],
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
               {(project as any).tagline && (
                 <p className="text-[0.72rem] italic opacity-50 leading-snug mb-1.5 line-clamp-2">
                   {(project as any).tagline}
                 </p>
               )}
-              <div className="mb-2">
+              <div className="mb-2 flex items-center gap-2">
                 <StatusPipeline status={project.status} />
+                {reviewRatings[project.id] !== undefined && (
+                  <StarRating rating={reviewRatings[project.id]} />
+                )}
               </div>
 
-              {/* Pledge amount (only if toggled on) */}
+              {/* Pledge amount */}
               {project.show_pledge_amount && project.pledge_amount && (
                 <p className="font-mono text-[0.75rem] font-bold mb-1">
                   {formatPledge(project.pledge_amount, project.pledge_currency)}
@@ -164,27 +236,34 @@ export default function BackedProjects({ projects, username, writingCounts }: Ba
                 </div>
               )}
 
-              {/* Writing link */}
-              {wCount > 0 && (
+              {/* Writing link / Review CTA */}
+              {wCount > 0 ? (
                 <div className="mt-3 pt-2 border-t border-ink/10">
+                  <span className="font-mono text-[0.6rem] font-semibold uppercase text-orange opacity-60">
+                    Has review
+                  </span>
+                </div>
+              ) : isOwner && (normalizeStatus(project.status) === "delivered" || normalizeStatus(project.status) === "shipped") && reviewRatings[project.id] === undefined ? (
+                <div className="mt-3 pt-2 border-t border-ink/10" onClick={(e) => e.stopPropagation()}>
                   <Link
-                    href={`/${username}/writings?crowdfunding=${project.slug}`}
-                    className="font-mono text-[0.6rem] font-semibold uppercase text-orange no-underline opacity-60 hover:opacity-100 transition-opacity"
+                    href={`/${username}/backed/${project.slug}#review`}
+                    className="font-mono text-[0.6rem] font-semibold uppercase text-orange no-underline hover:opacity-70 transition-opacity"
                   >
-                    Read my review →
+                    Leave a review →
                   </Link>
                 </div>
-              )}
+              ) : null}
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {filtered.length === 0 && (
         <p className="text-center opacity-40 font-mono text-[0.8rem] py-12">
           No projects match this filter.
         </p>
       )}
+
     </>
   );
 }

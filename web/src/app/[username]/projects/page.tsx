@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getProfileByUsername } from "@/lib/profiles";
 import { getProjectsForUser } from "@/lib/projects-data";
 import { countWritingsForEntities } from "@/lib/writing-links";
 import { getPublishedCrowdfundingProjects } from "@/lib/crowdfunding";
+import { getReviewRatingsForProjects, getReviewsByUser } from "@/lib/crowdfunding-reviews";
 import ProjectsTabs from "./ProjectsTabs";
 import { CardShell, TagChip } from "@/components/ui";
 
@@ -20,6 +22,10 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
 
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isOwner = user?.id === profile.id;
+
   const projects = await getProjectsForUser(profile.id);
 
   // Batch-fetch related writing counts for own projects
@@ -34,12 +40,21 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
   const hasBacked = backedProjects.length > 0;
 
   let backedWritingCounts: Record<string, number> = {};
+  let backedReviewRatings: Record<string, number | null> = {};
+  let backedReviews: Record<string, any> = {};
   if (hasBacked) {
-    const backedCountsMap = await countWritingsForEntities(
-      "crowdfunding",
-      backedProjects.map((p) => p.id)
-    );
+    const projectIds = backedProjects.map((p) => p.id);
+    const [backedCountsMap, ratingsMap, userReviews] = await Promise.all([
+      countWritingsForEntities("crowdfunding", projectIds),
+      getReviewRatingsForProjects(profile.id, projectIds),
+      getReviewsByUser(profile.id),
+    ]);
     backedWritingCounts = Object.fromEntries(backedCountsMap);
+    backedReviewRatings = Object.fromEntries(ratingsMap);
+    // Index reviews by project_id for lightbox
+    for (const review of userReviews) {
+      backedReviews[review.project_id] = review;
+    }
   }
 
   const activeTab = tab === "backed" && hasBacked ? "backed" : "projects";
@@ -143,6 +158,9 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
           projects={backedProjects}
           username={username}
           writingCounts={backedWritingCounts}
+          reviewRatings={backedReviewRatings}
+          reviews={backedReviews}
+          isOwner={isOwner}
         />
       )}
     </main>

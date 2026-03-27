@@ -10,6 +10,7 @@ export type WritingLink = {
   writing_id: string;
   entity_type: EntityType;
   entity_id: string;
+  is_primary: boolean;
   created_at: string;
 };
 

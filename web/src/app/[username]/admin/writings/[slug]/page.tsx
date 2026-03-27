@@ -64,7 +64,7 @@ export default async function EditWritingPage({
         likes: likes.filter((l) => l.id).map((l) => ({ id: l.id!, label: `${l.emoji} ${l.text}` })),
         dislikes: dislikes.filter((d) => d.id).map((d) => ({ id: d.id!, label: `${d.emoji} ${d.text}` })),
       }}
-      existingLinks={existingLinks.map((l) => ({ entity_type: l.entity_type, entity_id: l.entity_id }))}
+      existingLinks={existingLinks.map((l) => ({ entity_type: l.entity_type, entity_id: l.entity_id, is_primary: l.is_primary }))}
     />
   )
 }

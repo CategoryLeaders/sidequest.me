@@ -1,0 +1,8 @@
+{
+  "id": "2026-03-23T13-54-00_unified-card-design-system-consistent-h",
+  "queued_at": "2026-03-23T13:54:00.101142+00:00",
+  "subdomain": "www.sidequest.me",
+  "ticket": "",
+  "description": "Unified card design system: consistent hard shadow, mono type badge, date right-aligned in header, and inline context chip across all feed card types (Thought, Photo, Changelog, Bookmark, Quote, Question)",
+  "screenshot": null
+}

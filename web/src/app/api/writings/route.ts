@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data, error } = await (supabase as any)
     .from('writings')
-    .select('id, title, slug, status, tags, word_count, published_at, updated_at')
+    .select('id, title, slug, status, tags, word_count, published_at, updated_at, writing_links(entity_type, entity_id, is_primary)')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
 

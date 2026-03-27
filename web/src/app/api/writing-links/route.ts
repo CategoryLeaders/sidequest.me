@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 /**
  * PUT /api/writing-links
  * Sync writing links — replaces all links for a given writing.
- * Body: { writing_id: string, links: Array<{ entity_type: string, entity_id: string }> }
+ * Body: { writing_id: string, links: Array<{ entity_type: string, entity_id: string, is_primary?: boolean }> }
  */
 export async function PUT(req: NextRequest) {
   const supabase = await createClient()
@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest) {
 
   const body = await req.json() as {
     writing_id: string
-    links: Array<{ entity_type: string; entity_id: string }>
+    links: Array<{ entity_type: string; entity_id: string; is_primary?: boolean }>
   }
 
   if (!body.writing_id) {
@@ -43,6 +43,7 @@ export async function PUT(req: NextRequest) {
       writing_id: body.writing_id,
       entity_type: l.entity_type,
       entity_id: l.entity_id,
+      is_primary: l.is_primary ?? false,
     }))
 
     const { error } = await (supabase as any)
