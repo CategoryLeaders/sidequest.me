@@ -78,8 +78,7 @@ function CtxBadge({ co }: { co: CtxCompany }) {
 function PersonalBadge() {
   return (
     <span
-      className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-lg"
-      style={{ background: 'rgba(26,26,26,0.1)' }}
+      className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-lg bg-ink/10"
       title="Personal writing"
     >
       ✏️

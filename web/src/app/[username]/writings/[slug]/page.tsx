@@ -8,6 +8,7 @@ import { readTimeMinutes, excerptFromHtml } from '@/lib/writings'
 import { slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
 import { getLinksForWriting } from '@/lib/writing-links'
+import { TagChip } from '@/components/ui'
 
 interface Props {
   params: Promise<{ username: string; slug: string }>
@@ -122,10 +123,10 @@ export default async function WritingPostPage({ params }: Props) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-400 mb-8 flex items-center gap-2">
-        <Link href={`/${username}`} className="hover:text-gray-700">{username}</Link>
+      <nav className="text-sm text-ink/40 mb-8 flex items-center gap-2">
+        <Link href={`/${username}`} className="hover:text-ink/70">{username}</Link>
         <span>/</span>
-        <Link href={`/${username}/writings`} className="hover:text-gray-700">writings</Link>
+        <Link href={`/${username}/writings`} className="hover:text-ink/70">writings</Link>
         {writing.status !== 'published' && (
           <>
             <span>/</span>
@@ -139,7 +140,7 @@ export default async function WritingPostPage({ params }: Props) {
         <h1 className="text-4xl font-semibold tracking-tight leading-tight mb-4">
           {writing.title}
         </h1>
-        <div className="flex items-center gap-3 text-sm text-gray-400">
+        <div className="flex items-center gap-3 text-sm text-ink/40">
           {writing.published_at && (
             <time dateTime={writing.published_at}>
               {new Date(writing.published_at).toLocaleDateString('en-GB', {
@@ -157,7 +158,7 @@ export default async function WritingPostPage({ params }: Props) {
             href={writing.external_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-md hover:border-gray-400 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm text-ink/50 border border-ink/[var(--opacity-muted)] px-3 py-1.5 hover:border-ink/40 hover:text-ink/70 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             View original at {new URL(writing.external_url).hostname.replace(/^www\./, '')}
@@ -168,17 +169,15 @@ export default async function WritingPostPage({ params }: Props) {
             {writing.tags.map((tag) => {
               const siteTag = siteTags.find((st) => st.label === tag)
               return (
-                <Link
+                <TagChip
                   key={tag}
+                  label={tag}
                   href={
                     siteTag
                       ? `/${username}/writings/tags/${slugify(tag)}`
                       : `/${username}/writings?q=${encodeURIComponent(tag)}`
                   }
-                  className="text-xs text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full hover:border-gray-400 hover:text-gray-700 transition-colors"
-                >
-                  {tag}
-                </Link>
+                />
               )
             })}
           </div>
@@ -186,19 +185,19 @@ export default async function WritingPostPage({ params }: Props) {
         {/* Related to */}
         {hasLinks && (
           <div className="flex flex-wrap items-center gap-2 mt-4">
-            <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Related to</span>
+            <span className="text-xs text-ink/40 uppercase tracking-wide font-medium">Related to</span>
             {linkedCompanies.map((c) => (
               <Link
                 key={c.id}
                 href={`/${username}/professional`}
-                className="inline-flex items-center gap-1.5 text-xs border px-2.5 py-1 rounded-full hover:opacity-80 transition-colors no-underline"
+                className="inline-flex items-center gap-1.5 text-xs border px-2.5 py-1 hover:opacity-80 transition-colors no-underline"
                 style={{
                   borderColor: c.brand_colour ?? '#e5e7eb',
                   color: c.brand_colour ?? '#4b5563',
                 }}
               >
                 {c.logo && (
-                  <Image src={c.logo} alt={c.name} width={14} height={14} className="rounded-sm" />
+                  <Image src={c.logo} alt={c.name} width={14} height={14} />
                 )}
                 {c.name}
               </Link>
@@ -207,7 +206,7 @@ export default async function WritingPostPage({ params }: Props) {
               <Link
                 key={p.id}
                 href={`/${username}/projects`}
-                className="inline-flex items-center gap-1.5 text-xs border border-gray-200 px-2.5 py-1 rounded-full hover:border-gray-400 transition-colors no-underline text-gray-600"
+                className="inline-flex items-center gap-1.5 text-xs border border-ink/[var(--opacity-muted)] px-2.5 py-1 hover:border-ink/40 transition-colors no-underline text-ink/60"
               >
                 {p.title}
               </Link>
@@ -216,7 +215,7 @@ export default async function WritingPostPage({ params }: Props) {
               <Link
                 key={cf.id}
                 href={`/${username}/projects?tab=backed`}
-                className="inline-flex items-center gap-1.5 text-xs border border-orange/30 px-2.5 py-1 rounded-full hover:border-orange/60 transition-colors no-underline text-orange"
+                className="inline-flex items-center gap-1.5 text-xs border border-orange/30 px-2.5 py-1 hover:border-orange/60 transition-colors no-underline text-orange"
               >
                 🎯 {cf.title}
               </Link>
@@ -227,7 +226,7 @@ export default async function WritingPostPage({ params }: Props) {
 
       {/* Hero image */}
       {writing.image_url && (
-        <div className="mb-8 -mx-4 sm:mx-0 sm:rounded-lg overflow-hidden">
+        <div className="mb-8 -mx-4 sm:mx-0 overflow-hidden">
           <Image
             src={writing.image_url}
             alt={writing.title}
@@ -245,17 +244,17 @@ export default async function WritingPostPage({ params }: Props) {
           prose-headings:font-semibold
           prose-a:text-inherit prose-a:underline prose-a:underline-offset-2
           prose-code:before:content-none prose-code:after:content-none
-          prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-          prose-pre:bg-gray-900 prose-pre:text-gray-100
-          prose-blockquote:border-gray-300 prose-blockquote:text-gray-500"
+          prose-code:bg-ink/[0.06] prose-code:px-1 prose-code:py-0.5
+          prose-pre:bg-ink/90 prose-pre:text-[var(--bg)]
+          prose-blockquote:border-ink/30 prose-blockquote:text-ink/50"
         dangerouslySetInnerHTML={{ __html: writing.body_html ?? '' }}
       />
 
       {/* Footer */}
-      <footer className="mt-16 pt-8 border-t border-gray-100">
+      <footer className="mt-16 pt-8 border-t border-ink/10">
         <Link
           href={`/${username}/writings`}
-          className="text-sm text-gray-400 hover:text-gray-700"
+          className="text-sm text-ink/40 hover:text-ink/70"
         >
           ← All writings
         </Link>
@@ -263,7 +262,7 @@ export default async function WritingPostPage({ params }: Props) {
         {isOwner && (
           <Link
             href={`/${username}/admin/writings/${slug}`}
-            className="ml-6 text-sm text-gray-400 hover:text-gray-700"
+            className="ml-6 text-sm text-ink/40 hover:text-ink/70"
           >
             Edit post →
           </Link>

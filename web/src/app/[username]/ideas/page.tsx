@@ -179,7 +179,7 @@ export default async function IdeasPage({ params, searchParams }: Props) {
                           className={
                             isSiteTag
                               ? `sticker ${siteTag.color} text-[0.6rem] !px-2.5 !py-1 !border-2`
-                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono rounded-sm hover:border-ink/40 hover:text-ink/60 transition-colors'
+                              : 'inline-block text-[0.6rem] px-2.5 py-1 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors'
                           }
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,

@@ -34,10 +34,10 @@ function ToolbarButton({
       }}
       disabled={disabled}
       title={title}
-      className={`px-2 py-1 rounded text-sm font-mono transition-colors ${
+      className={`px-2 py-1 text-sm font-mono transition-colors ${
         active
           ? 'bg-black text-white'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-black'
+          : 'text-ink/60 hover:bg-ink/10 hover:text-ink'
       } ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       {children}
@@ -115,10 +115,10 @@ export default function WritingEditor({
   if (!editor) return null
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-bg-card">
+    <div className="border border-ink/[var(--opacity-muted)]  overflow-hidden bg-bg-card">
       {/* Toolbar */}
       {!readOnly && (
-        <div className="flex flex-wrap gap-0.5 p-2 border-b border-gray-200 bg-gray-50">
+        <div className="flex flex-wrap gap-0.5 p-2 border-b border-ink/[var(--opacity-muted)] bg-ink/[0.03]">
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive('bold')}
@@ -140,7 +140,7 @@ export default function WritingEditor({
             title="Inline code"
           >`</ToolbarButton>
 
-          <span className="w-px bg-gray-300 mx-1 self-stretch" />
+          <span className="w-px bg-ink/30 mx-1 self-stretch" />
 
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -153,7 +153,7 @@ export default function WritingEditor({
             title="Heading 3"
           >H3</ToolbarButton>
 
-          <span className="w-px bg-gray-300 mx-1 self-stretch" />
+          <span className="w-px bg-ink/30 mx-1 self-stretch" />
 
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -176,7 +176,7 @@ export default function WritingEditor({
             title="Code block"
           >{'</>'}</ToolbarButton>
 
-          <span className="w-px bg-gray-300 mx-1 self-stretch" />
+          <span className="w-px bg-ink/30 mx-1 self-stretch" />
 
           <ToolbarButton onClick={setLink} active={editor.isActive('link')} title="Link">
             🔗
@@ -204,7 +204,7 @@ export default function WritingEditor({
             </>
           )}
 
-          <span className="w-px bg-gray-300 mx-1 self-stretch" />
+          <span className="w-px bg-ink/30 mx-1 self-stretch" />
 
           <ToolbarButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -217,7 +217,7 @@ export default function WritingEditor({
             title="Redo"
           >↪</ToolbarButton>
 
-          <span className="ml-auto text-xs text-gray-400 self-center pr-1">
+          <span className="ml-auto text-xs text-ink/40 self-center pr-1">
             {editor.storage.characterCount.words()} words
           </span>
         </div>
@@ -229,7 +229,7 @@ export default function WritingEditor({
         className="prose prose-sm max-w-none p-4 min-h-[400px] focus-within:outline-none
           [&_.ProseMirror]:outline-none
           [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
-          [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-gray-400
+          [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-ink/40
           [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none
           [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left
           [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0"

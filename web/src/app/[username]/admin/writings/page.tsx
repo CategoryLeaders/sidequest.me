@@ -5,7 +5,7 @@ import type { Writing } from '@/lib/writings'
 import { readTimeMinutes } from '@/lib/writings'
 
 const STATUS_BADGE: Record<string, string> = {
-  draft:     'bg-gray-100 text-gray-600',
+  draft:     'bg-ink/[0.06] text-ink/60',
   scheduled: 'bg-yellow-100 text-yellow-700',
   published: 'bg-green-100 text-green-700',
   unlisted:  'bg-blue-100 text-blue-700',
@@ -76,26 +76,26 @@ export default async function AdminWritingsPage({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Writings</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-ink/50 mt-1">
             {published.length} published · {drafts.length} {drafts.length === 1 ? 'draft' : 'drafts'}
           </p>
         </div>
         <Link
           href={`/${username}/admin/writings/new`}
-          className="bg-black text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+          className="bg-black text-white text-sm px-4 py-2  hover:bg-ink/80 transition-colors"
         >
           + New post
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 mb-6 border-b border-ink/[var(--opacity-muted)]">
         <Link
           href={`/${username}/admin/writings`}
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             !showDrafts
               ? 'border-black text-black'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
+              : 'border-transparent text-ink/40 hover:text-ink/60'
           }`}
         >
           Published ({published.length})
@@ -105,7 +105,7 @@ export default async function AdminWritingsPage({
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             showDrafts
               ? 'border-black text-black'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
+              : 'border-transparent text-ink/40 hover:text-ink/60'
           }`}
         >
           Drafts ({drafts.length})
@@ -113,7 +113,7 @@ export default async function AdminWritingsPage({
       </div>
 
       {rows.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-ink/40">
           {showDrafts ? (
             <>
               <p className="text-lg mb-2">No drafts.</p>
@@ -141,31 +141,31 @@ export default async function AdminWritingsPage({
           )}
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-ink/10">
           {rows.map((w) => (
             <div key={w.id} className="py-4 flex items-start gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   {!showDrafts && (
                     <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[w.status!]}`}
+                      className={`text-xs font-medium px-2 py-0.5  ${STATUS_BADGE[w.status!]}`}
                     >
                       {STATUS_LABEL[w.status!]}
                     </span>
                   )}
                   {w.tags && w.tags.length > 0 && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-ink/40">
                       {w.tags.join(', ')}
                     </span>
                   )}
                 </div>
                 <Link
                   href={`/${username}/admin/writings/${w.slug}`}
-                  className="font-medium text-gray-900 hover:text-black line-clamp-1"
+                  className="font-medium text-ink/90 hover:text-black line-clamp-1"
                 >
                   {w.title}
                 </Link>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-ink/40 mt-1">
                   {w.word_count ? `${w.word_count} words · ${readTimeMinutes(w.word_count)} min read · ` : ''}
                   {w.status === 'published' && w.published_at
                     ? `Published ${new Date(w.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
@@ -175,14 +175,14 @@ export default async function AdminWritingsPage({
               <div className="flex gap-2 shrink-0">
                 <Link
                   href={`/${username}/admin/writings/${w.slug}`}
-                  className="text-xs text-gray-500 hover:text-black px-3 py-1.5 border border-gray-200 rounded-md hover:border-gray-400 transition-colors"
+                  className="text-xs text-ink/50 hover:text-black px-3 py-1.5 border border-ink/[var(--opacity-muted)]  hover:border-ink/40 transition-colors"
                 >
                   Edit
                 </Link>
                 {w.status === 'published' && (
                   <Link
                     href={`/${username}/writings/${w.slug}`}
-                    className="text-xs text-gray-500 hover:text-black px-3 py-1.5 border border-gray-200 rounded-md hover:border-gray-400 transition-colors"
+                    className="text-xs text-ink/50 hover:text-black px-3 py-1.5 border border-ink/[var(--opacity-muted)]  hover:border-ink/40 transition-colors"
                   >
                     View ↗
                   </Link>

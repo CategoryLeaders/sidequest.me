@@ -197,7 +197,7 @@ export default function Nav({
         ) : (
           <>
             <div
-              className="w-2 h-2 rounded-full bg-green"
+              className="w-2 h-2 bg-green"
               style={{ animation: "pulse 2s ease-in-out infinite" }}
             />
             <span className="font-mono text-[0.7rem] opacity-70">

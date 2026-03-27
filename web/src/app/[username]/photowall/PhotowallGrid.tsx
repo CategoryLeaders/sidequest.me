@@ -371,7 +371,7 @@ function Lightbox({
                   <button
                     key={i}
                     onClick={() => setCarouselIdx(i)}
-                    className={`w-2 h-2 rounded-full border border-ink cursor-pointer ${i === carouselIdx ? "bg-ink" : "bg-bg/80"}`}
+                    className={`w-2 h-2 border border-ink cursor-pointer ${i === carouselIdx ? "bg-ink" : "bg-bg/80"}`}
                   />
                 ))}
               </div>

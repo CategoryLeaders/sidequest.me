@@ -399,7 +399,7 @@ function MobileDotStrip({ counts, mergedFipCount, activeFilter, onFilterChange, 
               className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 p-1 flex-shrink-0"
             >
               <div
-                className="rounded-full transition-all"
+                className="transition-all"
                 style={{
                   width: isAct ? "28px" : "24px",
                   height: isAct ? "28px" : "24px",

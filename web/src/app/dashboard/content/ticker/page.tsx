@@ -12,7 +12,7 @@ export default async function TickerPage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8">
-        <p className="text-lg text-gray-600">Not authenticated</p>
+        <p className="text-lg text-ink/60">Not authenticated</p>
       </div>
     );
   }

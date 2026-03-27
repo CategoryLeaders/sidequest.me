@@ -70,7 +70,7 @@ function PhotoDisplay({
               type="button"
               onClick={(e) => { e.stopPropagation(); onFeature?.(idx) }}
               title={isFeatured ? 'Featured (click another to change)' : 'Set as featured photo'}
-              className={`absolute top-2 right-2 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] transition-all cursor-pointer z-10 ${
+              className={`absolute top-2 right-2 w-[22px] h-[22px] flex items-center justify-center text-[11px] transition-all cursor-pointer z-10 ${
                 isFeatured
                   ? 'bg-orange text-white opacity-100 shadow-md'
                   : 'bg-black/50 text-white/80 opacity-60 hover:opacity-100 hover:bg-orange/80'

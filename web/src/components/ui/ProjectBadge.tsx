@@ -39,7 +39,7 @@ export function ProjectBadge({ project, username, className = "" }: Props) {
       href={`${projectPath}/${project.slug}`}
       className={`inline-flex items-center gap-1.5 text-[var(--text-xs)] font-mono opacity-50 hover:opacity-80 transition-opacity no-underline ${className}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${dotColor} flex-shrink-0`} />
+      <span className={`w-1.5 h-1.5 ${dotColor} flex-shrink-0`} />
       <span>{project.name}</span>
     </Link>
   );

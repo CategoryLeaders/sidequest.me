@@ -77,7 +77,7 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
     <div className="space-y-6">
       <div>
         <h3 className="font-head font-bold text-sm uppercase tracking-wide mb-1">API Keys</h3>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-ink/50">
           Issue keys to external sites that consume your writings API. Each key can be revoked
           independently. The full key is shown only once on creation.
         </p>
@@ -116,13 +116,13 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
           onChange={(e) => setNewLabel(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           placeholder="Key label (e.g. Category Leaders)"
-          className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-gray-400"
+          className="flex-1 border border-ink/[var(--opacity-muted)]  px-3 py-2 text-sm outline-none focus:border-ink/40"
         />
         <button
           type="button"
           onClick={handleCreate}
           disabled={creating || !newLabel.trim()}
-          className="bg-black text-white text-sm px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-40 transition-colors whitespace-nowrap"
+          className="bg-black text-white text-sm px-4 py-2  hover:bg-ink/80 disabled:opacity-40 transition-colors whitespace-nowrap"
         >
           {creating ? 'Creating…' : 'Generate key'}
         </button>
@@ -132,16 +132,16 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
 
       {/* Key list */}
       {loading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-ink/40">Loading…</p>
       ) : keys.length === 0 ? (
-        <p className="text-sm text-gray-400">No active keys. Generate one above.</p>
+        <p className="text-sm text-ink/40">No active keys. Generate one above.</p>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-ink/10">
           {keys.map((k) => (
             <div key={k.id} className="py-3 flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-800">{k.label}</p>
-                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                <p className="text-sm font-medium text-ink/80">{k.label}</p>
+                <p className="text-xs text-ink/40 font-mono mt-0.5">
                   {k.key_prefix}••••••••
                   <span className="ml-3 non-mono font-sans">
                     Created {new Date(k.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -155,7 +155,7 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
                 type="button"
                 onClick={() => handleRevoke(k.id)}
                 disabled={revoking === k.id}
-                className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-md transition-colors disabled:opacity-40"
+                className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5  transition-colors disabled:opacity-40"
               >
                 {revoking === k.id ? 'Revoking…' : 'Revoke'}
               </button>
@@ -164,8 +164,8 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
         </div>
       )}
 
-      <div className="text-xs text-gray-400 border-t border-gray-100 pt-4">
-        Base URL: <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono">https://api.sidequest.me/content/writings?username={'{username}'}</code>
+      <div className="text-xs text-ink/40 border-t border-ink/10 pt-4">
+        Base URL: <code className="bg-ink/[0.06] px-1.5 py-0.5 rounded font-mono">https://api.sidequest.me/content/writings?username={'{username}'}</code>
       </div>
     </div>
   )

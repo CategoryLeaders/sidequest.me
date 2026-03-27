@@ -368,7 +368,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                           }
                           variant={isSiteTag ? 'sticker' : 'default'}
                           color={isSiteTag ? siteTag.color.replace('sticker-', '') : undefined}
-                          className={isSiteTag ? '' : 'rounded-sm'}
+                          className=""
                           style={{
                             transform: `rotate(${tagRotations[j % tagRotations.length]})`,
                           }}

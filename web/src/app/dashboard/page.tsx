@@ -133,7 +133,7 @@ function StatCard({ label, count, accentColor }: StatCardProps) {
         transform: `rotate(${randomRotation}deg)`,
       }}
     >
-      <p className="font-space-mono text-xs tracking-widest text-gray-500 mb-4 uppercase">
+      <p className="font-space-mono text-xs tracking-widest text-ink/50 mb-4 uppercase">
         {label}
       </p>
       <p
@@ -152,7 +152,7 @@ export default async function DashboardPage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
-        <p className="text-lg text-gray-600">Not authenticated</p>
+        <p className="text-lg text-ink/60">Not authenticated</p>
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default async function DashboardPage() {
           <h1 className="font-archivo text-4xl md:text-5xl font-900 tracking-tight mb-2 uppercase">
             Welcome back, {displayName.toUpperCase()}
           </h1>
-          <p className="font-dm-sans text-gray-600 text-base">
+          <p className="font-dm-sans text-ink/60 text-base">
             Here's what's happening across your SideQuest life.
           </p>
         </div>
@@ -221,7 +221,7 @@ export default async function DashboardPage() {
           </h2>
 
           {recentEvents.length === 0 ? (
-            <p className="text-gray-500 font-dm-sans">
+            <p className="text-ink/50 font-dm-sans">
               No recent activity yet.
             </p>
           ) : (
@@ -233,19 +233,19 @@ export default async function DashboardPage() {
                 return (
                   <li key={event.id} className="flex items-start gap-4">
                     <div
-                      className="w-3 h-3 rounded-full mt-2 flex-shrink-0"
+                      className="w-3 h-3 mt-2 flex-shrink-0"
                       style={{ backgroundColor: dotColor }}
                     />
                     <div className="flex-1">
-                      <p className="font-dm-sans font-semibold text-gray-900">
+                      <p className="font-dm-sans font-semibold text-ink/90">
                         {event.title}
                       </p>
                       {event.description && (
-                        <p className="font-dm-sans text-sm text-gray-600 mt-1">
+                        <p className="font-dm-sans text-sm text-ink/60 mt-1">
                           {event.description}
                         </p>
                       )}
-                      <p className="font-dm-sans text-xs text-gray-400 mt-2">
+                      <p className="font-dm-sans text-xs text-ink/40 mt-2">
                         {ago}
                       </p>
                     </div>

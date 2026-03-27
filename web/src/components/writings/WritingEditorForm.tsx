@@ -273,19 +273,19 @@ export default function WritingEditorForm({
       {/* Back */}
       <a
         href={`/${username}/admin/writings`}
-        className="text-sm text-gray-400 hover:text-gray-700 mb-6 inline-block"
+        className="text-sm text-ink/40 hover:text-ink/70 mb-6 inline-block"
       >
         ← All writings
       </a>
 
       {/* Hero Image — drag/drop + click to upload */}
       <div
-        className={`relative w-full mb-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+        className={`relative w-full mb-6  border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
           heroDragOver
             ? 'border-blue-400 bg-blue-50'
             : imageUrl
               ? 'border-transparent'
-              : 'border-gray-200 hover:border-gray-400'
+              : 'border-ink/[var(--opacity-muted)] hover:border-ink/40'
         }`}
         onDragOver={(e) => { e.preventDefault(); setHeroDragOver(true) }}
         onDragLeave={() => setHeroDragOver(false)}
@@ -315,13 +315,13 @@ export default function WritingEditorForm({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setImageUrl(''); setSaved(false) }}
-              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white  w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ×
             </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-10 text-ink/40">
             {heroUploading ? (
               <span className="text-sm">Uploading…</span>
             ) : (
@@ -341,16 +341,16 @@ export default function WritingEditorForm({
         value={title}
         onChange={(e) => handleTitleChange(e.target.value)}
         placeholder="Post title"
-        className="w-full text-3xl font-semibold placeholder-gray-300 border-none outline-none mb-2 bg-transparent"
+        className="w-full text-3xl font-semibold placeholder-ink/30 border-none outline-none mb-2 bg-transparent"
       />
 
       {/* Slug */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+      <div className="flex items-center gap-2 text-sm text-ink/40 mb-6">
         <span className="shrink-0">{username}/writings/</span>
         <input
           value={slug}
           onChange={(e) => handleSlugChange(e.target.value)}
-          className="flex-1 border-b border-dashed border-gray-300 outline-none text-gray-600 bg-transparent pb-0.5 min-w-0"
+          className="flex-1 border-b border-dashed border-ink/30 outline-none text-ink/60 bg-transparent pb-0.5 min-w-0"
           placeholder="slug"
         />
       </div>
@@ -364,7 +364,7 @@ export default function WritingEditorForm({
 
       {/* Tags — always expanded */}
       <div className="mt-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+        <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-3">
           Tags{tags.length > 0 && ` (${tags.length})`}
         </p>
 
@@ -394,18 +394,18 @@ export default function WritingEditorForm({
             onChange={(e) => setCustomTag(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
             placeholder="Add custom tag…"
-            className="text-sm border border-gray-200 rounded-md px-3 py-1.5 outline-none focus:border-gray-400 w-48"
+            className="text-sm border border-ink/[var(--opacity-muted)]  px-3 py-1.5 outline-none focus:border-ink/40 w-48"
           />
           {tags.filter((t) => !availableTags.some((st) => st.label === t)).map((t) => (
             <span
               key={t}
-              className="flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-gray-300 text-gray-600"
+              className="flex items-center gap-1 px-3 py-1  text-sm border border-ink/30 text-ink/60"
             >
               {t}
               <button
                 type="button"
                 onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
-                className="text-gray-400 hover:text-black ml-0.5"
+                className="text-ink/40 hover:text-black ml-0.5"
               >
                 ×
               </button>
@@ -417,22 +417,22 @@ export default function WritingEditorForm({
       {/* Related to — link picker */}
       {hasLinkable && (
         <div className="mt-6">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Related to</p>
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">Related to</p>
 
           {/* Companies */}
           {linkableEntities!.companies.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-400 mb-1.5">Companies</p>
+              <p className="text-xs text-ink/40 mb-1.5">Companies</p>
               <div className="flex flex-wrap gap-2">
                 {linkableEntities!.companies.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => toggleLink('company', c.id)}
-                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                    className={`px-3 py-1  text-sm border transition-all ${
                       isLinked('company', c.id)
                         ? 'text-white'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                        : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                     }`}
                     style={isLinked('company', c.id)
                       ? { background: c.brandColour ?? '#000', borderColor: c.brandColour ?? '#000' }
@@ -446,7 +446,7 @@ export default function WritingEditorForm({
               {/* Primary selector — only shown when 2+ companies are linked */}
               {linkedCompanies.length >= 2 && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-gray-400">Primary context:</span>
+                  <span className="text-xs text-ink/40">Primary context:</span>
                   {linkableEntities!.companies
                     .filter((c) => isLinked('company', c.id))
                     .map((c) => (
@@ -454,10 +454,10 @@ export default function WritingEditorForm({
                         key={c.id}
                         type="button"
                         onClick={() => setPrimaryLink('company', c.id)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-all ${
+                        className={`flex items-center gap-1 px-2.5 py-1  text-xs border transition-all ${
                           isPrimary('company', c.id)
                             ? 'text-white font-medium'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                            : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                         }`}
                         style={isPrimary('company', c.id)
                           ? { background: c.brandColour ?? '#000', borderColor: c.brandColour ?? '#000' }
@@ -476,17 +476,17 @@ export default function WritingEditorForm({
           {/* Projects */}
           {linkableEntities!.projects.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-400 mb-1.5">Projects</p>
+              <p className="text-xs text-ink/40 mb-1.5">Projects</p>
               <div className="flex flex-wrap gap-2">
                 {linkableEntities!.projects.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => toggleLink('project', p.id)}
-                    className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                    className={`px-3 py-1  text-sm border transition-all ${
                       isLinked('project', p.id)
                         ? 'border-black bg-black text-white'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                        : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                     }`}
                   >
                     {p.name}
@@ -504,17 +504,17 @@ export default function WritingEditorForm({
             const hasMore = allBacked.length > limit
             return (
               <div className="mb-3">
-                <p className="text-xs text-gray-400 mb-1.5">Backed Projects</p>
+                <p className="text-xs text-ink/40 mb-1.5">Backed Projects</p>
                 <div className="flex flex-wrap gap-2">
                   {shown.map((cf) => (
                     <button
                       key={cf.id}
                       type="button"
                       onClick={() => toggleLink('crowdfunding', cf.id)}
-                      className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      className={`px-3 py-1  text-sm border transition-all ${
                         isLinked('crowdfunding', cf.id)
                           ? 'border-orange bg-orange text-white'
-                          : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                          : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                       }`}
                     >
                       {cf.name}
@@ -524,7 +524,7 @@ export default function WritingEditorForm({
                     <button
                       type="button"
                       onClick={() => setBackedExpanded(true)}
-                      className="px-3 py-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                      className="px-3 py-1 text-sm text-ink/40 hover:text-ink/70 transition-colors"
                     >
                       +{allBacked.length - limit} more…
                     </button>
@@ -533,7 +533,7 @@ export default function WritingEditorForm({
                     <button
                       type="button"
                       onClick={() => setBackedExpanded(false)}
-                      className="px-3 py-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                      className="px-3 py-1 text-sm text-ink/40 hover:text-ink/70 transition-colors"
                     >
                       Show less
                     </button>
@@ -551,17 +551,17 @@ export default function WritingEditorForm({
             const hasMore = all.length > limit
             return (
               <div className="mb-3">
-                <p className="text-xs text-gray-400 mb-1.5">Likes</p>
+                <p className="text-xs text-ink/40 mb-1.5">Likes</p>
                 <div className="flex flex-wrap gap-2">
                   {shown.map((l) => (
                     <button
                       key={l.id}
                       type="button"
                       onClick={() => toggleLink('like', l.id)}
-                      className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      className={`px-3 py-1  text-sm border transition-all ${
                         isLinked('like', l.id)
                           ? 'border-green-600 bg-green-600 text-white'
-                          : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                          : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                       }`}
                     >
                       {l.label}
@@ -571,7 +571,7 @@ export default function WritingEditorForm({
                     <button
                       type="button"
                       onClick={() => setHashtagsExpanded(true)}
-                      className="px-3 py-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                      className="px-3 py-1 text-sm text-ink/40 hover:text-ink/70 transition-colors"
                     >
                       +{all.length - limit} more…
                     </button>
@@ -589,17 +589,17 @@ export default function WritingEditorForm({
             const hasMore = all.length > limit
             return (
               <div className="mb-3">
-                <p className="text-xs text-gray-400 mb-1.5">Hates</p>
+                <p className="text-xs text-ink/40 mb-1.5">Hates</p>
                 <div className="flex flex-wrap gap-2">
                   {shown.map((d) => (
                     <button
                       key={d.id}
                       type="button"
                       onClick={() => toggleLink('dislike', d.id)}
-                      className={`px-3 py-1 rounded-full text-sm border transition-all ${
+                      className={`px-3 py-1  text-sm border transition-all ${
                         isLinked('dislike', d.id)
                           ? 'border-red-600 bg-red-600 text-white'
-                          : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                          : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                       }`}
                     >
                       {d.label}
@@ -609,7 +609,7 @@ export default function WritingEditorForm({
                     <button
                       type="button"
                       onClick={() => setHashtagsExpanded(true)}
-                      className="px-3 py-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                      className="px-3 py-1 text-sm text-ink/40 hover:text-ink/70 transition-colors"
                     >
                       +{all.length - limit} more…
                     </button>
@@ -624,7 +624,7 @@ export default function WritingEditorForm({
             <button
               type="button"
               onClick={() => setHashtagsExpanded(false)}
-              className="text-xs text-gray-400 hover:text-gray-700 transition-colors mt-1"
+              className="text-xs text-ink/40 hover:text-ink/70 transition-colors mt-1"
             >
               Show less
             </button>
@@ -635,22 +635,22 @@ export default function WritingEditorForm({
       {/* Publish date + External URL */}
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Publish date</p>
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">Publish date</p>
           <input
             type="date"
             value={publishedAt ? new Date(publishedAt).toISOString().split('T')[0] : ''}
             onChange={(e) => { setPublishedAt(e.target.value ? new Date(e.target.value + 'T12:00:00').toISOString() : ''); setSaved(false) }}
-            className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+            className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
           />
-          <p className="text-xs text-gray-400 mt-1">Leave empty to auto-set on publish</p>
+          <p className="text-xs text-ink/40 mt-1">Leave empty to auto-set on publish</p>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">External URL</p>
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">External URL</p>
           <input
             value={externalUrl}
             onChange={(e) => { setExternalUrl(e.target.value); setSaved(false) }}
             placeholder="https://… (link to the original if hosted elsewhere)"
-            className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+            className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
           />
         </div>
       </div>
@@ -663,7 +663,7 @@ export default function WritingEditorForm({
           type="button"
           onClick={() => save()}
           disabled={isPending || !title.trim()}
-          className="bg-black text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-800 disabled:opacity-40 transition-colors"
+          className="bg-black text-white text-sm px-5 py-2.5  hover:bg-ink/80 disabled:opacity-40 transition-colors"
         >
           {isPending ? 'Saving…' : saved ? 'Saved ✓' : statusLabel[status]}
         </button>
@@ -674,7 +674,7 @@ export default function WritingEditorForm({
             type="button"
             onClick={() => save('published')}
             disabled={isPending || !title.trim()}
-            className="text-sm px-4 py-2.5 border border-gray-200 rounded-lg hover:border-gray-400 text-gray-600 disabled:opacity-40 transition-colors"
+            className="text-sm px-4 py-2.5 border border-ink/[var(--opacity-muted)]  hover:border-ink/40 text-ink/60 disabled:opacity-40 transition-colors"
           >
             Publish now
           </button>
@@ -684,7 +684,7 @@ export default function WritingEditorForm({
             type="button"
             onClick={() => save('unlisted')}
             disabled={isPending}
-            className="text-sm px-4 py-2.5 border border-gray-200 rounded-lg hover:border-gray-400 text-gray-600 disabled:opacity-40 transition-colors"
+            className="text-sm px-4 py-2.5 border border-ink/[var(--opacity-muted)]  hover:border-ink/40 text-ink/60 disabled:opacity-40 transition-colors"
           >
             Unpublish
           </button>
@@ -694,7 +694,7 @@ export default function WritingEditorForm({
             type="button"
             onClick={() => save('draft')}
             disabled={isPending}
-            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+            className="text-sm text-ink/40 hover:text-ink/70 transition-colors"
           >
             Revert to draft
           </button>
@@ -709,14 +709,14 @@ export default function WritingEditorForm({
                 type="button"
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-40 transition-colors"
+                className="text-xs px-3 py-1.5 bg-red-600 text-white  hover:bg-red-700 disabled:opacity-40 transition-colors"
               >
                 {isPending ? 'Deleting…' : 'Yes, delete'}
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-xs text-ink/40 hover:text-ink/60 transition-colors"
               >
                 Cancel
               </button>
@@ -725,7 +725,7 @@ export default function WritingEditorForm({
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="ml-auto text-xs text-gray-300 hover:text-red-500 transition-colors"
+              className="ml-auto text-xs text-ink/30 hover:text-red-500 transition-colors"
             >
               Delete
             </button>
@@ -733,7 +733,7 @@ export default function WritingEditorForm({
         )}
 
         {(isNew || confirmDelete) && (
-          <span className={`${confirmDelete ? '' : 'ml-auto'} text-xs text-gray-400`}>
+          <span className={`${confirmDelete ? '' : 'ml-auto'} text-xs text-ink/40`}>
             {wordCount} words
           </span>
         )}

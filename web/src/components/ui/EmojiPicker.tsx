@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 
 const Picker = dynamic(() => import('@emoji-mart/react').then((m) => m.default), {
   ssr: false,
-  loading: () => <div className="w-[352px] h-[435px] bg-white border border-gray-200 rounded-lg flex items-center justify-center text-sm text-gray-400">Loading...</div>,
+  loading: () => <div className="w-[352px] h-[435px] bg-[var(--bg-card)] border border-ink/[var(--opacity-muted)] flex items-center justify-center text-sm text-ink/40">Loading...</div>,
 })
 
 interface EmojiPickerProps {
@@ -45,14 +45,14 @@ export default function EmojiPicker({ value, onChange }: EmojiPickerProps) {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onChange(''); }}
-          className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center hover:bg-red-600"
+          className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[8px] flex items-center justify-center hover:bg-red-600"
           title="Remove icon"
         >
           ✕
         </button>
       )}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-2 shadow-xl rounded-lg">
+        <div className="absolute z-50 top-full left-0 mt-2 shadow-xl">
           <Picker
             data={async () => (await import('@emoji-mart/data')).default}
             onEmojiSelect={(emoji: { native: string }) => {

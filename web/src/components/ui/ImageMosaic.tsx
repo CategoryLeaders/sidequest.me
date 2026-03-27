@@ -109,7 +109,7 @@ function Lightbox({
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
               {images.map((_, i) => (
                 <button key={i} onClick={() => setIdx(i)}
-                  className={`w-2 h-2 rounded-full border border-ink/60 cursor-pointer transition-colors ${i === idx ? 'bg-white' : 'bg-white/20'}`}
+                  className={`w-2 h-2 border border-ink/60 cursor-pointer transition-colors ${i === idx ? 'bg-white' : 'bg-white/20'}`}
                 />
               ))}
             </div>

@@ -69,21 +69,22 @@ export function ActionMenu({
   } : undefined);
 
   return (
-    <div className={`relative ${className}`} ref={menuRef}>
-      <button
-        onClick={() => {
-          setOpen(!open);
-          setConfirming(false);
-        }}
-        className="w-7 h-7 flex items-center justify-center text-[var(--text-sm)] opacity-30 hover:opacity-70 transition-opacity font-bold"
-        aria-label="Actions"
-        title="Actions"
-      >
-        &middot;&middot;&middot;
-      </button>
+    <div className={className} ref={menuRef}>
+      <div className="relative">
+        <button
+          onClick={() => {
+            setOpen(!open);
+            setConfirming(false);
+          }}
+          className="w-7 h-7 flex items-center justify-center text-[var(--text-sm)] opacity-30 hover:opacity-70 transition-opacity font-bold"
+          aria-label="Actions"
+          title="Actions"
+        >
+          &middot;&middot;&middot;
+        </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 border-2 border-ink bg-[var(--bg-card)] min-w-[140px] shadow-[3px_3px_0_var(--ink)]">
+        {open && (
+          <div className="absolute right-0 top-full mt-1 z-50 border-2 border-ink bg-[var(--bg-card)] min-w-[140px] shadow-[3px_3px_0_var(--ink)]">
           {handleShare && (
             <button
               onClick={() => {
@@ -141,7 +142,8 @@ export function ActionMenu({
             </>
           )}
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

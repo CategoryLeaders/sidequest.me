@@ -124,17 +124,17 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
     <div className="max-w-3xl mx-auto px-4 py-10">
       <a
         href={`/${username}/admin/adventures`}
-        className="text-sm text-gray-400 hover:text-gray-700 mb-6 inline-block"
+        className="text-sm text-ink/40 hover:text-ink/70 mb-6 inline-block"
       >
         ← All adventures
       </a>
 
       {/* Cover Image — drag/drop */}
       <div
-        className={`relative w-full mb-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+        className={`relative w-full mb-6  border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
           coverDragOver ? 'border-blue-400 bg-blue-50'
             : coverUrl ? 'border-transparent'
-            : 'border-gray-200 hover:border-gray-400'
+            : 'border-ink/[var(--opacity-muted)] hover:border-ink/40'
         }`}
         onDragOver={(e) => { e.preventDefault(); setCoverDragOver(true) }}
         onDragLeave={() => setCoverDragOver(false)}
@@ -160,13 +160,13 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setCoverUrl(''); setSaved(false) }}
-              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white  w-7 h-7 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ×
             </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-10 text-ink/40">
             {coverUploading ? (
               <span className="text-sm">Uploading…</span>
             ) : (
@@ -186,16 +186,16 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
         value={title}
         onChange={(e) => handleTitleChange(e.target.value)}
         placeholder="Adventure title"
-        className="w-full text-3xl font-semibold placeholder-gray-300 border-none outline-none mb-2 bg-transparent"
+        className="w-full text-3xl font-semibold placeholder-ink/30 border-none outline-none mb-2 bg-transparent"
       />
 
       {/* Slug */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+      <div className="flex items-center gap-2 text-sm text-ink/40 mb-6">
         <span className="shrink-0">{username}/adventures/</span>
         <input
           value={slug}
           onChange={(e) => { setSlugManual(true); setSlug(slugifyAdventure(e.target.value)); setSaved(false) }}
-          className="flex-1 border-b border-dashed border-gray-300 outline-none text-gray-600 bg-transparent pb-0.5 min-w-0"
+          className="flex-1 border-b border-dashed border-ink/30 outline-none text-ink/60 bg-transparent pb-0.5 min-w-0"
           placeholder="slug"
         />
       </div>
@@ -206,12 +206,12 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
         onChange={(e) => { setDescription(e.target.value); setSaved(false) }}
         placeholder="Brief description — what is this adventure?"
         rows={2}
-        className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent resize-none mb-6"
+        className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent resize-none mb-6"
       />
 
       {/* Layout Theme Selector */}
       <div className="mb-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Layout Theme</p>
+        <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-3">Layout Theme</p>
         <div className="grid grid-cols-5 gap-3">
           {LAYOUT_THEMES.map((theme) => {
             const meta = THEME_META[theme]
@@ -221,17 +221,17 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                 key={theme}
                 type="button"
                 onClick={() => { setLayoutTheme(theme); setSaved(false) }}
-                className={`text-left p-3 rounded-lg border-2 transition-all ${
+                className={`text-left p-3  border-2 transition-all ${
                   selected
                     ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-gray-400'
+                    : 'border-ink/[var(--opacity-muted)] hover:border-ink/40'
                 }`}
               >
                 <div className="text-2xl mb-1">{meta.icon}</div>
-                <div className={`text-xs font-medium ${selected ? 'text-orange-700' : 'text-gray-700'}`}>
+                <div className={`text-xs font-medium ${selected ? 'text-orange-700' : 'text-ink/70'}`}>
                   {meta.label}
                 </div>
-                <div className="text-[10px] text-gray-400 mt-1 line-clamp-2">
+                <div className="text-[10px] text-ink/40 mt-1 line-clamp-2">
                   {meta.bestFor}
                 </div>
               </button>
@@ -243,34 +243,34 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
       {/* Dates + Location + Status */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Start date</p>
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">Start date</p>
           <input
             type="date"
             value={startDate}
             onChange={(e) => { setStartDate(e.target.value); setSaved(false) }}
-            className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+            className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
           />
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">End date</p>
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">End date</p>
           <input
             type="date"
             value={endDate}
             onChange={(e) => { setEndDate(e.target.value); setSaved(false) }}
-            className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+            className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
           />
         </div>
       </div>
 
       {/* Location type toggle + editor */}
       <div className="mb-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Location</p>
+        <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">Location</p>
         <div className="flex gap-2 mb-3">
           <button
             type="button"
             onClick={() => { setLocationType('single'); setSaved(false) }}
-            className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
-              locationType === 'single' ? 'border-gray-800 bg-gray-800 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'
+            className={`px-3 py-1.5 text-xs  border transition-all ${
+              locationType === 'single' ? 'border-ink bg-ink text-white' : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
             }`}
           >
             📍 Single location
@@ -278,8 +278,8 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
           <button
             type="button"
             onClick={() => { setLocationType('multi'); setSaved(false) }}
-            className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
-              locationType === 'multi' ? 'border-gray-800 bg-gray-800 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'
+            className={`px-3 py-1.5 text-xs  border transition-all ${
+              locationType === 'multi' ? 'border-ink bg-ink text-white' : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
             }`}
           >
             🗺️ Route (multiple stops)
@@ -291,13 +291,13 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
             value={locationName}
             onChange={(e) => { setLocationName(e.target.value); setSaved(false) }}
             placeholder="Black Rock City, NV"
-            className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+            className="w-full text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
           />
         ) : (
           <div className="space-y-2">
             {route.map((wp, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 w-5 text-center flex-shrink-0">{i + 1}</span>
+                <span className="text-xs text-ink/40 w-5 text-center flex-shrink-0">{i + 1}</span>
                 <input
                   value={wp.name}
                   onChange={(e) => {
@@ -307,7 +307,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                     setSaved(false)
                   }}
                   placeholder={`Stop ${i + 1}`}
-                  className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-2 outline-none focus:border-gray-400 bg-transparent"
+                  className="flex-1 text-sm border border-ink/[var(--opacity-muted)]  px-3 py-2 outline-none focus:border-ink/40 bg-transparent"
                 />
                 <input
                   type="date"
@@ -319,7 +319,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                     setSaved(false)
                   }}
                   title="Arrival date"
-                  className="text-xs border border-gray-200 rounded-md px-2 py-2 outline-none focus:border-gray-400 bg-transparent w-32"
+                  className="text-xs border border-ink/[var(--opacity-muted)]  px-2 py-2 outline-none focus:border-ink/40 bg-transparent w-32"
                 />
                 <button
                   type="button"
@@ -327,7 +327,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                     setRoute((prev) => prev.filter((_, j) => j !== i))
                     setSaved(false)
                   }}
-                  className="text-xs text-gray-300 hover:text-red-500 transition-colors"
+                  className="text-xs text-ink/30 hover:text-red-500 transition-colors"
                   title="Remove stop"
                 >
                   ✕
@@ -341,16 +341,16 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                 setRoute((prev) => [...prev, newWp])
                 setSaved(false)
               }}
-              className="text-xs text-gray-500 hover:text-gray-800 transition-colors mt-1"
+              className="text-xs text-ink/50 hover:text-ink/80 transition-colors mt-1"
             >
               + Add stop
             </button>
 
             {/* Route summary */}
             {route.filter((w) => w.name.trim()).length > 1 && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 mb-2">Route preview</p>
-                <p className="text-sm text-gray-600">
+              <div className="mt-3 pt-3 border-t border-ink/10">
+                <p className="text-xs text-ink/40 mb-2">Route preview</p>
+                <p className="text-sm text-ink/60">
                   {route.filter((w) => w.name.trim()).map((w) => w.name.trim()).join(' → ')}
                 </p>
               </div>
@@ -358,9 +358,9 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
 
             {/* Auto-suggest chapters */}
             {route.filter((w) => w.name.trim()).length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="mt-3 pt-3 border-t border-ink/10">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-gray-400">Chapters from route</p>
+                  <p className="text-xs text-ink/40">Chapters from route</p>
                   {route.filter((w) => w.name.trim()).length > 0 && chapters.length === 0 && (
                     <button
                       type="button"
@@ -381,7 +381,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                   <div className="space-y-1.5">
                     {chapters.map((ch, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-300 w-5 text-center flex-shrink-0">Ch.{i + 1}</span>
+                        <span className="text-xs text-ink/30 w-5 text-center flex-shrink-0">Ch.{i + 1}</span>
                         <input
                           value={ch.title}
                           onChange={(e) => {
@@ -390,7 +390,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                             setChapters(next)
                             setSaved(false)
                           }}
-                          className="flex-1 text-sm border border-gray-100 rounded-md px-3 py-1.5 outline-none focus:border-gray-300 bg-transparent"
+                          className="flex-1 text-sm border border-ink/10  px-3 py-1.5 outline-none focus:border-ink/30 bg-transparent"
                         />
                         <button
                           type="button"
@@ -398,7 +398,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                             setChapters((prev) => prev.filter((_, j) => j !== i))
                             setSaved(false)
                           }}
-                          className="text-xs text-gray-300 hover:text-red-500 transition-colors"
+                          className="text-xs text-ink/30 hover:text-red-500 transition-colors"
                         >
                           ✕
                         </button>
@@ -410,7 +410,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                         setChapters((prev) => [...prev, { title: '', description: '' }])
                         setSaved(false)
                       }}
-                      className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                      className="text-xs text-ink/50 hover:text-ink/80 transition-colors"
                     >
                       + Add chapter
                     </button>
@@ -424,7 +424,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
 
       {/* Status */}
       <div className="mb-6">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Status</p>
+        <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-2">Status</p>
         <div className="flex gap-2">
           {ADVENTURE_STATUSES.map((s) => {
             const meta = STATUS_META[s]
@@ -433,13 +433,13 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                 key={s}
                 type="button"
                 onClick={() => { setStatus(s); setSaved(false) }}
-                className={`px-3 py-2 text-xs rounded-md border transition-all ${
+                className={`px-3 py-2 text-xs  border transition-all ${
                   status === s
                     ? s === 'live' ? 'bg-orange-500 border-orange-500 text-white'
                       : s === 'upcoming' ? 'bg-yellow-500 border-yellow-500 text-white'
                       : s === 'complete' ? 'bg-green-600 border-green-600 text-white'
-                      : 'bg-gray-800 border-gray-800 text-white'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                      : 'bg-ink border-ink text-white'
+                    : 'border-ink/[var(--opacity-muted)] text-ink/50 hover:border-ink/40'
                 }`}
               >
                 {meta.label}
@@ -455,7 +455,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
           type="button"
           onClick={save}
           disabled={isPending || !title.trim()}
-          className="bg-black text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-800 disabled:opacity-40 transition-colors"
+          className="bg-black text-white text-sm px-5 py-2.5  hover:bg-ink/80 disabled:opacity-40 transition-colors"
         >
           {isPending ? 'Saving…' : saved ? 'Saved ✓' : isNew ? 'Create adventure' : 'Save changes'}
         </button>
@@ -466,7 +466,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
             href={`/${username}/adventures/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm px-4 py-2.5 border border-gray-200 rounded-lg hover:border-gray-400 text-gray-600 transition-colors no-underline inline-block"
+            className="text-sm px-4 py-2.5 border border-ink/[var(--opacity-muted)]  hover:border-ink/40 text-ink/60 transition-colors no-underline inline-block"
           >
             👁️ Preview
           </a>
@@ -481,14 +481,14 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
                 type="button"
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-40 transition-colors"
+                className="text-xs px-3 py-1.5 bg-red-600 text-white  hover:bg-red-700 disabled:opacity-40 transition-colors"
               >
                 {isPending ? 'Deleting…' : 'Yes, delete'}
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-xs text-ink/40 hover:text-ink/60 transition-colors"
               >
                 Cancel
               </button>
@@ -497,7 +497,7 @@ export default function AdventureEditorForm({ username, adventure }: AdventureEd
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="ml-auto text-xs text-gray-300 hover:text-red-500 transition-colors"
+              className="ml-auto text-xs text-ink/30 hover:text-red-500 transition-colors"
             >
               Delete
             </button>
