@@ -574,7 +574,7 @@ export function StyleGuideClient({ username }: Props) {
               <p className="font-mono text-[var(--text-xs)] opacity-40 mb-2">1 image</p>
               <ImageGrid
                 images={[
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo" },
                 ]}
               />
             </div>
@@ -582,8 +582,8 @@ export function StyleGuideClient({ username }: Props) {
               <p className="font-mono text-[var(--text-xs)] opacity-40 mb-2">2 images</p>
               <ImageGrid
                 images={[
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 1" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 2" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 1" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 2" },
                 ]}
               />
             </div>
@@ -591,10 +591,10 @@ export function StyleGuideClient({ username }: Props) {
               <p className="font-mono text-[var(--text-xs)] opacity-40 mb-2">4 images</p>
               <ImageGrid
                 images={[
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 1" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 2" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 3" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 4" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 1" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 2" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 3" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 4" },
                 ]}
               />
             </div>
@@ -602,12 +602,12 @@ export function StyleGuideClient({ username }: Props) {
               <p className="font-mono text-[var(--text-xs)] opacity-40 mb-2">6 images (maxVisible=4)</p>
               <ImageGrid
                 images={[
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 1" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 2" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 3" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 4" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 5" },
-                  { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Demo 6" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 1" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 2" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 3" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 4" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 5" },
+                  { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Demo 6" },
                 ]}
                 maxVisible={4}
               />
@@ -716,8 +716,8 @@ export function StyleGuideClient({ username }: Props) {
             </p>
             <ImageGrid
               images={[
-                { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Screenshot" },
-                { url: "https://images.sidequest.me/placeholder/600x400.jpg", alt: "Code" },
+                { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Screenshot" },
+                { url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23334155'/%3E%3Ctext x='300' y='200' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8' font-family='monospace' font-size='16'%3E600x400%3C/text%3E%3C/svg%3E", alt: "Code" },
               ]}
               className="mb-3"
             />
