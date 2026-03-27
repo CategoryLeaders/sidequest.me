@@ -123,38 +123,20 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
 
   return (
     <nav
-      className="flex flex-col w-60 min-h-screen flex-shrink-0"
-      style={{ backgroundColor: '#1a1a1a' }}
+      className="flex flex-col w-60 min-h-screen flex-shrink-0 bg-[var(--ink)]"
     >
       {/* ─── Logo ─── */}
       <Link href="/" className="block">
         <div
-          className="px-5 py-5 flex items-center gap-3"
-          style={{ borderBottom: '1px solid #333' }}
+          className="px-5 py-5 flex items-center gap-3 border-b border-[var(--ink-secondary)]"
         >
           <div
-            className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, #ff6b35, #ff69b4)',
-              color: '#fff',
-              fontFamily: 'var(--font-head, Archivo, sans-serif)',
-              fontWeight: 900,
-              fontSize: '0.7rem',
-              border: '2px solid rgba(255,255,255,0.3)',
-            }}
+            className="w-8 h-8 flex items-center justify-center flex-shrink-0 font-head font-[900] text-[0.7rem] text-white border-2 border-white/30"
+            style={{ background: 'linear-gradient(135deg, var(--orange), var(--pink))' }}
           >
             SQ
           </div>
-          <span
-            style={{
-              fontFamily: 'var(--font-head, Archivo, sans-serif)',
-              fontWeight: 900,
-              fontSize: '0.82rem',
-              color: '#fffbe6',
-              textTransform: 'uppercase',
-              letterSpacing: '0.02em',
-            }}
-          >
+          <span className="font-head font-[900] text-[0.82rem] text-[var(--cream)] uppercase tracking-[0.02em]">
             MY SIDEQUEST
           </span>
         </div>
@@ -170,19 +152,16 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
               {/* Section heading — clickable, links to first child or direct href */}
               <Link href={section.href || section.children?.[0]?.href || '/'}>
                 <div
-                  className="flex items-center gap-2.5 py-2.5 transition-colors"
+                  className="flex items-center gap-2.5 py-2.5 font-body text-[0.82rem] transition-colors cursor-pointer"
                   style={{
                     paddingLeft: active ? 17 : 20,
-                    borderLeft: active ? '3px solid #ff6b35' : '3px solid transparent',
+                    borderLeft: active ? '3px solid var(--orange)' : '3px solid transparent',
                     backgroundColor: active ? 'rgba(255,107,53,0.12)' : 'transparent',
-                    color: active ? '#ff6b35' : '#fffbe6',
-                    fontFamily: 'var(--font-body, DM Sans, sans-serif)',
-                    fontSize: '0.82rem',
+                    color: active ? 'var(--orange)' : 'var(--cream)',
                     fontWeight: active ? 700 : 500,
-                    cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{section.icon}</span>
+                  <span className="text-base flex-shrink-0">{section.icon}</span>
                   <span>{section.label}</span>
                 </div>
               </Link>
@@ -193,17 +172,12 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
                 return (
                   <Link key={child.href} href={child.href}>
                     <div
-                      className="transition-colors"
+                      className="font-mono text-[0.68rem] uppercase tracking-[0.02em] transition-colors cursor-pointer"
                       style={{
                         padding: '5px 20px 5px 52px',
                         backgroundColor: childActive ? 'rgba(255,107,53,0.12)' : 'transparent',
-                        color: childActive ? '#ff6b35' : '#999',
-                        fontFamily: 'var(--font-mono, Space Mono, monospace)',
-                        fontSize: '0.68rem',
+                        color: childActive ? 'var(--orange)' : 'var(--ink-muted)',
                         fontWeight: childActive ? 700 : 400,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.02em',
-                        cursor: 'pointer',
                       }}
                     >
                       {child.label}
@@ -217,49 +191,28 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
       </div>
 
       {/* ─── User footer ─── */}
-      <div style={{ borderTop: '1px solid #333', padding: '14px 20px' }}>
+      <div className="border-t border-[var(--ink-secondary)] px-5 py-3.5">
         <div className="flex items-center gap-3 mb-3">
           {profile.avatar_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={profile.avatar_url}
               alt={profile.display_name || profile.username}
-              className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
-              style={{ border: '2px solid rgba(255,255,255,0.2)' }}
+              className="w-8 h-8 rounded-full flex-shrink-0 object-cover border-2 border-white/20"
             />
           ) : (
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, #ff6b35, #ff69b4)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.7rem',
-              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-[0.7rem]"
+              style={{ background: 'linear-gradient(135deg, var(--orange), var(--pink))' }}
             >
               {(profile.display_name || profile.username || 'U').charAt(0).toUpperCase()}
             </div>
           )}
           <div className="min-w-0">
-            <div
-              style={{
-                fontFamily: 'var(--font-body, DM Sans, sans-serif)',
-                fontWeight: 600,
-                fontSize: '0.78rem',
-                color: '#fffbe6',
-              }}
-              className="truncate"
-            >
+            <div className="font-body font-semibold text-[0.78rem] text-[var(--cream)] truncate">
               {profile.display_name || profile.username}
             </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono, Space Mono, monospace)',
-                fontSize: '0.58rem',
-                color: '#999',
-              }}
-              className="truncate"
-            >
+            <div className="font-mono text-[0.58rem] text-[var(--ink-muted)] truncate">
               sidequest.me/{profile.username}
             </div>
           </div>
@@ -267,28 +220,13 @@ export default function DashboardNav({ profile }: { profile: Profile }) {
         <div className="flex items-center justify-between">
           <a
             href={`https://sidequest.me/${profile.username}`}
-            style={{
-              fontFamily: 'var(--font-mono, Space Mono, monospace)',
-              fontSize: '0.62rem',
-              color: '#ff6b35',
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-              fontWeight: 700,
-            }}
+            className="font-mono text-[0.62rem] text-[var(--orange)] no-underline uppercase font-bold"
           >
             View profile →
           </a>
           <button
             onClick={handleLogout}
-            style={{
-              fontFamily: 'var(--font-mono, Space Mono, monospace)',
-              fontSize: '0.62rem',
-              color: '#666',
-              textTransform: 'uppercase',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            className="font-mono text-[0.62rem] text-[var(--divider)] uppercase bg-transparent border-none cursor-pointer hover:text-[var(--ink-muted)]"
           >
             Log out
           </button>

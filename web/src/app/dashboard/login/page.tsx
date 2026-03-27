@@ -122,23 +122,16 @@ function DashboardLoginForm() {
     return (
       <div className="text-center space-y-4">
         <div className="text-3xl">✉️</div>
-        <h2
-          className="font-[900] text-[1rem] uppercase text-[#1a1a1a]"
-          style={{ fontFamily: 'Archivo' }}
-        >
+        <h2 className="font-head font-[900] text-[1rem] uppercase text-ink">
           Check your email
         </h2>
-        <p
-          className="text-[0.82rem] text-[#3a3a3a] leading-relaxed"
-          style={{ fontFamily: 'Space Mono' }}
-        >
+        <p className="font-mono text-[0.82rem] text-ink/60 leading-relaxed">
           We sent a magic link to <strong>{email}</strong>. Click the link in the email to access your dashboard.
         </p>
         <button
           type="button"
           onClick={() => { setMagicLinkSent(false); setEmail('') }}
-          className="text-[0.75rem] text-[#666] underline cursor-pointer hover:text-[#1a1a1a]"
-          style={{ fontFamily: 'Space Mono' }}
+          className="font-mono text-[0.75rem] text-ink/40 underline cursor-pointer hover:text-ink"
         >
           Try a different email
         </button>
@@ -153,8 +146,7 @@ function DashboardLoginForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={googleLoading}
-        className="w-full py-2.5 px-4 bg-white text-[#1a1a1a] font-[900] text-[0.82rem] uppercase border-[3px] border-[#1a1a1a] hover:shadow-[3px_3px_0_#1a1a1a] transition-shadow disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3"
-        style={{ fontFamily: 'Archivo' }}
+        className="w-full py-2.5 px-4 bg-white text-ink font-head font-[900] text-[0.82rem] uppercase border-3 border-ink hover:shadow-[3px_3px_0_var(--ink)] transition-shadow disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -167,35 +159,30 @@ function DashboardLoginForm() {
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-6">
-        <div className="flex-1 h-[2px] bg-[#1a1a1a]/15" />
-        <span
-          className="text-[0.7rem] text-[#888] uppercase"
-          style={{ fontFamily: 'Space Mono' }}
-        >
+        <div className="flex-1 h-[2px] bg-ink/15" />
+        <span className="font-mono text-[0.7rem] text-ink/40 uppercase">
           or
         </span>
-        <div className="flex-1 h-[2px] bg-[#1a1a1a]/15" />
+        <div className="flex-1 h-[2px] bg-ink/15" />
       </div>
 
       {/* Mode tabs */}
-      <div className="flex border-[3px] border-[#1a1a1a] mb-6">
+      <div className="flex border-3 border-ink mb-6">
         <button
           type="button"
           onClick={() => { setMode('magic-link'); setError(null) }}
-          className={`flex-1 py-2 font-[900] text-[0.72rem] uppercase cursor-pointer transition-colors ${
-            mode === 'magic-link' ? 'bg-[#1a1a1a] text-[#fffbe6]' : 'bg-[#fffbe6] text-[#1a1a1a] hover:bg-[#1a1a1a]/5'
+          className={`flex-1 py-2 font-head font-[900] text-[0.72rem] uppercase cursor-pointer transition-colors ${
+            mode === 'magic-link' ? 'bg-ink text-[var(--cream)]' : 'bg-[var(--cream)] text-ink hover:bg-ink/5'
           }`}
-          style={{ fontFamily: 'Archivo' }}
         >
           Magic Link
         </button>
         <button
           type="button"
           onClick={() => { setMode('password'); setError(null) }}
-          className={`flex-1 py-2 font-[900] text-[0.72rem] uppercase cursor-pointer transition-colors border-l-[3px] border-[#1a1a1a] ${
-            mode === 'password' ? 'bg-[#1a1a1a] text-[#fffbe6]' : 'bg-[#fffbe6] text-[#1a1a1a] hover:bg-[#1a1a1a]/5'
+          className={`flex-1 py-2 font-head font-[900] text-[0.72rem] uppercase cursor-pointer transition-colors border-l-3 border-ink ${
+            mode === 'password' ? 'bg-ink text-[var(--cream)]' : 'bg-[var(--cream)] text-ink hover:bg-ink/5'
           }`}
-          style={{ fontFamily: 'Archivo' }}
         >
           Password
         </button>
@@ -205,8 +192,7 @@ function DashboardLoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="block font-[900] text-[0.78rem] uppercase mb-2 text-[#1a1a1a]"
-            style={{ fontFamily: 'Archivo' }}
+            className="block font-head font-[900] text-[0.78rem] uppercase mb-2 text-ink"
           >
             Email
           </label>
@@ -217,10 +203,7 @@ function DashboardLoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-white text-[#1a1a1a] text-[0.88rem] focus:outline-none transition-shadow placeholder:text-[#999]"
-            style={{ fontFamily: 'Space Mono' }}
-            onFocus={(e) => { e.currentTarget.style.boxShadow = '5px 5px 0 #1a1a1a' }}
-            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none' }}
+            className="w-full px-4 py-2.5 border-3 border-ink bg-white text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
           />
         </div>
 
@@ -228,8 +211,7 @@ function DashboardLoginForm() {
           <div>
             <label
               htmlFor="password"
-              className="block font-[900] text-[0.78rem] uppercase mb-2 text-[#1a1a1a]"
-              style={{ fontFamily: 'Archivo' }}
+              className="block font-head font-[900] text-[0.78rem] uppercase mb-2 text-ink"
             >
               Password
             </label>
@@ -240,19 +222,13 @@ function DashboardLoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2.5 border-[3px] border-[#1a1a1a] bg-white text-[#1a1a1a] text-[0.88rem] focus:outline-none transition-shadow placeholder:text-[#999]"
-              style={{ fontFamily: 'Space Mono' }}
-              onFocus={(e) => { e.currentTarget.style.boxShadow = '5px 5px 0 #1a1a1a' }}
-              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none' }}
+              className="w-full px-4 py-2.5 border-3 border-ink bg-white text-ink font-mono text-[0.88rem] focus:outline-none focus:shadow-[5px_5px_0_var(--ink)] transition-shadow placeholder:text-ink/40"
             />
           </div>
         )}
 
         {error && (
-          <div
-            className="border-[3px] border-red-500 bg-red-50 p-3 text-[0.78rem] text-red-700"
-            style={{ fontFamily: 'Space Mono' }}
-          >
+          <div className="border-3 border-red-500 bg-red-50 p-3 font-mono text-[0.78rem] text-red-700">
             {error}
           </div>
         )}
@@ -260,11 +236,7 @@ function DashboardLoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 px-4 bg-[#ff6b35] text-white font-[900] text-[0.82rem] uppercase border-[3px] border-[#ff6b35] hover:bg-transparent hover:text-[#ff6b35] transition-colors disabled:opacity-50 cursor-pointer"
-          style={{
-            fontFamily: 'Archivo',
-            boxShadow: '3px 3px 0 #ff6b35',
-          }}
+          className="w-full py-2.5 px-4 bg-[var(--orange)] text-white font-head font-[900] text-[0.82rem] uppercase border-3 border-[var(--orange)] hover:bg-transparent hover:text-[var(--orange)] transition-colors disabled:opacity-50 cursor-pointer shadow-[3px_3px_0_var(--orange)]"
         >
           {loading
             ? (mode === 'magic-link' ? 'Sending link…' : 'Signing in…')
@@ -273,10 +245,7 @@ function DashboardLoginForm() {
         </button>
 
         {mode === 'magic-link' && (
-          <p
-            className="text-[0.7rem] text-[#666] text-center"
-            style={{ fontFamily: 'Space Mono' }}
-          >
+          <p className="font-mono text-[0.7rem] text-ink/40 text-center">
             No password needed — we&apos;ll email you a sign-in link.
           </p>
         )}
@@ -288,23 +257,15 @@ function DashboardLoginForm() {
 export default function DashboardLoginPage() {
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-6"
-      style={{ backgroundColor: '#fffbe6' }}
+      className="min-h-screen flex items-center justify-center px-6 bg-[var(--cream,#fffbe6)]"
     >
       <div
-        className="w-full max-w-md p-10 bg-[#fffbe6] border-[3px] border-[#1a1a1a]"
-        style={{ boxShadow: '5px 5px 0 #1a1a1a' }}
+        className="w-full max-w-md p-10 bg-[var(--cream,#fffbe6)] border-3 border-ink shadow-[5px_5px_0_var(--ink)]"
       >
-        <h1
-          className="font-[900] text-[2rem] uppercase leading-tight mb-2 text-[#1a1a1a]"
-          style={{ fontFamily: 'Archivo' }}
-        >
+        <h1 className="font-head font-[900] text-[2rem] uppercase leading-tight mb-2 text-ink">
           MY SIDEQUEST
         </h1>
-        <p
-          className="text-[0.78rem] text-[#555] mb-8"
-          style={{ fontFamily: 'Space Mono' }}
-        >
+        <p className="font-mono text-[0.78rem] text-ink/50 mb-8">
           Sign in to manage your SideQuest life.
         </p>
 
@@ -312,11 +273,10 @@ export default function DashboardLoginPage() {
           <DashboardLoginForm />
         </Suspense>
 
-        <div className="mt-8 pt-6 border-t-[3px] border-[#1a1a1a] text-center">
+        <div className="mt-8 pt-6 border-t-3 border-ink text-center">
           <Link
             href="/"
-            className="text-[0.75rem] text-[#666] hover:text-[#1a1a1a] underline"
-            style={{ fontFamily: 'Space Mono' }}
+            className="font-mono text-[0.75rem] text-ink/40 hover:text-ink underline"
           >
             Back to SideQuest.me
           </Link>
