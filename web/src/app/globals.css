@@ -31,6 +31,31 @@
   --font-head: 'Archivo', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --font-mono: 'Space Mono', monospace;
+
+  /* ═══════════════ DESIGN TOKENS (Style Guide) ═══════════════
+     Semantic scales — use these instead of ad-hoc values.
+     See /[username]/settings/theme/style-guide for visual reference.
+     ════════════════════════════════════════════════════════════ */
+
+  /* Typography scale */
+  --text-2xs: 0.55rem;   /* type badges, sticker labels */
+  --text-xs:  0.6rem;    /* timestamps, tag chips */
+  --text-sm:  0.78rem;   /* metadata, captions */
+  --text-base: 0.92rem;  /* body text, card content */
+  --text-md:  1.05rem;   /* quote text, emphasis */
+  --text-lg:  1.1rem;    /* card titles, section titles */
+  --text-xl:  1.3rem;    /* section headings */
+  --text-2xl: 1.6rem;    /* page headings */
+
+  /* Card spacing */
+  --space-card-compact: 1rem;     /* 16px — nested/secondary cards */
+  --space-card-standard: 1.25rem; /* 20px — primary cards */
+
+  /* Opacity scale — use for border-ink/[val] and bg-ink/[val] */
+  --opacity-faint:  0.03;  /* background tints */
+  --opacity-subtle: 0.06;  /* hover states, light fills */
+  --opacity-muted:  0.15;  /* secondary borders, dividers */
+  --opacity-dim:    0.30;  /* prominent secondary borders, link previews */
 }
 
 @theme inline {
@@ -53,6 +78,18 @@
   --color-line-commercial: var(--line-commercial);
   --color-line-product: var(--line-product);
   --color-line-marketing: var(--line-marketing);
+
+  /* Design token aliases for Tailwind utilities */
+  --text-2xs: var(--text-2xs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-md: var(--text-md);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+  --spacing-card-compact: var(--space-card-compact);
+  --spacing-card-standard: var(--space-card-standard);
 }
 
 /* ═══════════════ THEME OVERRIDES ═══════════════

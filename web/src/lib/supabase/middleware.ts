@@ -8,6 +8,11 @@ const PROTECTED_PATTERNS = [
   /^\/dashboard(?!\/login).*$/,  // /dashboard/* EXCEPT /dashboard/login
 ]
 
+// Public exceptions — matched before PROTECTED_PATTERNS to allow unauthenticated access
+const PUBLIC_EXCEPTIONS = [
+  /^\/[^/]+\/settings\/theme\/style-guide$/,  // style guide is public
+]
+
 // Auth routes — redirect to own profile if already logged in
 const AUTH_ROUTES = ['/login', '/signup']
 
@@ -48,8 +53,9 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
 
   const pathname = rewriteUrl?.pathname ?? request.nextUrl.pathname
 
-  // Protect routes that require authentication
-  const isProtected = PROTECTED_PATTERNS.some(p => p.test(pathname))
+  // Protect routes that require authentication (but allow public exceptions)
+  const isPublicException = PUBLIC_EXCEPTIONS.some(p => p.test(pathname))
+  const isProtected = !isPublicException && PROTECTED_PATTERNS.some(p => p.test(pathname))
   if (isProtected && !user) {
     // For dashboard routes, redirect to the dashboard login page
     if (pathname.startsWith('/dashboard')) {

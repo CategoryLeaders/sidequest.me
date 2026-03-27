@@ -3,7 +3,14 @@
 import Link from "next/link";
 import type { Bookmark } from "@/lib/thoughts-types";
 import { relativeTime } from "@/lib/microblogs";
-import { ContentActions } from "@/components/shared/ContentActions";
+import {
+  CardShell,
+  CardFooter,
+  TypeBadge,
+  TagChip,
+  MetadataLine,
+  ActionMenu,
+} from "@/components/ui";
 
 interface Props {
   bookmark: Bookmark;
@@ -11,128 +18,114 @@ interface Props {
   isOwner?: boolean;
 }
 
-export function BookmarkCard({ bookmark, username, isOwner = false }: Props) {
+export function BookmarkCard({ bookmark, username, isOwner }: Props) {
   const permalink = `/${username}/thoughts/${bookmark.short_id}`;
   const postDate = bookmark.published_at ?? bookmark.created_at;
 
   return (
-    <article
-      className="border-3 border-ink bg-[var(--bg-card)] overflow-hidden relative"
-      style={{ boxShadow: '4px 4px 0 #1a1a1a' }}
-    >
+    <CardShell variant="standard" className="relative">
       {isOwner && (
-        <div className="absolute top-2 right-2 z-10">
-          <ContentActions
-            contentType="bookmark"
-            contentId={bookmark.id}
-            editData={{
-              commentary: bookmark.commentary,
-              og_title: bookmark.og_title,
-              og_description: bookmark.og_description,
-              tags: bookmark.tags,
-              visibility: bookmark.visibility,
-            }}
-          />
-        </div>
+        <ActionMenu
+          shareUrl={permalink}
+          editHref={`/${username}/admin/bookmarks/${bookmark.id}`}
+          className="absolute top-3 right-3"
+        />
       )}
-      {/* Header: type badge + date */}
-      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-ink/8">
-        <span
-          className="font-mono text-[0.58rem] font-bold uppercase tracking-widest"
-          style={{ color: '#2d6a4f' }}
-        >
-          🔖 Bookmark
-        </span>
+      {/* Type badge */}
+      <div className="flex items-center gap-2 mb-3">
+        <TypeBadge type="bookmark" />
         {bookmark.pinned && (
-          <span className="font-mono text-[0.55rem] text-ink/35">📌</span>
+          <span className="text-[var(--text-2xs)] font-mono opacity-40 ml-auto">📌 Pinned</span>
         )}
-        <Link
-          href={permalink}
-          className="font-mono text-[0.6rem] text-ink/35 hover:text-ink/60 transition-colors no-underline ml-auto"
-        >
-          <time dateTime={postDate} title={new Date(postDate).toLocaleString("en-GB")}>
-            {new Date(postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </time>
-          <span className="ml-1.5 opacity-70">{relativeTime(postDate)}</span>
-        </Link>
       </div>
 
       {/* OG Preview */}
-      <div className="px-5 pt-3 pb-1">
-        <a
-          href={bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block border-2 border-ink/30 p-4 bg-ink/[0.03] hover:bg-ink/[0.06] transition-colors no-underline"
-        >
-          {bookmark.og_favicon_url && (
-            <div className="flex items-center gap-2 mb-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={bookmark.og_favicon_url} alt="" className="w-4 h-4" />
-              <span className="text-[0.65rem] font-mono opacity-40">
-                {bookmark.og_domain}
-              </span>
-            </div>
-          )}
-          {!bookmark.og_favicon_url && bookmark.og_domain && (
-            <span className="text-[0.65rem] font-mono opacity-40 block mb-2">
+      <a
+        href={bookmark.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block border-2 border-ink/[var(--opacity-dim)] p-4 mb-3 bg-ink/[var(--opacity-faint)] hover:bg-ink/[var(--opacity-subtle)] transition-colors no-underline"
+      >
+        {bookmark.og_favicon_url && (
+          <div className="flex items-center gap-2 mb-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={bookmark.og_favicon_url} alt="" className="w-4 h-4" />
+            <span className="text-[var(--text-xs)] font-mono opacity-40">
               {bookmark.og_domain}
             </span>
-          )}
-          {bookmark.og_title && (
-            <span className="text-[0.88rem] font-bold block mb-1">
-              {bookmark.og_title}
-            </span>
-          )}
-          {bookmark.og_description && (
-            <span className="text-[0.78rem] opacity-60 block line-clamp-2">
-              {bookmark.og_description}
-            </span>
-          )}
-          {bookmark.og_image_url && (
-            <div className="mt-2 border border-ink/10 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bookmark.og_image_url}
-                alt=""
-                className="w-full h-32 object-cover"
-              />
-            </div>
-          )}
-        </a>
-      </div>
+          </div>
+        )}
+        {!bookmark.og_favicon_url && bookmark.og_domain && (
+          <span className="text-[var(--text-xs)] font-mono opacity-40 block mb-2">
+            {bookmark.og_domain}
+          </span>
+        )}
+        {bookmark.og_title && (
+          <span className="text-[var(--text-base)] font-bold block mb-1">
+            {bookmark.og_title}
+          </span>
+        )}
+        {bookmark.og_description && (
+          <span className="text-[var(--text-sm)] opacity-60 block line-clamp-2">
+            {bookmark.og_description}
+          </span>
+        )}
+        {bookmark.og_image_url && (
+          <div className="mt-2 border border-ink/10 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={bookmark.og_image_url}
+              alt=""
+              className="w-full h-32 object-cover"
+            />
+          </div>
+        )}
+      </a>
 
       {/* Commentary */}
       {bookmark.commentary && (
-        <p className="text-[0.85rem] italic opacity-70 leading-relaxed mx-5 mt-3 pl-3 border-l-2 border-ink/15">
+        <p className="text-[0.85rem] italic opacity-70 leading-relaxed mb-3 pl-3 border-l-2 border-ink/[var(--opacity-muted)]">
           {bookmark.commentary}
         </p>
       )}
 
       {/* Tags */}
       {bookmark.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-5 pt-3">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {bookmark.tags.map((tag) => (
-            <Link
+            <TagChip
               key={tag}
+              label={tag}
               href={`/${username}/thoughts/tags/${encodeURIComponent(tag.toLowerCase())}`}
-              className="inline-block text-[0.6rem] px-2 py-0.5 border border-dashed border-ink/25 text-ink/45 bg-ink/[0.04] font-mono hover:border-ink/40 hover:text-ink/60 transition-colors no-underline"
-            >
-              #{tag}
-            </Link>
+            />
           ))}
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-end px-5 pt-3 pb-4 mt-1 border-t border-ink/10">
-        <button
-          className="text-[0.65rem] font-mono opacity-25 hover:opacity-55 transition-opacity"
-          title="Copy link"
-        >
-          🔗
-        </button>
-      </div>
-    </article>
+      <CardFooter
+        left={
+          <MetadataLine
+            items={[
+              {
+                label: (
+                  <Link
+                    href={permalink}
+                    className="opacity-100 hover:opacity-70 transition-opacity no-underline"
+                  >
+                    <time
+                      dateTime={postDate}
+                      title={new Date(postDate).toLocaleString("en-GB")}
+                    >
+                      {relativeTime(postDate)}
+                    </time>
+                  </Link>
+                ),
+              },
+            ]}
+          />
+        }
+      />
+    </CardShell>
   );
 }

@@ -5,6 +5,7 @@ import type { Writing } from '@/lib/writings'
 import { excerptFromHtml, readTimeMinutes } from '@/lib/writings'
 import { tagBySlug, slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
+import { TagChip, MetadataLine } from '@/components/ui'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -228,14 +229,14 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                   alt={activeCompany.name}
                   width={32}
                   height={32}
-                  className="rounded-sm border border-gray-100"
+                  className="rounded-sm border border-ink/10"
                 />
               )}
               <h1 className="text-3xl font-semibold tracking-tight">
                 {activeCompany.name}
               </h1>
             </div>
-            <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
+            <Link href={`/${username}/writings`} className="text-sm text-ink/40 hover:text-ink/70">
               ← All writings
             </Link>
           </>
@@ -245,7 +246,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
               {filterLabel ? `#${filterLabel}` : 'Writings'}
             </h1>
             {filterLabel && (
-              <Link href={`/${username}/writings`} className="text-sm text-gray-400 hover:text-gray-700">
+              <Link href={`/${username}/writings`} className="text-sm text-ink/40 hover:text-ink/70">
                 ← All writings
               </Link>
             )}
@@ -259,7 +260,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
           name="q"
           defaultValue={q}
           placeholder="Search writings…"
-          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-gray-400 bg-bg-card"
+          className="w-full border-2 border-ink/[var(--opacity-muted)] px-4 py-2.5 text-sm font-mono outline-none focus:border-ink/40 bg-[var(--bg-card)]"
         />
       </form>
 
@@ -267,28 +268,24 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
       {siteTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-8">
           {siteTags.map((t) => (
-            <Link
+            <TagChip
               key={t.label}
+              label={t.label}
+              variant="muted"
+              active={filterLabel === t.label}
               href={
                 filterLabel === t.label
                   ? `/${username}/writings`
                   : `/${username}/writings/tags/${slugify(t.label)}`
               }
-              className={`px-3 py-1 rounded-full text-sm border transition-all ${
-                filterLabel === t.label
-                  ? 'border-black bg-black text-white'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
-              }`}
-            >
-              {t.label}
-            </Link>
+            />
           ))}
         </div>
       )}
 
       {/* Writing list — Option D: chronological with inline run headers */}
       {enriched.length === 0 ? (
-        <p className="text-gray-400 py-12 text-center">
+        <p className="text-ink/40 py-12 text-center">
           {q ? `No results for "${q}"` : 'No writings yet.'}
         </p>
       ) : (
@@ -310,10 +307,10 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                   <div className="flex items-center gap-3 mb-4 mt-8 first:mt-0">
                     <CtxBadge co={ctx.primary} />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{ctx.primary.name}</p>
+                      <p className="text-sm font-semibold text-ink/80">{ctx.primary.name}</p>
                       <Link
                         href={`/${username}/writings?company=${encodeURIComponent(ctx.primary.name.toLowerCase().replace(/\s+/g, '-'))}`}
-                        className="text-xs text-gray-400 hover:text-gray-600"
+                        className="text-xs text-ink/40 hover:text-ink/60"
                       >
                         View all →
                       </Link>
@@ -325,7 +322,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                 {isNewRun && !ctx.primary && (
                   <div className="flex items-center gap-3 mb-4 mt-8 first:mt-0">
                     <PersonalBadge />
-                    <p className="text-sm font-semibold text-gray-800">Personal</p>
+                    <p className="text-sm font-semibold text-ink/80">Personal</p>
                   </div>
                 )}
 
@@ -353,7 +350,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                     style={{ borderLeft: `2px solid ${borderColour}`, paddingLeft: '14px', marginLeft: '-2px' }}
                   >
                     {/* Meta line */}
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-1 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-ink/40 mb-1 flex-wrap">
                       {w.published_at && (
                         <time dateTime={w.published_at}>
                           {new Date(w.published_at).toLocaleDateString('en-GB', {
@@ -385,32 +382,30 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                         <h2 className="text-[17px] font-semibold leading-snug mb-1.5">
                           <Link
                             href={`/${username}/writings/${w.slug}`}
-                            className="hover:underline text-gray-900"
+                            className="hover:underline text-ink"
                           >
                             {w.title}
                           </Link>
                         </h2>
                         {excerpt && (
-                          <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-2">
+                          <p className="text-sm text-ink/50 leading-relaxed line-clamp-2 mb-2">
                             {excerpt}
                           </p>
                         )}
                         {w.tags && w.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5">
                             {w.tags.map((tag) => {
                               const siteTag = siteTags.find((st) => st.label === tag)
                               return (
-                                <Link
+                                <TagChip
                                   key={tag}
+                                  label={tag}
                                   href={
                                     siteTag
                                       ? `/${username}/writings/tags/${slugify(tag)}`
                                       : `/${username}/writings?q=${encodeURIComponent(tag)}`
                                   }
-                                  className="text-xs text-gray-400 hover:text-gray-700"
-                                >
-                                  #{tag}
-                                </Link>
+                                />
                               )
                             })}
                           </div>
@@ -418,7 +413,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                       </div>
                       {/* Thumbnail */}
                       {w.image_url && (
-                        <div className="flex-shrink-0 w-[72px] h-12 rounded overflow-hidden border border-gray-100">
+                        <div className="flex-shrink-0 w-[72px] h-12 rounded overflow-hidden border border-ink/10">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={w.image_url}
@@ -438,22 +433,22 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex gap-3 mt-12 justify-center text-sm">
+        <div className="flex gap-3 mt-12 justify-center text-sm font-mono">
           {page > 1 && (
             <Link
               href={`/${username}/writings?page=${page - 1}${filterLabel ? `&tag=${tagSlug}` : ''}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:border-gray-400"
+              className="px-4 py-2 border-2 border-ink/[var(--opacity-muted)] hover:border-ink/40 transition-colors"
             >
               ← Previous
             </Link>
           )}
-          <span className="self-center text-gray-400">
+          <span className="self-center text-ink/40">
             {page} / {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={`/${username}/writings?page=${page + 1}${filterLabel ? `&tag=${tagSlug}` : ''}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:border-gray-400"
+              className="px-4 py-2 border-2 border-ink/[var(--opacity-muted)] hover:border-ink/40 transition-colors"
             >
               Next →
             </Link>
@@ -463,11 +458,11 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
       {/* Owner shortcut */}
       {isOwner && (
-        <div className="mt-12 pt-6 border-t border-gray-100 text-sm text-gray-400 flex gap-4">
-          <Link href={`/${username}/admin/writings`} className="hover:text-gray-700">
+        <div className="mt-12 pt-6 border-t border-ink/10 text-sm text-ink/40 font-mono flex gap-4">
+          <Link href={`/${username}/admin/writings`} className="hover:text-ink/70">
             Manage writings →
           </Link>
-          <Link href={`/${username}/admin/writings/new`} className="hover:text-gray-700">
+          <Link href={`/${username}/admin/writings/new`} className="hover:text-ink/70">
             + New post
           </Link>
         </div>
