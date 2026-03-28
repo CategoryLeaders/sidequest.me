@@ -1,8 +1,11 @@
 /* ── MicroblogCard — feed card for microblog posts ── [SQ.S-W-2603-0062] */
+"use client";
 
 import Link from "next/link";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { MicroblogPostWithCounts } from "@/lib/microblogs";
-import { relativeTime, getPostDate } from "@/lib/microblogs";
+import { relativeTime, getPostDate } from "@/lib/microblogs-utils";
 import {
   CardShell,
   CardFooter,
@@ -11,8 +14,9 @@ import {
   MetadataLine,
   EngagementBar,
   ImageGrid,
-  ActionMenu,
 } from "@/components/ui";
+import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
+import { EditModal } from "@/components/shared/EditModal";
 
 interface Props {
   post: MicroblogPostWithCounts;
@@ -21,17 +25,30 @@ interface Props {
 }
 
 export function MicroblogCard({ post, username, isOwner }: Props) {
+  const router = useRouter();
   const postDate = getPostDate(post);
   const permalink = `/${username}/thoughts/${post.short_id}`;
+  const [editOpen, setEditOpen] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSaved = useCallback(() => {
+    setShowSaved(true);
+    setTimeout(() => { setShowSaved(false); router.refresh(); }, 1500);
+  }, [router]);
 
   return (
     <CardShell variant="standard" className="group relative">
       {isOwner && (
-        <ActionMenu
-          shareUrl={permalink}
-          className="absolute top-3 right-3"
-        />
+        <div className="absolute top-3 right-3">
+          <ThreeDotMenu
+            contentType="microblog"
+            contentId={post.id}
+            onEdit={() => setEditOpen(true)}
+            onDeleted={() => router.refresh()}
+          />
+        </div>
       )}
+
       {/* Type indicator */}
       <div className="flex items-center gap-2 mb-3">
         <TypeBadge type="microblog" />
@@ -170,6 +187,44 @@ export function MicroblogCard({ post, username, isOwner }: Props) {
           />
         }
       />
+
+      {isOwner && (
+        <EditModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          contentType="microblog"
+          contentId={post.id}
+          initialData={{
+            body: post.body,
+            link_url: post.link_url,
+            location_name: post.location_name,
+            tags: post.tags,
+            visibility: post.visibility,
+            media: post.images,
+          }}
+          onSaved={handleSaved}
+        />
+      )}
+
+      {showSaved && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 300,
+            background: "var(--ink)",
+            color: "var(--bg)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            padding: "10px 18px",
+            border: "2px solid var(--ink)",
+          }}
+        >
+          ✓ Saved
+        </div>
+      )}
     </CardShell>
   );
 }

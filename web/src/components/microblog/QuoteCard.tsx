@@ -1,16 +1,20 @@
 /* ── QuoteCard — feed card for quote posts ── [SQ.S-W-2603-0064] */
+"use client";
 
 import Link from "next/link";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { Quote } from "@/lib/thoughts-types";
-import { relativeTime } from "@/lib/microblogs";
+import { relativeTime } from "@/lib/microblogs-utils";
 import {
   CardShell,
   CardFooter,
   TypeBadge,
   TagChip,
   MetadataLine,
-  ActionMenu,
 } from "@/components/ui";
+import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
+import { EditModal } from "@/components/shared/EditModal";
 
 interface Props {
   quote: Quote;
@@ -19,16 +23,28 @@ interface Props {
 }
 
 export function QuoteCard({ quote, username, isOwner }: Props) {
+  const router = useRouter();
   const permalink = `/${username}/thoughts/${quote.short_id}`;
   const postDate = quote.published_at ?? quote.created_at;
+  const [editOpen, setEditOpen] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSaved = useCallback(() => {
+    setShowSaved(true);
+    setTimeout(() => { setShowSaved(false); router.refresh(); }, 1500);
+  }, [router]);
 
   return (
     <CardShell variant="standard" className="relative">
       {isOwner && (
-        <ActionMenu
-          shareUrl={permalink}
-          className="absolute top-3 right-3"
-        />
+        <div className="absolute top-3 right-3">
+          <ThreeDotMenu
+            contentType="quote"
+            contentId={quote.id}
+            onEdit={() => setEditOpen(true)}
+            onDeleted={() => router.refresh()}
+          />
+        </div>
       )}
       {/* Type badge */}
       <div className="flex items-center gap-2 mb-3">
@@ -118,6 +134,44 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
           />
         }
       />
+
+      {isOwner && (
+        <EditModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          contentType="quote"
+          contentId={quote.id}
+          initialData={{
+            quote_text: quote.quote_text,
+            source_name: quote.source_name,
+            source_work: quote.source_work,
+            commentary: quote.commentary,
+            tags: quote.tags,
+            visibility: quote.visibility,
+          }}
+          onSaved={handleSaved}
+        />
+      )}
+
+      {showSaved && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 300,
+            background: "var(--ink)",
+            color: "var(--bg)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            padding: "10px 18px",
+            border: "2px solid var(--ink)",
+          }}
+        >
+          ✓ Saved
+        </div>
+      )}
     </CardShell>
   );
 }

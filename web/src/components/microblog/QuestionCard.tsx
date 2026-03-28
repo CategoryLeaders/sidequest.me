@@ -1,8 +1,11 @@
 /* ── QuestionCard — feed card for question posts ── [SQ.S-W-2603-0064] */
+"use client";
 
 import Link from "next/link";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { Question } from "@/lib/thoughts-types";
-import { relativeTime } from "@/lib/microblogs";
+import { relativeTime } from "@/lib/microblogs-utils";
 import {
   CardShell,
   CardFooter,
@@ -10,8 +13,9 @@ import {
   TagChip,
   MetadataLine,
   EngagementBar,
-  ActionMenu,
 } from "@/components/ui";
+import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
+import { EditModal } from "@/components/shared/EditModal";
 
 interface Props {
   question: Question;
@@ -21,16 +25,28 @@ interface Props {
 }
 
 export function QuestionCard({ question, username, commentCount = 0, isOwner }: Props) {
+  const router = useRouter();
   const permalink = `/${username}/thoughts/${question.short_id}`;
   const postDate = question.published_at ?? question.created_at;
+  const [editOpen, setEditOpen] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSaved = useCallback(() => {
+    setShowSaved(true);
+    setTimeout(() => { setShowSaved(false); router.refresh(); }, 1500);
+  }, [router]);
 
   return (
     <CardShell variant="standard" className="relative">
       {isOwner && (
-        <ActionMenu
-          shareUrl={permalink}
-          className="absolute top-3 right-3"
-        />
+        <div className="absolute top-3 right-3">
+          <ThreeDotMenu
+            contentType="question"
+            contentId={question.id}
+            onEdit={() => setEditOpen(true)}
+            onDeleted={() => router.refresh()}
+          />
+        </div>
       )}
       {/* Type badge + resolved status */}
       <div className="flex items-center gap-2 mb-3">
@@ -117,6 +133,44 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner }: 
           />
         }
       />
+
+      {isOwner && (
+        <EditModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          contentType="question"
+          contentId={question.id}
+          initialData={{
+            question_text: question.question_text,
+            thinking: question.thinking,
+            resolved: question.resolved,
+            resolved_summary: question.resolved_summary,
+            tags: question.tags,
+            visibility: question.visibility,
+          }}
+          onSaved={handleSaved}
+        />
+      )}
+
+      {showSaved && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 300,
+            background: "var(--ink)",
+            color: "var(--bg)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            padding: "10px 18px",
+            border: "2px solid var(--ink)",
+          }}
+        >
+          ✓ Saved
+        </div>
+      )}
     </CardShell>
   );
 }
