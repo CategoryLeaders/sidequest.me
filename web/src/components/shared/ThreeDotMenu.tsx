@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type ContentType = "microblog" | "quote" | "bookmark" | "question" | "crowdfunding_project";
+export type ContentType = "microblog" | "quote" | "bookmark" | "question" | "crowdfunding_project" | "writing";
 
 interface Props {
   contentType: ContentType;
@@ -22,6 +22,7 @@ const API_PREFIX: Record<ContentType, string> = {
   bookmark: "/api/bookmarks",
   question: "/api/questions",
   crowdfunding_project: "/api/crowdfunding-projects",
+  writing: "/api/writings",
 };
 
 export function ThreeDotMenu({ contentType, contentId, onEdit, onDeleted, extraItems }: Props) {

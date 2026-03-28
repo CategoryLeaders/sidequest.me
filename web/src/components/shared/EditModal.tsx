@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ContentType } from "./ThreeDotMenu";
 import type { MicroblogImage } from "@/lib/microblogs";
+import type { SiteTag } from "@/lib/tags";
 
 interface Props {
   open: boolean;
@@ -14,6 +15,8 @@ interface Props {
   initialData: Record<string, unknown>;
   /** Called after a successful save with the updated data */
   onSaved?: (data: Record<string, unknown>) => void;
+  /** Profile site tags — shown as one-click toggles in all edit forms */
+  siteTags?: SiteTag[];
 }
 
 const API_PREFIX: Record<ContentType, string> = {
@@ -22,6 +25,7 @@ const API_PREFIX: Record<ContentType, string> = {
   bookmark: "/api/bookmarks",
   question: "/api/questions",
   crowdfunding_project: "/api/crowdfunding-projects",
+  writing: "/api/writings",
 };
 
 const LABELS: Record<ContentType, string> = {
@@ -30,9 +34,10 @@ const LABELS: Record<ContentType, string> = {
   bookmark: "Bookmark",
   question: "Question",
   crowdfunding_project: "Backed Project",
+  writing: "Writing",
 };
 
-export function EditModal({ open, onClose, contentType, contentId, initialData, onSaved }: Props) {
+export function EditModal({ open, onClose, contentType, contentId, initialData, onSaved, siteTags }: Props) {
   const [fields, setFields] = useState<Record<string, unknown>>(initialData);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +162,7 @@ export function EditModal({ open, onClose, contentType, contentId, initialData, 
 
         {/* Body — scrollable */}
         <div style={{ overflowY: "auto", flex: 1, padding: 20 }}>
-          <FieldsForType contentType={contentType} contentId={contentId} fields={fields} setField={setField} />
+          <FieldsForType contentType={contentType} contentId={contentId} fields={fields} setField={setField} siteTags={siteTags} />
         </div>
 
         {/* Footer */}
@@ -221,11 +226,13 @@ function FieldsForType({
   contentId,
   fields,
   setField,
+  siteTags,
 }: {
   contentType: ContentType;
   contentId: string;
   fields: Record<string, unknown>;
   setField: (key: string, value: unknown) => void;
+  siteTags?: SiteTag[];
 }) {
   switch (contentType) {
     case "microblog":
@@ -263,6 +270,7 @@ function FieldsForType({
             placeholder="Leave blank to unlink"
             style={inputBase}
           />
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
@@ -298,6 +306,7 @@ function FieldsForType({
             onChange={(e) => setField("commentary", e.target.value)}
             style={{ ...inputBase, minHeight: 60, resize: "vertical" }}
           />
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
@@ -327,6 +336,7 @@ function FieldsForType({
             onChange={(e) => setField("og_description", e.target.value)}
             style={inputBase}
           />
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
@@ -370,6 +380,7 @@ function FieldsForType({
             />
             Resolved
           </label>
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
@@ -437,6 +448,30 @@ function FieldsForType({
             />
             Show pledge amount publicly
           </label>
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
+          <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+        </div>
+      );
+
+    case "writing":
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <FieldLabel label="Title" />
+          <input
+            value={(fields.title as string) ?? ""}
+            onChange={(e) => setField("title", e.target.value)}
+            style={inputBase}
+          />
+          <FieldLabel label="Status" />
+          <select
+            value={(fields.status as string) ?? "published"}
+            onChange={(e) => setField("status", e.target.value)}
+            style={{ ...inputBase, width: "100%" }}
+          >
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
         </div>
       );
@@ -696,6 +731,68 @@ function ImageManager({
           {uploadError}
         </span>
       )}
+    </div>
+  );
+}
+
+// ─── Site tag picker ─────────────────────────────────────────────────────────
+
+const STICKER_COLORS: Record<string, string> = {
+  "sticker-orange": "var(--orange)",
+  "sticker-green": "var(--green)",
+  "sticker-blue": "var(--blue)",
+  "sticker-yellow": "var(--yellow)",
+  "sticker-lilac": "var(--lilac)",
+  "sticker-pink": "var(--pink)",
+};
+
+function SiteTagPicker({
+  tags,
+  siteTags,
+  onChange,
+}: {
+  tags: string[];
+  siteTags: SiteTag[];
+  onChange: (tags: string[]) => void;
+}) {
+  const toggle = (label: string) => {
+    if (tags.includes(label)) {
+      onChange(tags.filter((t) => t !== label));
+    } else {
+      onChange([...tags, label]);
+    }
+  };
+
+  return (
+    <div>
+      <FieldLabel label="Site tags" />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+        {siteTags.map((st) => {
+          const active = tags.includes(st.label);
+          const color = STICKER_COLORS[st.color] ?? "var(--ink)";
+          return (
+            <button
+              key={st.label}
+              type="button"
+              onClick={() => toggle(st.label)}
+              style={{
+                padding: "3px 10px",
+                border: `2px solid ${active ? color : "rgba(26,26,26,0.2)"}`,
+                background: active ? color : "transparent",
+                color: active ? "#fff" : "var(--ink)",
+                fontSize: "0.7rem",
+                fontFamily: "var(--font-mono)",
+                fontWeight: active ? 700 : 400,
+                cursor: "pointer",
+                opacity: active ? 1 : 0.55,
+                transition: "all 0.1s",
+              }}
+            >
+              {st.icon ? `${st.icon} ` : ""}{st.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

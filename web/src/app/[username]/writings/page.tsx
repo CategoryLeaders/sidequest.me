@@ -6,6 +6,8 @@ import { excerptFromHtml, readTimeMinutes } from '@/lib/writings'
 import { tagBySlug, slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
 import { TagChip, MetadataLine } from '@/components/ui'
+import { SearchBox } from '@/components/shared/SearchBox'
+import { WritingEditControls } from '@/components/shared/WritingEditControls'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -140,7 +142,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
   // Build query
   let query = (supabase as any)
     .from('writings')
-    .select('id, title, slug, tags, word_count, body_html, image_url, published_at', { count: 'exact' })
+    .select('id, title, slug, tags, word_count, body_html, image_url, published_at, status', { count: 'exact' })
     .eq('user_id', profile.id)
     .eq('status', 'published')
     .order('published_at', { ascending: false })
@@ -255,8 +257,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
       {/* Search */}
       <form className="mb-6">
-        <input
-          name="q"
+        <SearchBox
           defaultValue={q}
           placeholder="Search writings…"
           className="w-full border-2 border-ink/[var(--opacity-muted)] px-4 py-2.5 text-sm font-mono outline-none focus:border-ink/40 bg-[var(--bg-card)]"
@@ -345,9 +346,20 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
 
                   {/* Article card */}
                   <article
-                    className="flex-1 min-w-0 pb-6"
+                    className="flex-1 min-w-0 pb-6 relative"
                     style={{ borderLeft: `2px solid ${borderColour}`, paddingLeft: '14px', marginLeft: '-2px' }}
                   >
+                    {/* Owner edit menu */}
+                    {isOwner && (
+                      <div className="absolute top-0 right-0">
+                        <WritingEditControls
+                          writingId={w.id}
+                          initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published" }}
+                          siteTags={siteTags}
+                        />
+                      </div>
+                    )}
+
                     {/* Meta line */}
                     <div className="flex items-center gap-2 text-xs text-ink/40 mb-1 flex-wrap">
                       {w.published_at && (

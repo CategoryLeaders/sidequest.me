@@ -15,14 +15,16 @@ import {
 } from "@/components/ui";
 import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
 import { EditModal } from "@/components/shared/EditModal";
+import type { SiteTag } from "@/lib/tags";
 
 interface Props {
   quote: Quote;
   username: string;
   isOwner?: boolean;
+  siteTags?: SiteTag[];
 }
 
-export function QuoteCard({ quote, username, isOwner }: Props) {
+export function QuoteCard({ quote, username, isOwner, siteTags }: Props) {
   const router = useRouter();
   const permalink = `/${username}/thoughts/${quote.short_id}`;
   const postDate = quote.published_at ?? quote.created_at;
@@ -148,6 +150,7 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
             visibility: quote.visibility,
           }}
           onSaved={handleSaved}
+          siteTags={siteTags}
         />
       )}
 

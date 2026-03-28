@@ -15,14 +15,16 @@ import {
 } from "@/components/ui";
 import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
 import { EditModal } from "@/components/shared/EditModal";
+import type { SiteTag } from "@/lib/tags";
 
 interface Props {
   bookmark: Bookmark;
   username: string;
   isOwner?: boolean;
+  siteTags?: SiteTag[];
 }
 
-export function BookmarkCard({ bookmark, username, isOwner }: Props) {
+export function BookmarkCard({ bookmark, username, isOwner, siteTags }: Props) {
   const router = useRouter();
   const permalink = `/${username}/thoughts/${bookmark.short_id}`;
   const postDate = bookmark.published_at ?? bookmark.created_at;
@@ -156,6 +158,7 @@ export function BookmarkCard({ bookmark, username, isOwner }: Props) {
             visibility: bookmark.visibility,
           }}
           onSaved={handleSaved}
+          siteTags={siteTags}
         />
       )}
 

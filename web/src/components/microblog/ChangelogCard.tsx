@@ -16,14 +16,16 @@ import {
 } from "@/components/ui";
 import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
 import { EditModal } from "@/components/shared/EditModal";
+import type { SiteTag } from "@/lib/tags";
 
 interface Props {
   post: MicroblogPostWithCounts;
   username: string;
   isOwner?: boolean;
+  siteTags?: SiteTag[];
 }
 
-export function ChangelogCard({ post, username, isOwner }: Props) {
+export function ChangelogCard({ post, username, isOwner, siteTags }: Props) {
   const router = useRouter();
   const postDate = getPostDate(post);
   const permalink = `/${username}/thoughts/${post.short_id}`;
@@ -162,6 +164,7 @@ export function ChangelogCard({ post, username, isOwner }: Props) {
             media: post.images,
           }}
           onSaved={handleSaved}
+          siteTags={siteTags}
         />
       )}
 

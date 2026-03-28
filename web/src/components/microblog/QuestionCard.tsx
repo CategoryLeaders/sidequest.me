@@ -16,15 +16,17 @@ import {
 } from "@/components/ui";
 import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
 import { EditModal } from "@/components/shared/EditModal";
+import type { SiteTag } from "@/lib/tags";
 
 interface Props {
   question: Question;
   username: string;
   commentCount?: number;
   isOwner?: boolean;
+  siteTags?: SiteTag[];
 }
 
-export function QuestionCard({ question, username, commentCount = 0, isOwner }: Props) {
+export function QuestionCard({ question, username, commentCount = 0, isOwner, siteTags }: Props) {
   const router = useRouter();
   const permalink = `/${username}/thoughts/${question.short_id}`;
   const postDate = question.published_at ?? question.created_at;
@@ -149,6 +151,7 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner }: 
             visibility: question.visibility,
           }}
           onSaved={handleSaved}
+          siteTags={siteTags}
         />
       )}
 

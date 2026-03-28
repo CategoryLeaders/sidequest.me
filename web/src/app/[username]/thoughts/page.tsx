@@ -11,6 +11,8 @@ import { getPublishedPosts } from '@/lib/microblogs'
 import type { MicroblogPostWithCounts } from '@/lib/microblogs'
 import type { Bookmark, Quote, Question } from '@/lib/thoughts-types'
 import { MicroblogCard, ChangelogCard, BookmarkCard, QuoteCard, QuestionCard } from '@/components/microblog'
+import { SearchBox } from '@/components/shared/SearchBox'
+import { WritingEditControls } from '@/components/shared/WritingEditControls'
 import ThoughtsComposer from '@/components/thoughts/ThoughtsComposer'
 import SubscribeButton from '@/components/SubscribeButton'
 import { CardShell, TypeBadge, TagChip, MetadataLine } from '@/components/ui'
@@ -57,7 +59,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
   const filterLabel = matchedTag?.label ?? tagSlug ?? null
 
   // Type filter validation
-  const validTypes = ['microblog', 'writing', 'bookmark', 'quote', 'question']
+  const validTypes = ['microblog', 'changelog', 'writing', 'bookmark', 'quote', 'question']
   const activeType = typeFilter && validTypes.includes(typeFilter) ? typeFilter : null
 
   // ── Fetch all content types in parallel ───────────────────────────────────
@@ -66,7 +68,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
     if (activeType && activeType !== 'writing') return []
     let query = (supabase as any)
       .from('writings')
-      .select('id, title, slug, tags, word_count, body_html, published_at, external_url')
+      .select('id, title, slug, tags, word_count, body_html, published_at, external_url, image_url, status')
       .eq('user_id', profile.id)
       .eq('status', 'published')
       .order('published_at', { ascending: false })
@@ -77,9 +79,12 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
   }
 
   const fetchMicroblogs = async () => {
-    if (activeType && activeType !== 'microblog') return []
+    if (activeType && activeType !== 'microblog' && activeType !== 'changelog') return []
     if (q) return [] // text search only for writings for now
-    return getPublishedPosts(profile.id, { tag: filterLabel ?? undefined, limit: 100 })
+    const posts = await getPublishedPosts(profile.id, { tag: filterLabel ?? undefined, limit: 100 })
+    if (activeType === 'microblog') return posts.filter((p) => p.post_type !== 'changelog')
+    if (activeType === 'changelog') return posts.filter((p) => p.post_type === 'changelog')
+    return posts
   }
 
   const fetchBookmarks = async () => {
@@ -217,6 +222,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
         </Link>
         {[
           { key: 'microblog', label: 'Microblogs' },
+          { key: 'changelog', label: 'Changelog' },
           { key: 'writing', label: 'Writings' },
           { key: 'bookmark', label: 'Bookmarks' },
           { key: 'quote', label: 'Quotes' },
@@ -234,8 +240,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
 
       {/* Search */}
       <form className="mb-6">
-        <input
-          name="q"
+        <SearchBox
           defaultValue={q}
           placeholder="Search thoughts..."
           className="w-full border-3 border-ink px-4 py-2.5 text-[0.88rem] font-mono outline-none bg-[var(--bg-card)] focus:border-[var(--orange)] transition-colors placeholder:text-ink/30"
@@ -282,6 +287,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                     post={item.data}
                     username={username}
                     isOwner={isOwner}
+                    siteTags={siteTags}
                   />
                 )
               }
@@ -291,6 +297,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   post={item.data}
                   username={username}
                   isOwner={isOwner}
+                  siteTags={siteTags}
                 />
               )
             }
@@ -302,6 +309,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   bookmark={item.data}
                   username={username}
                   isOwner={isOwner}
+                  siteTags={siteTags}
                 />
               )
             }
@@ -313,6 +321,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   quote={item.data}
                   username={username}
                   isOwner={isOwner}
+                  siteTags={siteTags}
                 />
               )
             }
@@ -324,6 +333,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   question={item.data}
                   username={username}
                   isOwner={isOwner}
+                  siteTags={siteTags}
                 />
               )
             }
@@ -358,9 +368,33 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
               <CardShell
                 key={`w-${w.id}`}
                 variant="standard"
-                className="!p-6"
+                className="!p-0 overflow-hidden group relative"
                 style={{ borderLeftWidth: 6, borderLeftColor: borderColor }}
               >
+                {/* Hero image — full width */}
+                {w.image_url && (
+                  <div style={{ width: "100%", height: 180, overflow: "hidden" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={w.image_url}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  </div>
+                )}
+
+                <div className="p-6">
+                {/* Owner edit menu */}
+                {isOwner && (
+                  <div className="absolute top-3 right-3">
+                    <WritingEditControls
+                      writingId={w.id!}
+                      initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published" }}
+                      siteTags={siteTags}
+                    />
+                  </div>
+                )}
+
                 {/* Tags as sticker badges */}
                 {w.tags && w.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
@@ -437,6 +471,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                     ...(readTime ? [{ label: `${readTime} min read` }] : []),
                   ]}
                 />
+                </div>
               </CardShell>
             )
           })}

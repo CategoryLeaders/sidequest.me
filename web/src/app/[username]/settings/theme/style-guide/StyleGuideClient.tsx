@@ -12,6 +12,7 @@ import { ActionMenu } from "@/components/ui/ActionMenu";
 import { ImageGrid } from "@/components/ui/ImageGrid";
 import { EngagementBar } from "@/components/ui/EngagementBar";
 import { MetadataLine } from "@/components/ui/MetadataLine";
+import { SearchBox } from "@/components/shared/SearchBox";
 
 interface Props {
   username: string;
@@ -622,6 +623,42 @@ export function StyleGuideClient({ username }: Props) {
             </div>
           </div>
         </Sub>
+        <Sub title="SearchBox">
+          <p className="text-[var(--text-sm)] opacity-60 mb-4">
+            Use <code className="font-mono text-[0.8em] bg-ink/5 px-1 py-0.5">{"<SearchBox>"}</code> for
+            all search inputs. Shows a ✕ clear button when the field has a value. Clears the{" "}
+            <code className="font-mono text-[0.8em] bg-ink/5 px-1 py-0.5">q</code> URL param and
+            preserves all other params (tag, type, page).
+          </p>
+          <div className="space-y-3 max-w-sm">
+            <div>
+              <p className="text-[var(--text-2xs)] font-mono opacity-40 mb-1 uppercase">Empty state</p>
+              <form>
+                <SearchBox
+                  placeholder="Search thoughts..."
+                  className="w-full border-3 border-ink px-4 py-2.5 text-[0.88rem] font-mono outline-none bg-[var(--bg-card)] focus:border-[var(--orange)] transition-colors placeholder:text-ink/30"
+                />
+              </form>
+            </div>
+            <div>
+              <p className="text-[var(--text-2xs)] font-mono opacity-40 mb-1 uppercase">With value — ✕ appears</p>
+              <form>
+                <SearchBox
+                  defaultValue="design systems"
+                  placeholder="Search thoughts..."
+                  className="w-full border-3 border-ink px-4 py-2.5 text-[0.88rem] font-mono outline-none bg-[var(--bg-card)] focus:border-[var(--orange)] transition-colors placeholder:text-ink/30"
+                />
+              </form>
+            </div>
+          </div>
+          <pre className="mt-4 bg-ink/5 p-3 text-[0.72rem] font-mono overflow-x-auto">{`<form>
+  <SearchBox
+    defaultValue={q}
+    placeholder="Search thoughts..."
+    className="w-full border-3 border-ink px-4 py-2.5 ..."
+  />
+</form>`}</pre>
+        </Sub>
       </Section>
 
       {/* ═══════════ 3. CARD TYPES ═══════════ */}
@@ -910,52 +947,55 @@ export function StyleGuideClient({ username }: Props) {
         </Sub>
 
         <Sub title="Writing Card">
-          <CardShell variant="standard" className="max-w-lg">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+          <p className="text-[var(--text-sm)] opacity-60 mb-4">
+            When a writing has a <code className="font-mono text-[0.8em] bg-ink/5 px-1 py-0.5">image_url</code>,
+            it renders as a full-width hero band at the top of the card (object-fit: cover, fixed 180px height).
+          </p>
+          <CardShell variant="standard" className="max-w-lg !p-0 overflow-hidden" style={{ borderLeftWidth: 6, borderLeftColor: "var(--lilac)" }}>
+            {/* Hero image band */}
+            <div style={{ width: "100%", height: 180, overflow: "hidden", background: "linear-gradient(135deg, var(--lilac) 0%, var(--blue) 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>hero image</span>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
                 <TypeBadge type="writing" />
-                <ProjectBadge
-                  project={{ slug: "sidequest-me", name: "SideQuest.me", status: "active" }}
-                  username={username}
-                />
               </div>
-              <ActionMenu onEdit={() => {}} onShare={() => {}} />
+              <h3 className="text-[var(--text-lg)] font-head font-bold mb-2">
+                Building a Living Style Guide for Your Side Project
+              </h3>
+              <p className="text-[var(--text-base)] opacity-60 leading-relaxed mb-3 line-clamp-3">
+                How I went from 8 inconsistent card components to a unified design system
+                without rewriting everything. The key insight: codify what already works,
+                then extract shared primitives.
+              </p>
+              <MetadataLine
+                items={[
+                  { label: "2,400 words" },
+                  { label: "8 min read" },
+                ]}
+                className="mb-3"
+              />
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                <TagChip label="design" href="#" />
+                <TagChip label="engineering" href="#" />
+                <TagChip label="tutorial" href="#" />
+              </div>
+              <CardFooter
+                left={
+                  <span className="text-[var(--text-xs)] font-mono opacity-40">
+                    Published 2 days ago
+                  </span>
+                }
+                right={
+                  <EngagementBar
+                    reactions={[{ emoji: "❤️", count: 12 }]}
+                    commentCount={5}
+                    commentHref="#"
+                    shareUrl={`/${username}/writings/style-guide-demo`}
+                  />
+                }
+              />
             </div>
-            <h3 className="text-[var(--text-lg)] font-head font-bold mb-2">
-              Building a Living Style Guide for Your Side Project
-            </h3>
-            <p className="text-[var(--text-base)] opacity-60 leading-relaxed mb-3 line-clamp-3">
-              How I went from 8 inconsistent card components to a unified design system
-              without rewriting everything. The key insight: codify what already works,
-              then extract shared primitives.
-            </p>
-            <MetadataLine
-              items={[
-                { label: "2,400 words" },
-                { label: "8 min read" },
-              ]}
-              className="mb-3"
-            />
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <TagChip label="design" href="#" />
-              <TagChip label="engineering" href="#" />
-              <TagChip label="tutorial" href="#" />
-            </div>
-            <CardFooter
-              left={
-                <span className="text-[var(--text-xs)] font-mono opacity-40">
-                  Published 2 days ago
-                </span>
-              }
-              right={
-                <EngagementBar
-                  reactions={[{ emoji: "❤️", count: 12 }]}
-                  commentCount={5}
-                  commentHref="#"
-                  shareUrl={`/${username}/writings/style-guide-demo`}
-                />
-              }
-            />
           </CardShell>
         </Sub>
       </Section>

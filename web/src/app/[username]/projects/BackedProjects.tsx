@@ -88,14 +88,38 @@ export default function BackedProjects({ projects, username, writingCounts, revi
       </div>
 
       {/* Search bar */}
-      <div className="mt-3">
+      <div className="mt-3" style={{ position: "relative" }}>
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects…"
           className="w-full px-3 py-2 border-2 border-ink/20 bg-bg-card font-mono text-[0.75rem] focus:outline-none focus:border-ink/50 transition-colors placeholder:opacity-40"
+          style={{ paddingRight: search ? "2rem" : undefined }}
         />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            style={{
+              position: "absolute",
+              right: "0.5rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "0.75rem",
+              lineHeight: 1,
+              opacity: 0.4,
+              color: "var(--ink)",
+              padding: "4px",
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Calendar View */}

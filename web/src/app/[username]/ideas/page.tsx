@@ -5,6 +5,7 @@ import type { Writing } from '@/lib/writings'
 import { excerptFromHtml, readTimeMinutes } from '@/lib/writings'
 import { tagBySlug, slugify } from '@/lib/tags'
 import type { SiteTag } from '@/lib/tags'
+import { SearchBox } from '@/components/shared/SearchBox'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -87,10 +88,9 @@ export default async function IdeasPage({ params, searchParams }: Props) {
 
       {/* Search */}
       <form className="mb-6">
-        <input
-          name="q"
+        <SearchBox
           defaultValue={q}
-          placeholder="Search writings..."
+          placeholder="Search ideas…"
           className="w-full border-3 border-ink px-4 py-2.5 text-[0.88rem] font-mono outline-none bg-[var(--bg-card)] focus:border-[var(--orange)] transition-colors placeholder:text-ink/30"
         />
       </form>
