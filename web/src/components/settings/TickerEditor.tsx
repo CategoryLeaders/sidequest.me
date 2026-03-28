@@ -141,7 +141,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
               type="button"
               title="Remove"
               onClick={() => handleRemove(idx)}
-              className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+              className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-pink/10 transition-colors cursor-pointer flex-shrink-0"
             >
               ✕
             </button>
@@ -180,7 +180,7 @@ export default function TickerEditor({ items, onChange }: TickerEditorProps) {
       </div>
 
       {genError && (
-        <div className="mt-3 border-3 border-red-500 bg-red-50 p-3 font-mono text-[0.75rem] text-red-600">
+        <div className="mt-3 border-3 border-pink bg-pink/10 p-3 font-mono text-[0.75rem] text-pink">
           {genError}
         </div>
       )}

@@ -72,7 +72,7 @@ function ProjectMenu({ project, username }: { project: Project; username: string
       </button>
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 z-50 border-3 border-ink bg-white min-w-[180px]"
+          className="absolute right-0 top-full mt-1 z-50 border-3 border-ink bg-[var(--bg-card)] min-w-[180px]"
           style={{ boxShadow: "3px 3px 0 var(--ink)" }}
         >
           {items.map((item) => {

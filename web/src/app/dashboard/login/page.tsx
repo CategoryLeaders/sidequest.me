@@ -228,7 +228,7 @@ function DashboardLoginForm() {
         )}
 
         {error && (
-          <div className="border-3 border-red-500 bg-red-50 p-3 font-mono text-[0.78rem] text-red-700">
+          <div className="border-3 border-pink bg-pink/10 p-3 font-mono text-[0.78rem] text-pink">
             {error}
           </div>
         )}

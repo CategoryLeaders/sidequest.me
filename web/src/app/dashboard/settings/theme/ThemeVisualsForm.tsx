@@ -242,7 +242,7 @@ export default function ThemeVisualsForm({ profile }: ThemeVisualsFormProps) {
           {saving ? 'Saving…' : 'Save changes'}
         </button>
         {saved && <span className="font-mono text-[0.72rem] text-green">Saved ✓</span>}
-        {error && <span className="font-mono text-[0.72rem] text-red-600">{error}</span>}
+        {error && <span className="font-mono text-[0.72rem] text-pink">{error}</span>}
       </div>
     </div>
   );

@@ -175,7 +175,7 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
                   <button
                     type="button"
                     onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
-                    className="absolute top-0 right-0 bg-black/60 text-white text-[8px] w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                    className="absolute top-0 right-0 bg-ink/60 text-[var(--bg)] text-[8px] w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100"
                   >
                     ✕
                   </button>
@@ -225,7 +225,7 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
               Cancel
             </button>
           </div>
-          {error && <p className="mt-2 font-mono text-[0.72rem] text-red-500">{error}</p>}
+          {error && <p className="mt-2 font-mono text-[0.72rem] text-pink">{error}</p>}
         </div>
       )}
 
@@ -238,7 +238,7 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
             <div key={m.id} className="py-3 group">
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-[0.85rem] leading-relaxed mb-1">{m.body}</p>
+                  <p className="font-body text-[var(--text-base)] leading-relaxed mb-1">{m.body}</p>
                   {m.images && m.images.length > 0 && (
                     <div className="flex gap-1 flex-wrap mb-1">
                       {m.images.map((img, i) => (
@@ -257,7 +257,7 @@ export default function MicroblogsManager({ username }: MicroblogsManagerProps) 
                 <button
                   type="button"
                   onClick={() => handleDelete(m.id)}
-                  className="font-mono text-[0.55rem] text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0"
+                  className="font-mono text-[0.55rem] text-ink-muted hover:text-pink opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0"
                 >
                   Delete
                 </button>

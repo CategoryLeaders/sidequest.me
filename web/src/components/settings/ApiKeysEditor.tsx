@@ -122,13 +122,13 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
           type="button"
           onClick={handleCreate}
           disabled={creating || !newLabel.trim()}
-          className="bg-black text-white text-sm px-4 py-2  hover:bg-ink/80 disabled:opacity-40 transition-colors whitespace-nowrap"
+          className="bg-ink text-[var(--bg)] text-sm px-4 py-2 hover:bg-ink/80 disabled:opacity-40 transition-colors whitespace-nowrap"
         >
           {creating ? 'Creating…' : 'Generate key'}
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-pink">{error}</p>}
 
       {/* Key list */}
       {loading ? (
@@ -155,7 +155,7 @@ export default function ApiKeysEditor({ userId }: { userId: string }) {
                 type="button"
                 onClick={() => handleRevoke(k.id)}
                 disabled={revoking === k.id}
-                className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5  transition-colors disabled:opacity-40"
+                className="text-xs text-pink hover:text-pink/80 border border-pink/30 hover:border-pink/60 px-3 py-1.5 transition-colors disabled:opacity-40"
               >
                 {revoking === k.id ? 'Revoking…' : 'Revoke'}
               </button>

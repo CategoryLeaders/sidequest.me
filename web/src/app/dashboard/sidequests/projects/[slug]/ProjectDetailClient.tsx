@@ -304,7 +304,7 @@ export default function ProjectDetailClient({
                 </span>
               )}
               {error && (
-                <span className="font-mono text-[0.68rem] text-red-500">
+                <span className="font-mono text-[0.68rem] text-pink">
                   {error}
                 </span>
               )}

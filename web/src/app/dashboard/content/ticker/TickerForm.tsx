@@ -98,7 +98,7 @@ export default function TickerForm({
         )}
 
         {error && (
-          <p className="font-mono text-[0.72rem] text-red-600">
+          <p className="font-mono text-[0.72rem] text-pink">
             {error}
           </p>
         )}

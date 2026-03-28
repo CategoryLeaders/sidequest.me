@@ -454,7 +454,7 @@ export default function SiteTagsEditor({
                 type="button"
                 title="Remove"
                 onClick={() => handleRemove(idx)}
-                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+                className="w-8 h-8 flex items-center justify-center border-3 border-ink bg-bg-card font-mono text-[0.7rem] hover:bg-pink/10 transition-colors cursor-pointer flex-shrink-0"
               >
                 ✕
               </button>

@@ -105,7 +105,7 @@ export default function LikesDislikesEditor({
             <button
               type="button"
               onClick={() => handleRemove(i)}
-              className="w-7 h-7 border-2 border-red-300 bg-transparent text-red-500 font-bold text-[0.7rem] cursor-pointer hover:bg-red-50"
+              className="w-7 h-7 border-2 border-pink/50 bg-transparent text-pink font-bold text-[0.7rem] cursor-pointer hover:bg-pink/10"
               title="Remove"
             >
               ×
