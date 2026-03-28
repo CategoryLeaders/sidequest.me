@@ -123,14 +123,6 @@ interface FormChildProps {
 }
 
 function SiteTagPicker({ tags, siteTags, setTags }: { tags: string[]; siteTags: SiteTag[]; setTags: (t: string[]) => void }) {
-  const COLORS: Record<string, string> = {
-    "sticker-orange": "var(--orange)",
-    "sticker-green": "var(--green)",
-    "sticker-blue": "var(--blue)",
-    "sticker-yellow": "var(--yellow)",
-    "sticker-lilac": "var(--lilac)",
-    "sticker-pink": "var(--pink)",
-  };
   const toggle = (label: string) => {
     setTags(tags.includes(label) ? tags.filter(t => t !== label) : [...tags, label]);
   };
@@ -138,20 +130,14 @@ function SiteTagPicker({ tags, siteTags, setTags }: { tags: string[]; siteTags: 
     <div className="flex flex-wrap gap-1.5 items-center">
       {siteTags.map(st => {
         const active = tags.includes(st.label);
-        const color = COLORS[st.color] ?? "var(--ink)";
+        const colorKey = st.color.replace("sticker-", "");
         return (
           <button
             key={st.label}
             type="button"
             onClick={() => toggle(st.label)}
-            className="font-mono text-[0.65rem] px-2.5 py-1 border-2 transition-all cursor-pointer"
-            style={{
-              borderColor: active ? color : "rgba(26,26,26,0.2)",
-              background: active ? color : "transparent",
-              color: active ? "#fff" : "var(--ink)",
-              fontWeight: active ? 700 : 400,
-              opacity: active ? 1 : 0.55,
-            }}
+            className={`sticker text-[0.65rem] ${active ? `sticker-${colorKey}` : ""}`}
+            style={{ padding: "3px 10px", opacity: active ? 1 : 0.35 }}
           >
             {st.icon ? `${st.icon} ` : ""}{st.label}
           </button>

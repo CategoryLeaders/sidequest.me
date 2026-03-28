@@ -3,9 +3,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ContentType } from "./ThreeDotMenu";
-import type { MicroblogImage } from "@/lib/microblogs";
+import type { ChangelogItem, MicroblogImage } from "@/lib/microblogs";
 import type { SiteTag } from "@/lib/tags";
 import { ImageManager } from "./ImageManager";
+import { ChangelogItemsEditor } from "./ChangelogItemsEditor";
 
 interface Props {
   open: boolean;
@@ -237,6 +238,31 @@ function FieldsForType({
 }) {
   switch (contentType) {
     case "microblog":
+      if (fields.post_type === "changelog") {
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <FieldLabel label="Title" />
+            <input
+              value={(fields.title as string) ?? ""}
+              onChange={(e) => setField("title", e.target.value)}
+              style={inputBase}
+            />
+            <div>
+              <FieldLabel label="Changes" />
+              <ChangelogItemsEditor
+                items={(fields.changelog_items as ChangelogItem[]) ?? []}
+                onChange={(items) => setField("changelog_items", items)}
+              />
+            </div>
+            {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
+            <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+            <VisibilityPicker
+              value={(fields.visibility as string) ?? "public"}
+              onChange={(v) => setField("visibility", v)}
+            />
+          </div>
+        );
+      }
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <FieldLabel label="Body" />
@@ -581,7 +607,7 @@ function VisibilityPicker({ value, onChange }: { value: string; onChange: (v: st
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ ...inputBase, width: 140, marginTop: 8 }}
+        style={{ ...inputBase, width: 140, marginTop: 12, padding: "6px 10px" }}
       >
         <option value="public">Public</option>
         <option value="unlisted">Unlisted</option>
@@ -592,15 +618,6 @@ function VisibilityPicker({ value, onChange }: { value: string; onChange: (v: st
 }
 
 // ─── Site tag picker ─────────────────────────────────────────────────────────
-
-const STICKER_COLORS: Record<string, string> = {
-  "sticker-orange": "var(--orange)",
-  "sticker-green": "var(--green)",
-  "sticker-blue": "var(--blue)",
-  "sticker-yellow": "var(--yellow)",
-  "sticker-lilac": "var(--lilac)",
-  "sticker-pink": "var(--pink)",
-};
 
 function SiteTagPicker({
   tags,
@@ -625,24 +642,14 @@ function SiteTagPicker({
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
         {siteTags.map((st) => {
           const active = tags.includes(st.label);
-          const color = STICKER_COLORS[st.color] ?? "var(--ink)";
+          const colorKey = st.color.replace("sticker-", "");
           return (
             <button
               key={st.label}
               type="button"
               onClick={() => toggle(st.label)}
-              style={{
-                padding: "3px 10px",
-                border: `2px solid ${active ? color : "rgba(26,26,26,0.2)"}`,
-                background: active ? color : "transparent",
-                color: active ? "#fff" : "var(--ink)",
-                fontSize: "0.7rem",
-                fontFamily: "var(--font-mono)",
-                fontWeight: active ? 700 : 400,
-                cursor: "pointer",
-                opacity: active ? 1 : 0.55,
-                transition: "all 0.1s",
-              }}
+              className={`sticker text-[0.65rem] ${active ? `sticker-${colorKey}` : ""}`}
+              style={{ padding: "3px 10px", opacity: active ? 1 : 0.35 }}
             >
               {st.icon ? `${st.icon} ` : ""}{st.label}
             </button>
