@@ -31,6 +31,7 @@
   --font-head: 'Archivo', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --font-mono: 'Space Mono', monospace;
+  --font-quote: 'Source Serif 4', serif;
 
   /* ═══════════════ DESIGN TOKENS (Style Guide) ═══════════════
      Semantic scales — use these instead of ad-hoc values.

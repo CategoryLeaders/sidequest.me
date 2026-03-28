@@ -41,10 +41,13 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
 
       {/* Large quotation mark + quote text */}
       <div className="relative pl-6 mb-3">
-        <span className="absolute left-0 top-0 text-[2.5rem] leading-none opacity-15 font-head font-[900]">
+        <span className="absolute left-0 top-0 text-[2.5rem] leading-none opacity-25 font-head font-[900]">
           &ldquo;
         </span>
-        <blockquote className="text-[var(--text-md)] leading-relaxed font-[500] italic">
+        <blockquote
+          className="text-[var(--text-md)] font-[300] italic"
+          style={{ fontFamily: "var(--font-quote)", lineHeight: 1.625, textAlign: "left" }}
+        >
           {quote.quote_text}
         </blockquote>
       </div>
