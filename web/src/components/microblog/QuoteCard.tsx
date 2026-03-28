@@ -60,7 +60,7 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
           &ldquo;
         </span>
         <blockquote
-          className="text-[1.35rem] font-[400] italic"
+          className="text-[1.35rem] font-[400] italic opacity-60"
           style={{ fontFamily: "var(--font-quote)", lineHeight: 1.6, textAlign: "center" }}
         >
           {quote.quote_text}
@@ -93,7 +93,7 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
 
       {/* Commentary */}
       {quote.commentary && (
-        <p className="text-[0.82rem] opacity-60 leading-relaxed mb-3 pl-3 border-l-2 border-ink/[var(--opacity-muted)]">
+        <p className="text-[var(--text-base)] leading-relaxed mb-3">
           {quote.commentary}
         </p>
       )}
