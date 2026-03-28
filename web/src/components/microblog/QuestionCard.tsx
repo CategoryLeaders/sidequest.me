@@ -49,7 +49,7 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner }: 
         </div>
       )}
       {/* Type badge + resolved status */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <TypeBadge type="question" />
         {question.resolved && (
           <span className="sticker sticker-green text-[0.5rem] !px-2 !py-0.5 !border-2">

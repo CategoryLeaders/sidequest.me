@@ -47,7 +47,7 @@ export function BookmarkCard({ bookmark, username, isOwner }: Props) {
         </div>
       )}
       {/* Type badge */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <TypeBadge type="bookmark" />
         {bookmark.pinned && (
           <span className="text-[var(--text-2xs)] font-mono opacity-40 ml-auto">📌 Pinned</span>

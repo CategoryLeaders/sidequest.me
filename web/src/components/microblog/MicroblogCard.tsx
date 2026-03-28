@@ -50,7 +50,7 @@ export function MicroblogCard({ post, username, isOwner }: Props) {
       )}
 
       {/* Type indicator */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <TypeBadge type="microblog" />
         {post.source !== "native" && (
           <span className="text-[var(--text-2xs)] font-mono opacity-30">
