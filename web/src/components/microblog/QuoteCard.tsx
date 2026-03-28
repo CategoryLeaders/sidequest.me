@@ -55,24 +55,25 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
       </div>
 
       {/* Large quotation mark + quote text */}
-      <div className="relative pl-6 mb-3">
-        <span className="absolute left-0 top-0 text-[2.5rem] leading-none opacity-25 font-head font-[900]">
+      <div className="mb-4 text-center">
+        <span className="block text-[3rem] leading-none opacity-20 font-head font-[900] mb-1">
           &ldquo;
         </span>
         <blockquote
-          className="text-[var(--text-md)] font-[300] italic"
-          style={{ fontFamily: "var(--font-quote)", lineHeight: 1.625, textAlign: "left" }}
+          className="text-[1.35rem] font-[400] italic"
+          style={{ fontFamily: "var(--font-quote)", lineHeight: 1.6, textAlign: "center" }}
         >
           {quote.quote_text}
         </blockquote>
       </div>
 
-      {/* Source attribution */}
-      <div className="mb-3 pl-6 text-[var(--text-sm)] opacity-60">
+      {/* Source attribution — right-aligned */}
+      <div className="mb-3 text-[var(--text-sm)] opacity-60 text-right">
+        <span>— </span>
         <span className="font-bold">{quote.source_name}</span>
         {quote.source_work && (
           <span>
-            {" — "}
+            {", "}
             {quote.source_url ? (
               <a
                 href={quote.source_url}
