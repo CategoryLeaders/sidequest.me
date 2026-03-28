@@ -256,6 +256,10 @@ function FieldsForType({
             </div>
             {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
             <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+            <PublishedAtPicker
+              value={(fields.published_at as string) ?? ""}
+              onChange={(v) => setField("published_at", v)}
+            />
             <VisibilityPicker
               value={(fields.visibility as string) ?? "public"}
               onChange={(v) => setField("visibility", v)}
@@ -304,6 +308,10 @@ function FieldsForType({
           />
           {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+          <PublishedAtPicker
+            value={(fields.published_at as string) ?? ""}
+            onChange={(v) => setField("published_at", v)}
+          />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
             onChange={(v) => setField("visibility", v)}
@@ -340,6 +348,10 @@ function FieldsForType({
           />
           {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+          <PublishedAtPicker
+            value={(fields.published_at as string) ?? ""}
+            onChange={(v) => setField("published_at", v)}
+          />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
             onChange={(v) => setField("visibility", v)}
@@ -370,6 +382,10 @@ function FieldsForType({
           />
           {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+          <PublishedAtPicker
+            value={(fields.published_at as string) ?? ""}
+            onChange={(v) => setField("published_at", v)}
+          />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
             onChange={(v) => setField("visibility", v)}
@@ -414,6 +430,10 @@ function FieldsForType({
           </label>
           {siteTags && siteTags.length > 0 && <SiteTagPicker tags={(fields.tags as string[]) ?? []} siteTags={siteTags} onChange={(t) => setField("tags", t)} />}
           <TagEditor tags={(fields.tags as string[]) ?? []} onChange={(t) => setField("tags", t)} />
+          <PublishedAtPicker
+            value={(fields.published_at as string) ?? ""}
+            onChange={(v) => setField("published_at", v)}
+          />
           <VisibilityPicker
             value={(fields.visibility as string) ?? "public"}
             onChange={(v) => setField("visibility", v)}
@@ -596,6 +616,29 @@ function TagEditor({ tags, onChange }: { tags: string[]; onChange: (tags: string
           }}
         />
       </div>
+    </div>
+  );
+}
+
+function PublishedAtPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  // Convert UTC ISO → datetime-local value (local time)
+  const toLocalInput = (iso: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  return (
+    <div>
+      <FieldLabel label="Published date" />
+      <input
+        type="datetime-local"
+        value={toLocalInput(value)}
+        onChange={(e) => {
+          if (e.target.value) onChange(new Date(e.target.value).toISOString());
+        }}
+        style={{ ...inputBase, width: "100%", marginTop: 8 }}
+      />
     </div>
   );
 }

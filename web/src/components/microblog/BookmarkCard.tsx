@@ -157,6 +157,7 @@ export function BookmarkCard({ bookmark, username, isOwner, siteTags }: Props) {
             og_description: bookmark.og_description,
             tags: bookmark.tags,
             visibility: bookmark.visibility,
+            published_at: bookmark.published_at,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}

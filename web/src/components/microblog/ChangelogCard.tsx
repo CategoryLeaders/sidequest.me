@@ -174,6 +174,7 @@ export function ChangelogCard({ post, username, isOwner, siteTags, contextEntity
             changelog_items: post.changelog_items,
             tags: post.tags,
             visibility: post.visibility,
+            published_at: post.published_at,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}

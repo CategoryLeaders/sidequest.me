@@ -150,6 +150,7 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner, si
             resolved_summary: question.resolved_summary,
             tags: question.tags,
             visibility: question.visibility,
+            published_at: question.published_at,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}

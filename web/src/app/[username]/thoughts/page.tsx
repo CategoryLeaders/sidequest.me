@@ -418,7 +418,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   <div className="absolute top-3 right-3">
                     <WritingEditControls
                       writingId={w.id!}
-                      initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published" }}
+                      initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published", published_at: (w as any).published_at ?? null }}
                       permalink={w.slug ? `/${username}/writings/${w.slug}` : undefined}
                       siteTags={siteTags}
                     />

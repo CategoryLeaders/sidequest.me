@@ -214,6 +214,7 @@ export function MicroblogCard({ post, username, isOwner, siteTags, contextEntity
             tags: post.tags,
             visibility: post.visibility,
             media: post.images,
+            published_at: post.published_at,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}

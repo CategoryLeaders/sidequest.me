@@ -20,7 +20,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (body[key] !== undefined) update[key] = body[key]
   }
   const becomingPublished = body.status === 'published' && existing.status !== 'published'
-  if (becomingPublished) update.published_at = new Date().toISOString()
+  if (body.published_at !== undefined) update.published_at = body.published_at || null
+  else if (becomingPublished) update.published_at = new Date().toISOString()
   if (existing.status === 'published') update.edited_at = new Date().toISOString()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -149,6 +149,7 @@ export function QuoteCard({ quote, username, isOwner, siteTags }: Props) {
             commentary: quote.commentary,
             tags: quote.tags,
             visibility: quote.visibility,
+            published_at: quote.published_at,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}

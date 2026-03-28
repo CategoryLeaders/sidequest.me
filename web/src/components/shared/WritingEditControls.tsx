@@ -13,6 +13,7 @@ interface Props {
     title: string;
     tags: string[];
     status: string;
+    published_at?: string | null;
   };
   siteTags?: SiteTag[];
   onDeleted?: () => void;

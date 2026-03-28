@@ -42,6 +42,7 @@ export async function PATCH(
   if (body.visibility !== undefined) update.visibility = body.visibility
   if (body.status !== undefined) update.status = body.status
   if (body.paired_writing_id !== undefined) update.paired_writing_id = body.paired_writing_id || null
+  if (body.published_at !== undefined) update.published_at = body.published_at || null
 
   const { data, error } = await (supabase as any)
     .from('microblog_posts')
