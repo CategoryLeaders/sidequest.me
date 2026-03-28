@@ -2,6 +2,7 @@
 
 const TYPE_CONFIG = {
   microblog: { label: "Microblog", color: "sticker-orange", emoji: "" },
+  changelog: { label: "Changelog", color: "sticker-blue", emoji: "📋 " },
   bookmark: { label: "Bookmark", color: "sticker-green", emoji: "🔖 " },
   quote: { label: "Quote", color: "sticker-lilac", emoji: "💬 " },
   question: { label: "Question", color: "sticker-yellow", emoji: "❓ " },

@@ -10,7 +10,7 @@ import type { SiteTag } from '@/lib/tags'
 import { getPublishedPosts } from '@/lib/microblogs'
 import type { MicroblogPostWithCounts } from '@/lib/microblogs'
 import type { Bookmark, Quote, Question } from '@/lib/thoughts-types'
-import { MicroblogCard, BookmarkCard, QuoteCard, QuestionCard } from '@/components/microblog'
+import { MicroblogCard, ChangelogCard, BookmarkCard, QuoteCard, QuestionCard } from '@/components/microblog'
 import ThoughtsComposer from '@/components/thoughts/ThoughtsComposer'
 import SubscribeButton from '@/components/SubscribeButton'
 import { CardShell, TypeBadge, TagChip, MetadataLine } from '@/components/ui'
@@ -275,6 +275,16 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
         <div className="flex flex-col gap-5">
           {pageItems.map((item) => {
             if (item.type === 'microblog') {
+              if (item.data.post_type === 'changelog') {
+                return (
+                  <ChangelogCard
+                    key={`cl-${item.data.id}`}
+                    post={item.data}
+                    username={username}
+                    isOwner={isOwner}
+                  />
+                )
+              }
               return (
                 <MicroblogCard
                   key={`mb-${item.data.id}`}
