@@ -27,7 +27,6 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
       {isOwner && (
         <ActionMenu
           shareUrl={permalink}
-          editHref={`/${username}/admin/quotes/${quote.id}`}
           className="absolute top-3 right-3"
         />
       )}

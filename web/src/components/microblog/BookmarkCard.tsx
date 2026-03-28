@@ -27,7 +27,6 @@ export function BookmarkCard({ bookmark, username, isOwner }: Props) {
       {isOwner && (
         <ActionMenu
           shareUrl={permalink}
-          editHref={`/${username}/admin/bookmarks/${bookmark.id}`}
           className="absolute top-3 right-3"
         />
       )}

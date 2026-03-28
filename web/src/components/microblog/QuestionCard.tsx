@@ -29,7 +29,6 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner }: 
       {isOwner && (
         <ActionMenu
           shareUrl={permalink}
-          editHref={`/${username}/admin/questions/${question.id}`}
           className="absolute top-3 right-3"
         />
       )}

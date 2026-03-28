@@ -29,7 +29,6 @@ export function MicroblogCard({ post, username, isOwner }: Props) {
       {isOwner && (
         <ActionMenu
           shareUrl={permalink}
-          editHref={`/${username}/admin/microblogs/${post.id}`}
           className="absolute top-3 right-3"
         />
       )}
