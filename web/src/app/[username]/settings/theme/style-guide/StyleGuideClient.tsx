@@ -272,6 +272,14 @@ export function StyleGuideClient({ username }: Props) {
                 var(--font-mono) &middot; Weights: 400, 700 &middot; Used: timestamps, tags, technical labels
               </p>
             </div>
+            <div>
+              <p className="text-[var(--text-lg)] mb-1 italic font-[300] opacity-70" style={{ fontFamily: "var(--font-quote)" }}>
+                Source Serif 4 — Quote Text
+              </p>
+              <p className="font-mono text-[var(--text-xs)] opacity-40">
+                var(--font-quote) &middot; Weights: 300, 400 (italic) &middot; Used: quote card blockquote only
+              </p>
+            </div>
           </div>
         </Sub>
 
@@ -408,7 +416,7 @@ export function StyleGuideClient({ username }: Props) {
           </p>
           <div className="flex flex-wrap gap-3">
             {(
-              ["microblog", "bookmark", "quote", "question", "writing", "adventure", "project"] as ContentType[]
+              ["microblog", "changelog", "bookmark", "quote", "question", "writing", "adventure", "project"] as ContentType[]
             ).map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
@@ -478,35 +486,35 @@ export function StyleGuideClient({ username }: Props) {
           </div>
         </Sub>
 
-        {/* ActionMenu */}
-        <Sub title="ActionMenu">
+        {/* ThreeDotMenu + EditModal */}
+        <Sub title="ThreeDotMenu + EditModal">
           <p className="text-[var(--text-sm)] opacity-60 mb-4">
-            Owner-only overflow menu. Delete has confirmation step. Place top-right of cards.
+            Owner-only overflow menu on all thought cards (microblog, changelog, quote, bookmark, question).
+            Uses <span className="font-mono">ThreeDotMenu</span> (⋮ vertical trigger) paired with <span className="font-mono">EditModal</span>.
+            Always placed <span className="font-mono">absolute top-3 right-3</span> inside a <span className="font-mono">relative</span> CardShell.
           </p>
-          <div className="flex gap-6 items-start">
-            <CardShell variant="standard" className="w-64">
-              <div className="flex justify-between items-start">
-                <TypeBadge type="microblog" />
-                <ActionMenu
-                  onEdit={() => alert("Edit")}
-                  onDelete={() => alert("Delete")}
-                  onShare={() => alert("Share")}
-                  onPin={() => alert("Pin")}
-                />
-              </div>
-              <p className="text-[var(--text-sm)] mt-3">
-                Card with all actions available. Click &ldquo;&middot;&middot;&middot;&rdquo; to see menu.
-              </p>
-            </CardShell>
-            <CardShell variant="standard" className="w-64">
-              <div className="flex justify-between items-start">
-                <TypeBadge type="quote" />
-                <ActionMenu onShare={() => alert("Share")} />
-              </div>
-              <p className="text-[var(--text-sm)] mt-3">
-                Card with share only (visitor view).
-              </p>
-            </CardShell>
+          <div className="space-y-3 text-[var(--text-sm)] mb-4">
+            <p><span className="font-mono opacity-60">ThreeDotMenu</span> — Edit (opens modal) · Copy link · Delete (with confirm). Handles delete API call internally via <span className="font-mono">onDeleted</span> callback.</p>
+            <p><span className="font-mono opacity-60">EditModal</span> — centered overlay, pre-filled fields per content type, calls <span className="font-mono">PATCH /api/&#123;type&#125;s/&#123;id&#125;</span>. On save: brief &ldquo;✓ Saved&rdquo; toast, then <span className="font-mono">router.refresh()</span>.</p>
+            <p><span className="font-mono opacity-60">contentType</span> for API routing: microblog · quote · bookmark · question (changelog uses &ldquo;microblog&rdquo;).</p>
+          </div>
+          <div className="bg-ink/[0.03] border-2 border-ink/[0.15] p-4 font-mono text-[var(--text-xs)]">
+            <pre>{`<div className="absolute top-3 right-3">
+  <ThreeDotMenu
+    contentType="quote"
+    contentId={quote.id}
+    onEdit={() => setEditOpen(true)}
+    onDeleted={() => router.refresh()}
+  />
+</div>
+<EditModal
+  open={editOpen}
+  onClose={() => setEditOpen(false)}
+  contentType="quote"
+  contentId={quote.id}
+  initialData={{ quote_text, source_name, ... }}
+  onSaved={handleSaved}
+/>`}</pre>
           </div>
         </Sub>
 
@@ -745,22 +753,29 @@ export function StyleGuideClient({ username }: Props) {
         </Sub>
 
         <Sub title="Quote Card">
-          <CardShell variant="standard" className="max-w-lg">
-            <div className="flex items-center justify-between mb-3">
+          <p className="text-[var(--text-sm)] opacity-60 mb-3">
+            Quote text: Source Serif 4, 1.35rem, weight 400, italic, centered, opacity-60.
+            Attribution: right-aligned, prefixed &ldquo;— &rdquo;. Commentary: plain body text, no border.
+          </p>
+          <CardShell variant="standard" className="max-w-lg relative">
+            <div className="flex items-center gap-2 mb-4">
               <TypeBadge type="quote" />
-              <ActionMenu onShare={() => {}} />
             </div>
-            <div className="relative pl-6 mb-3">
-              <span className="absolute left-0 top-0 text-[2.5rem] leading-none opacity-15 font-head font-[900]">
-                &ldquo;
-              </span>
-              <blockquote className="text-[var(--text-md)] leading-relaxed font-medium italic">
+            <div className="mb-4 text-center">
+              <blockquote
+                className="text-[1.35rem] font-[400] italic opacity-60"
+                style={{ fontFamily: "var(--font-quote)", lineHeight: 1.6, textAlign: "center" }}
+              >
                 Design is not just what it looks like and feels like. Design is how it works.
               </blockquote>
             </div>
-            <div className="mb-3 pl-6 text-[var(--text-sm)] opacity-60">
+            <div className="mb-3 text-[var(--text-sm)] opacity-60 text-right">
+              <span>— </span>
               <span className="font-bold">Steve Jobs</span>
             </div>
+            <p className="text-[var(--text-base)] leading-relaxed mb-3">
+              Still one of the best single-sentence definitions of design I&apos;ve come across.
+            </p>
             <div className="flex flex-wrap gap-1.5 mb-3">
               <TagChip label="design" href="#" />
               <TagChip label="inspiration" href="#" />
@@ -772,10 +787,7 @@ export function StyleGuideClient({ username }: Props) {
                 </span>
               }
               right={
-                <EngagementBar
-                  reactions={[{ emoji: "💡", count: 8 }]}
-                  shareUrl={`/${username}/thoughts/quote-demo`}
-                />
+                <EngagementBar shareUrl={`/${username}/thoughts/quote-demo`} />
               }
             />
           </CardShell>
@@ -851,6 +863,47 @@ export function StyleGuideClient({ username }: Props) {
                   commentHref="#"
                   shareUrl={`/${username}/thoughts/question-demo`}
                 />
+              }
+            />
+          </CardShell>
+        </Sub>
+
+        <Sub title="Changelog Card">
+          <p className="text-[var(--text-sm)] opacity-60 mb-3">
+            Structured update post. Renders title + bullet items with orange dots. Uses <span className="font-mono">post_type: &apos;changelog&apos;</span> on the microblog record — no separate DB table. API uses <span className="font-mono">contentType=&quot;microblog&quot;</span>.
+          </p>
+          <CardShell variant="standard" className="max-w-lg relative">
+            <div className="flex items-center gap-2 mb-4">
+              <TypeBadge type="changelog" />
+            </div>
+            <h3 className="text-[var(--text-lg)] font-head font-bold leading-snug mb-3">
+              Thoughts feed — March update
+            </h3>
+            <ul className="space-y-2.5 mb-3 list-none p-0">
+              {[
+                "Inline edit now available from ⋮ menu on all card types",
+                "New Changelog card type — structured bullet updates",
+                "Quote cards: Source Serif 4, centered, right-attributed",
+                "Type badge spacing increased across all card types",
+              ].map((item, i) => (
+                <li key={i} className="flex gap-2.5">
+                  <span className="text-[var(--orange)] font-mono text-[0.9rem] mt-0.5 shrink-0">•</span>
+                  <p className="text-[var(--text-base)] leading-relaxed">{item}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              <TagChip label="shipping" href="#" />
+              <TagChip label="design" href="#" />
+            </div>
+            <CardFooter
+              left={
+                <span className="text-[var(--text-xs)] font-mono opacity-40">
+                  today
+                </span>
+              }
+              right={
+                <EngagementBar shareUrl={`/${username}/thoughts/changelog-demo`} />
               }
             />
           </CardShell>
@@ -1136,11 +1189,12 @@ export function StyleGuideClient({ username }: Props) {
               <p>✓ Use CardFooter with EngagementBar on all content cards</p>
               <p>✓ Use TagChip for all tag-like elements</p>
               <p>✓ Use ImageGrid + ImageLightbox for all image displays</p>
-              <p>✓ Use ActionMenu for owner actions on cards</p>
+              <p>✓ Use ThreeDotMenu + EditModal for owner actions on thought cards</p>
               <p>✓ Show ProjectBadge when content has a project association</p>
               <p>✓ Use 3px borders for card outlines, 2px for inner elements</p>
               <p>✓ Use font-head (Archivo) for headings and labels</p>
               <p>✓ Use font-mono (Space Mono) for timestamps and metadata</p>
+              <p>✓ Use font-quote (Source Serif 4) for quote blockquotes only</p>
               <p>✓ Keep border-radius at 0px (except sticker variants and avatars)</p>
             </div>
           </div>
@@ -1193,6 +1247,7 @@ export function StyleGuideClient({ username }: Props) {
             },
             typeColors: {
               microblog: "orange",
+              changelog: "blue",
               bookmark: "green",
               quote: "lilac",
               question: "yellow",
@@ -1206,6 +1261,7 @@ export function StyleGuideClient({ username }: Props) {
               head: "Archivo",
               body: "DM Sans",
               mono: "Space Mono",
+              quote: "Source Serif 4",
             },
           }),
         }}
