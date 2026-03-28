@@ -158,10 +158,11 @@ export function ChangelogCard({ post, username, isOwner, siteTags }: Props) {
           contentType="microblog"
           contentId={post.id}
           initialData={{
-            body: post.body,
+            post_type: post.post_type,
+            title: post.title,
+            changelog_items: post.changelog_items,
             tags: post.tags,
             visibility: post.visibility,
-            media: post.images,
           }}
           onSaved={handleSaved}
           siteTags={siteTags}
