@@ -56,9 +56,6 @@ export function QuoteCard({ quote, username, isOwner }: Props) {
 
       {/* Large quotation mark + quote text */}
       <div className="mb-4 text-center">
-        <span className="block text-[3rem] leading-none opacity-20 font-head font-[900] mb-1">
-          &ldquo;
-        </span>
         <blockquote
           className="text-[1.35rem] font-[400] italic opacity-60"
           style={{ fontFamily: "var(--font-quote)", lineHeight: 1.6, textAlign: "center" }}
