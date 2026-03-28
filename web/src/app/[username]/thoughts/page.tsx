@@ -143,6 +143,32 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
     fetchQuestions(),
   ])
 
+  // ── Resolve context entities (adventures / projects) ──────────────────────
+
+  const adventureIds = [...new Set(
+    microblogPosts.filter(p => p.context_type === 'adventure' && p.context_id).map(p => p.context_id!)
+  )]
+  const projectIds = [...new Set(
+    microblogPosts.filter(p => p.context_type === 'project' && p.context_id).map(p => p.context_id!)
+  )]
+
+  const [{ data: ctxAdventures }, { data: ctxProjects }] = await Promise.all([
+    adventureIds.length
+      ? (supabase as any).from('adventures').select('id, title, slug').in('id', adventureIds)
+      : Promise.resolve({ data: [] as { id: string; title: string; slug: string }[] }),
+    projectIds.length
+      ? (supabase as any).from('projects').select('id, title, slug').in('id', projectIds)
+      : Promise.resolve({ data: [] as { id: string; title: string; slug: string }[] }),
+  ])
+
+  const contextMap = new Map<string, { type: 'adventure' | 'project'; title: string; slug: string }>()
+  ;(ctxAdventures ?? []).forEach((a: { id: string; title: string; slug: string }) =>
+    contextMap.set(a.id, { type: 'adventure', title: a.title, slug: a.slug })
+  )
+  ;(ctxProjects ?? []).forEach((p: { id: string; title: string; slug: string }) =>
+    contextMap.set(p.id, { type: 'project', title: p.title, slug: p.slug })
+  )
+
   // ── Merge into unified stream ─────────────────────────────────────────────
 
   const stream: StreamItem[] = []
@@ -280,6 +306,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
         <div className="flex flex-col gap-5">
           {pageItems.map((item) => {
             if (item.type === 'microblog') {
+              const contextEntity = item.data.context_id ? contextMap.get(item.data.context_id) : undefined
               if (item.data.post_type === 'changelog') {
                 return (
                   <ChangelogCard
@@ -288,6 +315,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                     username={username}
                     isOwner={isOwner}
                     siteTags={siteTags}
+                    contextEntity={contextEntity}
                   />
                 )
               }
@@ -298,6 +326,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
                   username={username}
                   isOwner={isOwner}
                   siteTags={siteTags}
+                  contextEntity={contextEntity}
                 />
               )
             }

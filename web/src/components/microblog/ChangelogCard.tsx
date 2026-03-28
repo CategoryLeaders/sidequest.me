@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { ThreeDotMenu } from "@/components/shared/ThreeDotMenu";
 import { EditModal } from "@/components/shared/EditModal";
+import { ContextChip } from "@/components/shared/ContextChip";
 import type { SiteTag } from "@/lib/tags";
 
 interface Props {
@@ -23,9 +24,10 @@ interface Props {
   username: string;
   isOwner?: boolean;
   siteTags?: SiteTag[];
+  contextEntity?: { type: "adventure" | "project"; title: string; slug: string };
 }
 
-export function ChangelogCard({ post, username, isOwner, siteTags }: Props) {
+export function ChangelogCard({ post, username, isOwner, siteTags, contextEntity }: Props) {
   const router = useRouter();
   const postDate = getPostDate(post);
   const permalink = `/${username}/thoughts/${post.short_id}`;
@@ -54,6 +56,14 @@ export function ChangelogCard({ post, username, isOwner, siteTags }: Props) {
       {/* Type badge */}
       <div className="flex items-center gap-2 mb-4">
         <TypeBadge type="changelog" />
+        {contextEntity && (
+          <ContextChip
+            type={contextEntity.type}
+            title={contextEntity.title}
+            slug={contextEntity.slug}
+            username={username}
+          />
+        )}
         {post.pinned && (
           <span className="text-[var(--text-2xs)] font-mono opacity-40 ml-auto">
             📌 Pinned
