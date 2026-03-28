@@ -121,7 +121,7 @@ export default async function ProjectsPage({ params, searchParams }: ProjectsPag
                     <TagChip
                       key={tech}
                       label={tech}
-                      variant="muted"
+                      variant="sticker"
                     />
                   ))}
                 </div>

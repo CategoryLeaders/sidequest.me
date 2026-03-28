@@ -210,7 +210,7 @@ export default async function ThoughtsPage({ params, searchParams }: Props) {
       )}
 
       {/* Owner composer */}
-      {isOwner && <ThoughtsComposer username={username} />}
+      {isOwner && <ThoughtsComposer username={username} siteTags={siteTags} />}
 
       {/* Type filter tabs */}
       <div className="flex flex-wrap gap-2 mb-4">

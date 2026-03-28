@@ -2,9 +2,13 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { ThoughtType } from "@/lib/thoughts-types";
+import type { MicroblogImage } from "@/lib/microblogs";
+import type { SiteTag } from "@/lib/tags";
+import { ImageManager } from "@/components/shared/ImageManager";
 
 interface Props {
   username: string;
+  siteTags?: SiteTag[];
 }
 
 type ComposerType = ThoughtType | "changelog";
@@ -18,7 +22,7 @@ const TYPES: { key: ComposerType; label: string; icon: string; color: string }[]
   { key: "question", label: "Question", icon: "❓", color: "sticker-orange" },
 ];
 
-export default function ThoughtsComposer({ username }: Props) {
+export default function ThoughtsComposer({ username, siteTags }: Props) {
   const [activeType, setActiveType] = useState<ComposerType | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +94,7 @@ export default function ThoughtsComposer({ username }: Props) {
       )}
 
       {activeType === "microblog" && (
-        <MicroblogForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} />
+        <MicroblogForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} siteTags={siteTags} />
       )}
       {activeType === "changelog" && (
         <ChangelogForm saving={saving} setSaving={setSaving} setError={setError} onSuccess={handleSuccess} />
@@ -115,6 +119,46 @@ interface FormChildProps {
   setSaving: (v: boolean) => void;
   setError: (v: string | null) => void;
   onSuccess: (msg: string) => void;
+  siteTags?: SiteTag[];
+}
+
+function SiteTagPicker({ tags, siteTags, setTags }: { tags: string[]; siteTags: SiteTag[]; setTags: (t: string[]) => void }) {
+  const COLORS: Record<string, string> = {
+    "sticker-orange": "var(--orange)",
+    "sticker-green": "var(--green)",
+    "sticker-blue": "var(--blue)",
+    "sticker-yellow": "var(--yellow)",
+    "sticker-lilac": "var(--lilac)",
+    "sticker-pink": "var(--pink)",
+  };
+  const toggle = (label: string) => {
+    setTags(tags.includes(label) ? tags.filter(t => t !== label) : [...tags, label]);
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5 items-center">
+      {siteTags.map(st => {
+        const active = tags.includes(st.label);
+        const color = COLORS[st.color] ?? "var(--ink)";
+        return (
+          <button
+            key={st.label}
+            type="button"
+            onClick={() => toggle(st.label)}
+            className="font-mono text-[0.65rem] px-2.5 py-1 border-2 transition-all cursor-pointer"
+            style={{
+              borderColor: active ? color : "rgba(26,26,26,0.2)",
+              background: active ? color : "transparent",
+              color: active ? "#fff" : "var(--ink)",
+              fontWeight: active ? 700 : 400,
+              opacity: active ? 1 : 0.55,
+            }}
+          >
+            {st.icon ? `${st.icon} ` : ""}{st.label}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 function TagInput({ tags, setTags }: { tags: string[]; setTags: (t: string[]) => void }) {
@@ -362,19 +406,39 @@ function ChangelogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
 
 /* ── Microblog composer ──────────────────────────────────────────────────── */
 
-function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProps) {
+type LinkType = "adventure" | "project" | "";
+
+function MicroblogForm({ saving, setSaving, setError, onSuccess, siteTags }: FormChildProps) {
   const [body, setBody] = useState("");
+  const [images, setImages] = useState<MicroblogImage[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [visibility, setVisibility] = useState("public");
+  const [linkType, setLinkType] = useState<LinkType>("");
+  const [linkId, setLinkId] = useState("");
   const [adventures, setAdventures] = useState<{ id: string; title: string }[]>([]);
-  const [adventureId, setAdventureId] = useState<string>("");
+  const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
+  // TODO: professional role — awaiting job_roles DB table
 
   useEffect(() => {
     fetch("/api/adventures")
       .then((r) => r.ok ? r.json() : [])
-      .then((data) => setAdventures(Array.isArray(data) ? data.map((a: any) => ({ id: a.id, title: a.title })) : []))
+      .then((data: any[]) => setAdventures(Array.isArray(data) ? data.map((a) => ({ id: a.id, title: a.title })) : []))
+      .catch(() => {});
+    fetch("/api/projects")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: any[]) => setProjects(Array.isArray(data) ? data.map((p) => ({ id: p.id, title: p.title })) : []))
       .catch(() => {});
   }, []);
+
+  const toggleLinkType = (type: LinkType) => {
+    if (linkType === type) {
+      setLinkType("");
+      setLinkId("");
+    } else {
+      setLinkType(type);
+      setLinkId("");
+    }
+  };
 
   const submit = useCallback(async (status: "published" | "draft") => {
     if (!body.trim()) { setError("Post body is required"); return; }
@@ -386,16 +450,20 @@ function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: body.trim(),
+          media: images,
           tags,
           visibility,
           status,
-          ...(adventureId ? { context_type: "adventure", context_id: adventureId } : {}),
+          ...(linkType && linkId ? { context_type: linkType, context_id: linkId } : {}),
         }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
       onSuccess("Microblog posted!");
     } catch (e: any) { setError(e.message); setSaving(false); }
-  }, [body, tags, visibility, adventureId, setSaving, setError, onSuccess]);
+  }, [body, images, tags, visibility, linkType, linkId, setSaving, setError, onSuccess]);
+
+  const hasLinkOptions = adventures.length > 0 || projects.length > 0;
+  const linkEntities = linkType === "adventure" ? adventures : linkType === "project" ? projects : [];
 
   return (
     <>
@@ -406,20 +474,67 @@ function MicroblogForm({ saving, setSaving, setError, onSuccess }: FormChildProp
         rows={4}
         className="w-full border-2 border-ink/20 px-3 py-2.5 text-[0.88rem] font-mono outline-none bg-transparent focus:border-[var(--orange)] transition-colors placeholder:text-ink/20 resize-y mb-3"
       />
-      {adventures.length > 0 && (
+
+      {/* Images */}
+      <div className="mb-3">
+        <ImageManager images={images} onChange={setImages} entityId="new" />
+      </div>
+
+      {/* Link to */}
+      {hasLinkOptions && (
         <div className="mb-3">
-          <select
-            value={adventureId}
-            onChange={(e) => setAdventureId(e.target.value)}
-            className="font-mono text-[0.7rem] border-2 border-ink/20 px-2 py-1.5 bg-transparent outline-none focus:border-[var(--orange)] transition-colors w-full max-w-xs"
-          >
-            <option value="">🗺 Tag to adventure (optional)</option>
-            {adventures.map((a) => (
-              <option key={a.id} value={a.id}>{a.title}</option>
-            ))}
-          </select>
+          <p className="font-mono text-[0.6rem] text-ink/30 mb-1.5 uppercase">Link to (optional)</p>
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {adventures.length > 0 && (
+              <button
+                type="button"
+                onClick={() => toggleLinkType("adventure")}
+                className={`font-mono text-[0.65rem] px-2.5 py-1 border-2 cursor-pointer transition-all ${
+                  linkType === "adventure"
+                    ? "border-ink bg-ink text-[var(--cream)]"
+                    : "border-ink/20 text-ink/50 hover:border-ink/40"
+                }`}
+              >
+                🗺 Adventure
+              </button>
+            )}
+            {projects.length > 0 && (
+              <button
+                type="button"
+                onClick={() => toggleLinkType("project")}
+                className={`font-mono text-[0.65rem] px-2.5 py-1 border-2 cursor-pointer transition-all ${
+                  linkType === "project"
+                    ? "border-ink bg-ink text-[var(--cream)]"
+                    : "border-ink/20 text-ink/50 hover:border-ink/40"
+                }`}
+              >
+                🛠 Project
+              </button>
+            )}
+          </div>
+          {linkType && linkEntities.length > 0 && (
+            <select
+              value={linkId}
+              onChange={(e) => setLinkId(e.target.value)}
+              className="mt-2 font-mono text-[0.7rem] border-2 border-ink/20 px-2 py-1.5 bg-transparent outline-none focus:border-[var(--orange)] transition-colors w-full max-w-xs"
+            >
+              <option value="">Select {linkType}…</option>
+              {linkEntities.map((e) => (
+                <option key={e.id} value={e.id}>{e.title}</option>
+              ))}
+            </select>
+          )}
         </div>
       )}
+
+      {/* Site tags */}
+      {siteTags && siteTags.length > 0 && (
+        <div className="mb-2">
+          <p className="font-mono text-[0.6rem] text-ink/30 mb-1.5 uppercase">Site tags</p>
+          <SiteTagPicker tags={tags} siteTags={siteTags} setTags={setTags} />
+        </div>
+      )}
+
       <div className="flex items-center gap-4 mb-2">
         <TagInput tags={tags} setTags={setTags} />
         <VisibilitySelect value={visibility} onChange={setVisibility} />

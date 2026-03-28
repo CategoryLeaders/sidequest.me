@@ -112,6 +112,7 @@ export function StyleGuideClient({ username }: Props) {
   const navItems = [
     { id: "foundations", label: "Foundations" },
     { id: "components", label: "Components" },
+    { id: "composer", label: "Composer" },
     { id: "cards", label: "Card Types" },
     { id: "hierarchy", label: "Hierarchy" },
     { id: "images", label: "Images" },
@@ -658,6 +659,91 @@ export function StyleGuideClient({ username }: Props) {
     className="w-full border-3 border-ink px-4 py-2.5 ..."
   />
 </form>`}</pre>
+        </Sub>
+      </Section>
+
+      {/* ═══════════ 2b. THOUGHT COMPOSER ═══════════ */}
+      <Section id="composer" title="Thought Composer — Microblog Form">
+        <p className="text-[var(--text-sm)] opacity-60 mb-6">
+          The microblog composer supports images, a "Link to" contextual selector, and site-tag chips.
+          All three features update the same POST body sent to <code className="font-mono text-[0.8em] bg-ink/5 px-1">
+          /api/microblogs</code>.
+        </p>
+
+        {/* Images */}
+        <Sub title="1.1 — Images">
+          <p className="text-[var(--text-sm)] opacity-60 mb-3">
+            Thumbnails appear in a 72×72 grid. ✕ removes; ★ sets featured (orange border). + opens
+            the file picker and uploads via <code className="font-mono text-[0.8em] bg-ink/5 px-1">
+            /api/upload-image</code>. Stored as <code className="font-mono text-[0.8em] bg-ink/5 px-1">media</code> in
+            the POST body.
+          </p>
+          <div className="flex flex-wrap gap-2 items-start">
+            {/* Mock starred thumbnail */}
+            <div className="relative w-[72px] h-[72px] border-[2.5px] border-[var(--orange)] bg-ink/5 flex items-center justify-center">
+              <span className="font-mono text-[0.6rem] text-ink/30">img</span>
+              <button className="absolute top-[2px] right-[2px] bg-black/55 text-white text-[0.65rem] px-1 leading-tight">✕</button>
+              <button className="absolute bottom-[2px] left-[3px] bg-black/55 text-[var(--orange)] text-[0.7rem] px-0.5 leading-tight">★</button>
+            </div>
+            {/* Mock unstarred thumbnail */}
+            <div className="relative w-[72px] h-[72px] border border-ink/20 bg-ink/5 flex items-center justify-center">
+              <span className="font-mono text-[0.6rem] text-ink/30">img</span>
+              <button className="absolute top-[2px] right-[2px] bg-black/55 text-white text-[0.65rem] px-1 leading-tight">✕</button>
+              <button className="absolute bottom-[2px] left-[3px] bg-black/55 text-white text-[0.7rem] px-0.5 leading-tight">★</button>
+            </div>
+            {/* Add button */}
+            <div className="w-[72px] h-[72px] border border-dashed border-ink/30 flex flex-col items-center justify-center gap-1 opacity-70">
+              <span className="text-[1.2rem] leading-none opacity-50">+</span>
+              <span className="font-mono text-[0.55rem] opacity-45">Add</span>
+            </div>
+          </div>
+        </Sub>
+
+        {/* Link to */}
+        <Sub title="1.2 — Link to">
+          <p className="text-[var(--text-sm)] opacity-60 mb-3">
+            Toggle buttons select the link type; a dropdown then shows matching entities. Sends{" "}
+            <code className="font-mono text-[0.8em] bg-ink/5 px-1">context_type</code> +{" "}
+            <code className="font-mono text-[0.8em] bg-ink/5 px-1">context_id</code>.
+            Professional Role is pending a <code className="font-mono text-[0.8em] bg-ink/5 px-1">job_roles</code> DB table.
+          </p>
+          <div>
+            <p className="font-mono text-[0.6rem] text-ink/30 mb-1.5 uppercase">Link to (optional)</p>
+            <div className="flex gap-1.5 flex-wrap">
+              <span className="font-mono text-[0.65rem] px-2.5 py-1 border-2 border-ink bg-ink text-[var(--cream)]">
+                🗺 Adventure
+              </span>
+              <span className="font-mono text-[0.65rem] px-2.5 py-1 border-2 border-ink/20 text-ink/50">
+                🛠 Project
+              </span>
+            </div>
+            <select disabled className="mt-2 font-mono text-[0.7rem] border-2 border-ink/20 px-2 py-1.5 bg-transparent w-full max-w-xs opacity-60">
+              <option>Select adventure…</option>
+            </select>
+          </div>
+        </Sub>
+
+        {/* Site tags */}
+        <Sub title="1.3 — Site tags in composer">
+          <p className="text-[var(--text-sm)] opacity-60 mb-3">
+            Site tag chips appear above the regular tag input. Active chips toggle their label
+            into the <code className="font-mono text-[0.8em] bg-ink/5 px-1">tags[]</code> array —
+            same field as free-text tags.
+          </p>
+          <div>
+            <p className="font-mono text-[0.6rem] text-ink/30 mb-1.5 uppercase">Site tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="font-mono text-[0.65rem] px-2.5 py-1 border-2 border-[var(--orange)] bg-[var(--orange)] text-white font-bold">
+                ⛵ Sailing
+              </span>
+              <span className="font-mono text-[0.65rem] px-2.5 py-1 border-2 border-ink/20 text-ink/55">
+                💼 Work
+              </span>
+              <span className="font-mono text-[0.65rem] px-2.5 py-1 border-2 border-ink/20 text-ink/55">
+                🌍 Travel
+              </span>
+            </div>
+          </div>
         </Sub>
       </Section>
 

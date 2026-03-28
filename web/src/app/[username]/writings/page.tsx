@@ -271,7 +271,8 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
             <TagChip
               key={t.label}
               label={t.label}
-              variant="muted"
+              variant="sticker"
+              color={t.color.replace('sticker-', '')}
               active={filterLabel === t.label}
               href={
                 filterLabel === t.label
@@ -353,7 +354,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                     {isOwner && (
                       <div className="absolute top-0 right-0">
                         <WritingEditControls
-                          writingId={w.id}
+                          writingId={w.id ?? ""}
                           initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published" }}
                           siteTags={siteTags}
                         />
@@ -411,6 +412,8 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                                 <TagChip
                                   key={tag}
                                   label={tag}
+                                  variant={siteTag ? 'sticker' : 'default'}
+                                  color={siteTag ? siteTag.color.replace('sticker-', '') : undefined}
                                   href={
                                     siteTag
                                       ? `/${username}/writings/tags/${slugify(tag)}`
