@@ -16,9 +16,10 @@ interface Props {
   };
   siteTags?: SiteTag[];
   onDeleted?: () => void;
+  permalink?: string;
 }
 
-export function WritingEditControls({ writingId, initialData, siteTags, onDeleted }: Props) {
+export function WritingEditControls({ writingId, initialData, siteTags, onDeleted, permalink }: Props) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -36,6 +37,7 @@ export function WritingEditControls({ writingId, initialData, siteTags, onDelete
       <ThreeDotMenu
         contentType="writing"
         contentId={writingId}
+        permalink={permalink}
         onEdit={() => setEditOpen(true)}
         onDeleted={() => {
           onDeleted?.();

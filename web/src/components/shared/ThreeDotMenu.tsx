@@ -14,6 +14,8 @@ interface Props {
   onDeleted?: () => void;
   /** Additional menu items */
   extraItems?: { label: string; icon: string; onClick: () => void }[];
+  /** Permalink path for Copy Link (e.g. "/sophie/thoughts/abc123") — falls back to current URL */
+  permalink?: string;
 }
 
 const API_PREFIX: Record<ContentType, string> = {
@@ -25,7 +27,7 @@ const API_PREFIX: Record<ContentType, string> = {
   writing: "/api/writings",
 };
 
-export function ThreeDotMenu({ contentType, contentId, onEdit, onDeleted, extraItems }: Props) {
+export function ThreeDotMenu({ contentType, contentId, onEdit, onDeleted, extraItems, permalink }: Props) {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -76,10 +78,10 @@ export function ThreeDotMenu({ contentType, contentId, onEdit, onDeleted, extraI
   }, [contentType, contentId, onDeleted]);
 
   const handleCopyLink = useCallback(() => {
-    const url = window.location.origin + window.location.pathname;
+    const url = window.location.origin + (permalink ?? window.location.pathname);
     navigator.clipboard?.writeText(url);
     setOpen(false);
-  }, []);
+  }, [permalink]);
 
   return (
     <div ref={menuRef} style={{ position: "relative" }}>

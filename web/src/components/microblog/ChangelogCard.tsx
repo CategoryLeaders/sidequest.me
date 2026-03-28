@@ -44,6 +44,7 @@ export function ChangelogCard({ post, username, isOwner, siteTags }: Props) {
           <ThreeDotMenu
             contentType="microblog"
             contentId={post.id}
+            permalink={permalink}
             onEdit={() => setEditOpen(true)}
             onDeleted={() => router.refresh()}
           />

@@ -45,6 +45,7 @@ export function QuestionCard({ question, username, commentCount = 0, isOwner, si
           <ThreeDotMenu
             contentType="question"
             contentId={question.id}
+            permalink={permalink}
             onEdit={() => setEditOpen(true)}
             onDeleted={() => router.refresh()}
           />

@@ -356,6 +356,7 @@ export default async function WritingsIndexPage({ params, searchParams }: Props)
                         <WritingEditControls
                           writingId={w.id ?? ""}
                           initialData={{ title: w.title ?? "", tags: w.tags ?? [], status: (w as any).status ?? "published" }}
+                          permalink={w.slug ? `/${username}/writings/${w.slug}` : undefined}
                           siteTags={siteTags}
                         />
                       </div>

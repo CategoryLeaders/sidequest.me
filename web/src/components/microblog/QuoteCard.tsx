@@ -43,6 +43,7 @@ export function QuoteCard({ quote, username, isOwner, siteTags }: Props) {
           <ThreeDotMenu
             contentType="quote"
             contentId={quote.id}
+            permalink={permalink}
             onEdit={() => setEditOpen(true)}
             onDeleted={() => router.refresh()}
           />

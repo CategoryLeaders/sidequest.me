@@ -43,6 +43,7 @@ export function BookmarkCard({ bookmark, username, isOwner, siteTags }: Props) {
           <ThreeDotMenu
             contentType="bookmark"
             contentId={bookmark.id}
+            permalink={permalink}
             onEdit={() => setEditOpen(true)}
             onDeleted={() => router.refresh()}
           />
